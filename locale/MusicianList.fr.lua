@@ -6,7 +6,11 @@ msg.LOADING_SONG = "Chargement de {name}..."
 msg.DONE_LOADING = "Chargement terminé."
 msg.DONE_SAVING = "Enregistrement terminé."
 msg.SONG_DELETED = "{name} supprimé."
+
 msg.NO_SONG = "Aucun morceau dans la liste."
+msg.NO_SONG_FOUND = "Aucun morceau trouvé."
+msg.SONG_LIST = "Liste des morceaux"
+msg.FOUND_SONG_LIST = "Morceaux trouvés"
 
 msg.LINK_PLAY = "►"
 msg.LINK_DELETE = "X"

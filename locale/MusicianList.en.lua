@@ -6,7 +6,11 @@ msg.LOADING_SONG = "Loading {name}..."
 msg.DONE_LOADING = "Done loading."
 msg.DONE_SAVING = "Done saving."
 msg.SONG_DELETED = "Deleted {name}."
+
 msg.NO_SONG = "No song in list."
+msg.NO_SONG_FOUND = "No song found."
+msg.SONG_LIST = "Song list"
+msg.FOUND_SONG_LIST = "Found songs"
 
 msg.LINK_PLAY = "►"
 msg.LINK_DELETE = "X"

@@ -4,6 +4,8 @@ MusicianList
 Add load and save features for the addon [Musician](https://lenwe.info/musician).
 This addon has no UI and has to be used in command line only.
 
+Musician commands start by `/musician` but you can also use `/music` or `/mus`.
+
 List available songs
 --------------------
 `/musician list`
@@ -24,6 +26,11 @@ Load song
 Load and play song
 ------------------
 `/musician play (<song name>|<song number>)`
+
+Find a song
+-----------
+`/musician find <keywords>`
+`/musician search <keywords>`
 
 Delete song
 -----------

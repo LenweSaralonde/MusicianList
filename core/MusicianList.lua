@@ -108,6 +108,8 @@ function MusicianList.Command(command)
 		MusicianList.List()
 	elseif cmd == 'delete' or cmd == 'del' or cmd == 'remove' then
 		MusicianList.Delete(value)
+	elseif cmd == 'find' or cmd == 'search' or cmd == 'filter' then
+		MusicianList.Find(value)
 	else
 		MusicianCmd(command) -- Fallback on Musician's base commands
 	end
@@ -126,31 +128,74 @@ function MusicianList.GetSongList()
 		return MusicianList.StripAccents(strlower(a.name)) < MusicianList.StripAccents(strlower(b.name))
 	end)
 
+	-- Add indexes
+	local index
+	for index, song in pairs(list) do
+		song.index = index
+	end
+
 	return list
 end
 
 --- List songs
 --
 function MusicianList.List()
+	MusicianList.DisplaySongList(MusicianList.GetSongList(), MusicianList.Msg.SONG_LIST, MusicianList.Msg.NO_SONG)
+end
+
+--- Find songs matching keywords
+-- @param keywords (keywords)
+function MusicianList.Find(keywords)
+	-- Filter punctuation, accents, lowercase etc.
+	keywords = string.gsub(MusicianList.StripAccents(strlower(strtrim(keywords))), '[%p%c%s ]+', ' ')
+	local keywordList = { string.split(' ', keywords) }
+
 	local list = MusicianList.GetSongList()
+	local listFiltered = {}
+
+	local song, kw
+	for _, song in pairs(list) do
+		local filteredName = string.gsub(MusicianList.StripAccents(strlower(strtrim(song.name))), '[%p%c%s ]+', ' ')
+		local found = true
+		local kw
+		for _, kw in pairs(keywordList) do
+			if not(string.match(filteredName, kw)) then
+				found = false
+			end
+		end
+		if found then
+			table.insert(listFiltered, song)
+		end
+	end
+
+	MusicianList.DisplaySongList(listFiltered, MusicianList.Msg.FOUND_SONG_LIST, MusicianList.Msg.NO_SONG_FOUND)
+end
+
+--- Display song list
+-- @param list (table)
+-- @param title (string)
+-- @param noSongTitle (string)
+function MusicianList.DisplaySongList(list, title, noSongTitle)
 
 	if #list == 0 then
-		Musician.Utils.Print(MusicianList.Msg.NO_SONG)
+		Musician.Utils.Print(noSongTitle)
 		return
 	end
 
-	local i, song
-	for i, song in pairs(list) do
-		local row =
-			Musician.Utils.Print(
-				Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_PLAY, "play", song.name), 'FF0000') .. ' ' ..
-				Musician.Utils.PaddingZeros(i, floor(log10(#list) + 1)) .. '. ' ..
-				Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", '[' .. song.name .. ']', "load", song.name)) ..
-				' (' .. Musician.Utils.FormatTime(song.cropTo - song.cropFrom, true) .. ') '
-			-- .. ' [' .. Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_DELETE, "delete", song.name), 'FF0000') .. '] '
-			)
+	Musician.Utils.Print("══════ " .. Musician.Utils.Highlight("♫ " .. title) .. " ══════")
+
+	local song
+	for _, song in pairs(list) do
+		Musician.Utils.Print(
+			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_PLAY, "play", song.name), 'FF0000') .. ' ' ..
+			Musician.Utils.PaddingZeros(song.index, floor(log10(#list) + 1)) .. '. ' ..
+			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", '[' .. song.name .. ']', "load", song.name)) ..
+			' (' .. Musician.Utils.FormatTime(song.cropTo - song.cropFrom, true) .. ') '
+		-- .. ' [' .. Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_DELETE, "delete", song.name), 'FF0000') .. '] '
+		)
 	end
 end
+
 
 --- Process save step on frame
 --
