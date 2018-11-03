@@ -1,0 +1,15 @@
+## Interface: 80000
+## Title: Musician List
+## Version: 1.0.0
+## RequiredDeps: Musician
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: MusicianList_Storage
+
+embeds.xml
+
+core\MusicianList.lua
+
+constants\MusicianList.Constants.lua
+
+locale\locale.xml
