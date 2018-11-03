@@ -123,7 +123,7 @@ function MusicianList.GetSongList()
 	end
 
 	table.sort(list, function(a, b)
-		return a.name < b.name
+		return MusicianList.StripAccents(strlower(a.name)) < MusicianList.StripAccents(strlower(b.name))
 	end)
 
 	return list
@@ -431,4 +431,72 @@ function MusicianList.PrintError(msg)
 	PlaySoundFile("Sound\\interface\\Error.ogg")
 end
 
+--- Remove all accents from provided string
+-- @param str (string)
+-- @return string without accents (string)
+function MusicianList.StripAccents(str)
 
+	if(str == nil) then return "" end
+
+	local accents = {
+		{"À Á Â Ã Ä Å Ā Ă Ą", "A"},
+		{"à á â ã ä å ā ă ą", "a"},
+		{"Æ", "AE"},
+		{"æ", "ae"},
+		{"ß Ɓ", "B"},
+		{"ƀ", "b"},
+		{"Ç Ć Ĉ Ċ Č", "C"},
+		{"ç ć ĉ ċ č", "c"},
+		{"Ð Ď Đ", "D"},
+		{"ď đ ð", "d"},
+		{"È É Ê Ë Ē Ĕ Ė Ę Ě", "E"},
+		{"è é ê ë ē ĕ ė ę ě", "e"},
+		{"ſ", "f"},
+		{"Ĝ Ğ Ġ Ģ", "G"},
+		{"ĝ ğ ġ ģ", "g"},
+		{"Ĥ Ħ", "H"},
+		{"ĥ ħ", "h"},
+		{"Ì Í Î Ï Ĩ Ī Ĭ Į İ", "I"},
+		{"ì í î ï ĩ ī ĭ į ı", "i"},
+		{"Ĳ", "IJ"},
+		{"ĳ", "ij"},
+		{"Ĵ", "J"},
+		{"ĵ", "j"},
+		{"Ķ", "K"},
+		{"ķĸ", "k"},
+		{"Ĺ Ļ Ľ Ŀ Ł", "L"},
+		{"ĺ ļ ľ ŀ ł", "l"},
+		{"Ñ Ń Ņ Ň Ŋ", "N"},
+		{"ñ ń ņ ň ŉ ŋ", "n"},
+		{"Ò Ó Ô Õ Ö Ø Ō Ŏ Ő", "O"},
+		{"ò ó ô õ ö ø ō ŏ ő", "o"},
+		{"þ Þ", "P"},
+		{"Œ", "OE"},
+		{"œ", "oe"},
+		{"Ŕ Ŗ Ř", "R"},
+		{"ŕ ŗ ř", "r"},
+		{"Ś Ŝ Ş Š", "S"},
+		{"ś ŝ ş š", "s"},
+		{"Ţ Ť Ŧ", "T"},
+		{"ţ ť ŧ", "t"},
+		{"Ù Ú Û Ü Ũ Ū Ŭ Ů Ű Ų", "U"},
+		{"ù ú û ü ũ ū ŭ ů ű ų", "u"},
+		{"Ŵ", "W"},
+		{"ŵ", "w"},
+		{"Ý Ŷ Ÿ", "Y"},
+		{"ý ŷ ÿ", "y"},
+		{"Ź Ż Ž", "Z"},
+		{"ź ż ž", "z"}
+	}
+
+	local accentRow, a
+
+	for _, accentRow in pairs(accents) do
+		accentRow[1] = {strsplit(' ', accentRow[1])}
+		for _, a in pairs(accentRow[1]) do
+			str = string.gsub(str, a, accentRow[2])
+		end
+	end
+
+	return str
+end
