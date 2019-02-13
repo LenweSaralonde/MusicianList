@@ -102,7 +102,7 @@ function MusicianList.Command(command)
 
 	if cmd == 'save' then
 		MusicianList.Save(value)
-	elseif cmd == 'load' or cmd == 'play' then
+	elseif (cmd == 'load' or cmd == 'play') and value ~= "" then
 		MusicianList.Load(value, cmd == 'play')
 	elseif cmd == 'list' or cmd == 'songs' then
 		MusicianList.List()
