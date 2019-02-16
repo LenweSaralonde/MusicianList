@@ -1,11 +1,23 @@
 MusicianList.Locale.fr = Musician.Utils.DeepCopy(MusicianList.Locale.en)
 local msg = MusicianList.Locale.fr
 
-msg.SAVING_SONG = "Enregistrement de {name}..."
-msg.LOADING_SONG = "Chargement de {name}..."
+msg.COMMAND_SAVE = "Enregistrer le morceau actuel dans la liste"
+msg.COMMAND_SAVE_PARAMS = "[ **<nom morceau>** ]"
+msg.COMMAND_LOAD = "Charger un morceau depuis la liste"
+msg.COMMAND_LOAD_PARAMS = "{ **<nom morceau>** || **<n° morceau>** }"
+msg.COMMAND_PLAY = "Charger et jouer un morceau depuis la liste ou jouer le morceau actuel"
+msg.COMMAND_PLAY_PARAMS = "[ { **<nom morceau>** || **<n° morceau>** } ]"
+msg.COMMAND_LIST = "Afficher la liste des morceaux"
+msg.COMMAND_DELETE = "Supprimer un morceau de la liste ou supprimer le morceau actuel"
+msg.COMMAND_DELETE_PARAMS = "[ { **<nom morceau>** || **<n° morceau>** } ]"
+msg.COMMAND_FIND = "Chercher un morceau dans la liste"
+msg.COMMAND_FIND_PARAMS = "**<mot-clé 1>** [ **<mot-clé 2>** ] [ … **<mot-clé n>** ]"
+
+msg.SAVING_SONG = "Enregistrement de \"{name}\"…"
+msg.LOADING_SONG = "Chargement de \"{name}\"…"
 msg.DONE_LOADING = "Chargement terminé."
 msg.DONE_SAVING = "Enregistrement terminé."
-msg.SONG_DELETED = "{name} supprimé."
+msg.SONG_DELETED = "\"{name}\" a été supprimé."
 
 msg.NO_SONG = "Aucun morceau dans la liste."
 msg.NO_SONG_FOUND = "Aucun morceau trouvé."

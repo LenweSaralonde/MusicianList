@@ -11,7 +11,7 @@ local importedSongData
 
 local currentProcess
 
-local MusicianCmd
+local MusicianGetCommands
 
 function MusicianList:OnInitialize()
 
@@ -68,9 +68,9 @@ function MusicianList:OnInitialize()
 		MusicianFrame.RefreshLoadingProgressBar(event, { ['importing'] = false }, 1)
 	end)
 
-	-- Hook Musician command
-	MusicianCmd = SlashCmdList["MUSICIAN"]
-	SlashCmdList["MUSICIAN"] = MusicianList.Command
+	-- Hook Musician functions
+	MusicianGetCommands = Musician.GetCommands
+	Musician.GetCommands = MusicianList.GetCommands
 
 	-- Hyperlinks
 	--
@@ -79,40 +79,85 @@ function MusicianList:OnInitialize()
 		local args = { strsplit(':', link) }
 		if args[1] == "musicianlist" then
 			-- Load song
-			if args[2] == "load" then
+			if args[2] == "load" then -- Load song
 				MusicianList.Load(args[3])
-			-- Play song
-			elseif args[2] == "play" then
+			elseif args[2] == "play" then -- Play song
 				MusicianList.Load(args[3], true)
-			-- Delete song
-			elseif args[2] == "delete" then
+			elseif args[2] == "delete" then -- Delete song
 				MusicianList.Delete(args[3])
 			end
 		end
 	end)
 end
 
+--- Get command definitions
+-- @return (table)
+function MusicianList.GetCommands()
+	local commands = MusicianGetCommands()
 
---- Run command
--- @param command (string)
-function MusicianList.Command(command)
-	local cmdParts = { string.split(' ', strtrim(command)) }
-	local cmd = strlower(cmdParts[1])
-	local value = table.concat(cmdParts, ' ', 2)
+	-- Replace existing "Play" command
 
-	if cmd == 'save' then
-		MusicianList.Save(value)
-	elseif (cmd == 'load' or cmd == 'play') and value ~= "" then
-		MusicianList.Load(value, cmd == 'play')
-	elseif cmd == 'list' or cmd == 'songs' then
-		MusicianList.List()
-	elseif cmd == 'delete' or cmd == 'del' or cmd == 'remove' then
-		MusicianList.Delete(value)
-	elseif cmd == 'find' or cmd == 'search' or cmd == 'filter' then
-		MusicianList.Find(value)
-	else
-		MusicianCmd(command) -- Fallback on Musician's base commands
-	end
+	local playCommand = table.remove(commands, 2)
+	table.insert(commands, 2, {
+		command = { "play" },
+		text = MusicianList.Msg.COMMAND_PLAY,
+		params = MusicianList.Msg.COMMAND_PLAY_PARAMS,
+		func = function(value)
+			if value ~= "" then
+				MusicianList.Load(value, true)
+			else
+				playCommand.func()
+			end
+		end
+	})
+
+	-- List songs
+
+	table.insert(commands, #commands - 2, {
+		command = { "list", "songs" },
+		text = MusicianList.Msg.COMMAND_LIST,
+		func = MusicianList.List
+	})
+
+	-- Find song
+
+	table.insert(commands, #commands - 2, {
+		command = { "find", "search", "filter" },
+		text = MusicianList.Msg.COMMAND_FIND,
+		params = MusicianList.Msg.COMMAND_FIND_PARAMS,
+		func = MusicianList.Find
+	})
+
+	-- Load song
+
+	table.insert(commands, #commands - 2, {
+		command = { "load" },
+		text = MusicianList.Msg.COMMAND_LOAD,
+		params = MusicianList.Msg.COMMAND_LOAD_PARAMS,
+		func = function(value)
+			MusicianList.Load(value, false)
+		end
+	})
+
+	-- Save song
+
+	table.insert(commands, #commands - 2, {
+		command = { "save" },
+		text = MusicianList.Msg.COMMAND_SAVE,
+		params = MusicianList.Msg.COMMAND_SAVE_PARAMS,
+		func = MusicianList.Save
+	})
+
+	-- Delete song
+
+	table.insert(commands, #commands - 2, {
+		command = { "delete", "del", "remove", "rm" },
+		text = MusicianList.Msg.COMMAND_DELETE,
+		params = MusicianList.Msg.COMMAND_DELETE_PARAMS,
+		func = MusicianList.Delete
+	})
+
+	return commands
 end
 
 --- Get sorted song list
