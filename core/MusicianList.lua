@@ -12,6 +12,7 @@ local importedSongData
 local currentProcess
 
 local MusicianGetCommands
+local MusicianButtonGetMenu
 
 function MusicianList:OnInitialize()
 
@@ -71,6 +72,8 @@ function MusicianList:OnInitialize()
 	-- Hook Musician functions
 	MusicianGetCommands = Musician.GetCommands
 	Musician.GetCommands = MusicianList.GetCommands
+	MusicianButtonGetMenu = MusicianButton.GetMenu
+	MusicianButton.GetMenu = MusicianList.GetMenu
 
 	-- Hyperlinks
 	--
@@ -158,6 +161,47 @@ function MusicianList.GetCommands()
 	})
 
 	return commands
+end
+
+--- Return main menu elements
+-- @return (table)
+function MusicianList.GetMenu()
+	local menu = MusicianButtonGetMenu()
+
+	-- Show song list
+
+	table.insert(menu, 3, {
+		notCheckable = true,
+		text = MusicianList.Msg.MENU_LIST,
+		func = MusicianList.List
+	})
+
+	if Musician.sourceSong then
+
+		-- Save song
+
+		table.insert(menu, 7, {
+			notCheckable = true,
+			text = MusicianList.Msg.MENU_SAVE,
+			func = function()
+				MusicianList.Save()
+			end
+		})
+
+		-- Delete song
+
+		if Musician.sourceSong.isInList then
+			table.insert(menu, 8, {
+				notCheckable = true,
+				text = MusicianList.Msg.MENU_DELETE,
+				func = function()
+					MusicianList.Delete()
+				end
+			})
+		end
+	end
+
+	return menu
 end
 
 --- Get sorted song list
@@ -320,6 +364,8 @@ function MusicianList.Save(name)
 
 	Musician.Comm:SendMessage(MusicianList.Events.SongSaveStart, currentProcess)
 	Musician.Comm:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, 0)
+
+	Musician.sourceSong.isInList = true
 end
 
 --- Process load step on frame
@@ -411,7 +457,7 @@ end
 function MusicianList.Delete(nameOrIndex)
 
 	if nameOrIndex == nil or nameOrIndex == '' then
-		nameOrIndex = Musician.sourceSong.name
+		nameOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
 	else
 		nameOrIndex = strtrim(strlower(nameOrIndex))
 	end
@@ -434,6 +480,10 @@ function MusicianList.Delete(nameOrIndex)
 	local oldName = MusicianList_Storage.data[name].name
 	MusicianList_Storage.data[name] = nil
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(oldName)))
+
+	if Musician.sourceSong and oldName == Musician.sourceSong.name then
+		Musician.sourceSong.isInList = nil
+	end
 end
 
 function MusicianList.OnSongImportStart(event, song)
@@ -490,6 +540,8 @@ function MusicianList.OnSourceSongLoaded(event)
 		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
 		MusicianFrame.Clear(true)
 		Musician.TrackEditor.OnLoad()
+
+		Musician.sourceSong.isInList = true
 
 		Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
 

@@ -13,6 +13,10 @@ msg.COMMAND_DELETE_PARAMS = "[ { **<song name>** || **<song #>** } ]"
 msg.COMMAND_FIND = "Find a song in the list"
 msg.COMMAND_FIND_PARAMS = "**<keyword 1>** [ **<keyword 2>** ] [ … **<keyword n>** ]"
 
+msg.MENU_LIST = "Song list"
+msg.MENU_SAVE = "Save into list"
+msg.MENU_DELETE = "Delete from list"
+
 msg.SAVING_SONG = "Saving \"{name}\"…"
 msg.LOADING_SONG = "Loading \"{name}\"…"
 msg.DONE_LOADING = "Done loading."
