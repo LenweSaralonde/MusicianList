@@ -288,6 +288,11 @@ local function processLoadStep()
 	local compressedChunk = currentProcess.savedData.chunks[currentProcess.cursor]
 	local chunk = LibDeflate:DecompressDeflate(compressedChunk)
 
+	-- Check and replace header in first chunk
+	if currentProcess.rawData == "" then
+		chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
+	end
+
 	currentProcess.rawData = currentProcess.rawData .. chunk
 
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, currentProcess.cursor / #currentProcess.savedData.chunks)
