@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.1.0
+------
+* Updated for Musician v1.5
+* Main menu integration
+
 v1.0.1
 ------
 * Updated for WoW 8.1
