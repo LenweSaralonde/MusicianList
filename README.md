@@ -7,6 +7,8 @@ This addon has no UI and has to be used in command line only.
 
 Musician commands start by `/musician` but you can also use `/music` or `/mus`.
 
+Type `/mus help` to get the command list.
+
 List available songs
 --------------------
 `/musician list`
