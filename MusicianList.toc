@@ -6,8 +6,6 @@
 ## LoadOnDemand: 0
 ## SavedVariables: MusicianList_Storage
 
-embeds.xml
-
 core\MusicianList.lua
 
 constants\MusicianList.Constants.lua

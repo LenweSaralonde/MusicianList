@@ -1,6 +1,6 @@
 MusicianList = LibStub("AceAddon-3.0"):NewAddon("MusicianList", "AceEvent-3.0")
 
-local LibDeflate = LibStub:GetLibrary("LibDeflate")
+local LibDeflate
 
 local PROCESS_SAVE = "save"
 local PROCESS_LOAD = "load"
@@ -40,6 +40,9 @@ function MusicianList:OnInitialize()
 		end)
 		return
 	end
+
+	-- Import libraries
+	LibDeflate = LibStub:GetLibrary("LibDeflate")
 
 	-- Create frame
 	-- @var processFrame (Frame)
