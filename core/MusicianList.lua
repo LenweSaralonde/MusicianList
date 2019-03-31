@@ -81,7 +81,9 @@ function MusicianList:OnInitialize()
 	MusicianButton.GetMenu = MusicianList.GetMenu
 
 	-- Static popups
+	--
 
+	-- Delete song
 	StaticPopupDialogs["MUSICIAN_LIST_DELETE_CONFIRM"] = {
 		preferredIndex = STATICPOPUPS_NUMDIALOGS,
 		text = MusicianList.Msg.DELETE_CONFIRM,
@@ -98,6 +100,42 @@ function MusicianList:OnInitialize()
 		timeout = 30,
 		whileDead = 1,
 		hideOnEscape = 1,
+	}
+
+	-- Save song
+	StaticPopupDialogs["MUSICIAN_LIST_SAVE"] = {
+		preferredIndex = STATICPOPUPS_NUMDIALOGS,
+		text = MusicianList.Msg.SAVE_SONG_AS,
+		button1 = ACCEPT,
+		button2 = CANCEL,
+		hasEditBox = 1,
+		editBoxWidth = 260,
+		OnAccept = function(self)
+			local name = self.editBox:GetText()
+			MusicianList.DoSave(name)
+		end,
+		EditBoxOnEnterPressed = function(self)
+			local parent = self:GetParent()
+			local name = parent.editBox:GetText()
+			MusicianList.DoSave(name)
+			parent:Hide()
+		end,
+		EditBoxOnEscapePressed = function(self)
+			local parent = self:GetParent()
+			parent:Hide()
+		end,
+		OnShow = function(self, name)
+			self.editBox:SetText(name)
+			self.editBox:HighlightText(0)
+			self.editBox:SetFocus()
+		end,
+		OnHide = function(self)
+			ChatEdit_FocusActiveWindow()
+			self.editBox:SetText("")
+		end,
+		timeout = 0,
+		exclusive = 1,
+		hideOnEscape = 1
 	}
 
 	-- Hyperlinks
@@ -337,9 +375,19 @@ local function processSaveStep()
 	end
 end
 
+--- Save song, showing "save as" dialog if no name is provided
+-- @param [name] (string)
+function MusicianList.Save(name)
+	if name == nil or name == '' then
+		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, strtrim(Musician.sourceSong.name))
+	else
+		MusicianList.DoSave(strtrim(name))
+	end
+end
+
 --- Save song
 -- @param name (string)
-function MusicianList.Save(name)
+function MusicianList.DoSave(name)
 
 	if currentProcess or Musician.importingSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
@@ -351,10 +399,9 @@ function MusicianList.Save(name)
 		return
 	end
 
-	if name == nil or name == '' then
-		name = Musician.sourceSong.name
-	else
-		name = strtrim(name)
+	if not(name) or name == "" then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NAME_EMPTY)
+		return
 	end
 
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
