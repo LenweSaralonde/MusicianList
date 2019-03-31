@@ -13,9 +13,6 @@ msg.COMMAND_DELETE_PARAMS = "[ { **<song name>** || **<song #>** } ]"
 msg.COMMAND_FIND = "Find a song in the list"
 msg.COMMAND_FIND_PARAMS = "**<keyword 1>** [ **<keyword 2>** ] [ … **<keyword n>** ]"
 
-msg.YES = "Yes"
-msg.NO = "No"
-
 msg.MENU_LIST = "Song list"
 msg.MENU_SAVE = "Save into list"
 msg.MENU_DELETE = "Delete from list"
@@ -24,7 +21,7 @@ msg.SAVING_SONG = "Saving \"{name}\"…"
 msg.LOADING_SONG = "Loading \"{name}\"…"
 msg.DONE_LOADING = "Done loading."
 msg.DONE_SAVING = "Done saving."
-msg.DELETE_CONFIRM = "Are you sure you would like to delete \"{name}\"?"
+msg.DELETE_CONFIRM = "Are you sure you would like to delete \"%s\"?"
 msg.SONG_DELETED = "\"{name}\" has been deleted."
 
 msg.NO_SONG = "No song in list."

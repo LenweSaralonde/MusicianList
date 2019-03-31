@@ -80,6 +80,26 @@ function MusicianList:OnInitialize()
 	MusicianButtonGetMenu = MusicianButton.GetMenu
 	MusicianButton.GetMenu = MusicianList.GetMenu
 
+	-- Static popups
+
+	StaticPopupDialogs["MUSICIAN_LIST_DELETE_CONFIRM"] = {
+		preferredIndex = STATICPOPUPS_NUMDIALOGS,
+		text = MusicianList.Msg.DELETE_CONFIRM,
+		button1 = YES,
+		button2 = NO,
+		OnAccept = function(self, data)
+			MusicianList_Storage.data[data.id] = nil
+			Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(data.oldName)))
+
+			if Musician.sourceSong and data.oldName == Musician.sourceSong.name then
+				Musician.sourceSong.isInList = nil
+			end
+		end,
+		timeout = 30,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+
 	-- Hyperlinks
 	--
 
@@ -465,25 +485,7 @@ function MusicianList.Delete(idOrIndex)
 
 	local oldName = MusicianList_Storage.data[id].name
 
-	StaticPopupDialogs["MUSICIAN_LIST_DELETE_CONFIRM"] = {
-		preferredIndex = STATICPOPUPS_NUMDIALOGS,
-		text = string.gsub(MusicianList.Msg.DELETE_CONFIRM, "{name}", Musician.Utils.Highlight(oldName)),
-		button1 = MusicianList.Msg.YES,
-		button2 = MusicianList.Msg.NO,
-		OnAccept = function()
-			MusicianList_Storage.data[id] = nil
-			Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(oldName)))
-
-			if Musician.sourceSong and oldName == Musician.sourceSong.name then
-				Musician.sourceSong.isInList = nil
-			end
-		end,
-		timeout = 30,
-		whileDead = 1,
-		hideOnEscape = 1,
-	}
-
-	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM")
+	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(oldName), nil, { oldName = oldName, id = id })
 end
 
 --- OnSongImportStart
