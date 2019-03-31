@@ -284,8 +284,8 @@ function MusicianList.DisplaySongList(list, title, noSongTitle)
 			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_PLAY, "play", song.name), 'FF0000') .. ' ' ..
 			Musician.Utils.PaddingZeros(song.index, floor(log10(#list) + 1)) .. '. ' ..
 			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", '[' .. song.name .. ']', "load", song.name)) ..
-			' (' .. Musician.Utils.FormatTime(song.cropTo - song.cropFrom, true) .. ') '
-		-- .. ' [' .. Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_DELETE, "delete", song.name), 'FF0000') .. '] '
+			' (' .. Musician.Utils.FormatTime(song.cropTo - song.cropFrom, true) .. ')'
+			.. ' ' .. Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_DELETE, "delete", song.name), 'FF0000') .. ''
 		)
 	end
 end
@@ -448,10 +448,13 @@ function MusicianList.Load(idOrIndex, play)
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
 end
 
-
 --- Delete song
--- @param idOrIndex (string)
+-- @param [idOrIndex] (string)
 function MusicianList.Delete(idOrIndex)
+
+	if idOrIndex == nil or idOrIndex == '' then
+		idOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
+	end
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
 
@@ -461,12 +464,26 @@ function MusicianList.Delete(idOrIndex)
 	end
 
 	local oldName = MusicianList_Storage.data[id].name
-	MusicianList_Storage.data[id] = nil
-	Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(oldName)))
 
-	if Musician.sourceSong and oldName == Musician.sourceSong.name then
-		Musician.sourceSong.isInList = nil
-	end
+	StaticPopupDialogs["MUSICIAN_LIST_DELETE_CONFIRM"] = {
+		preferredIndex = STATICPOPUPS_NUMDIALOGS,
+		text = string.gsub(MusicianList.Msg.DELETE_CONFIRM, "{name}", Musician.Utils.Highlight(oldName)),
+		button1 = MusicianList.Msg.YES,
+		button2 = MusicianList.Msg.NO,
+		OnAccept = function()
+			MusicianList_Storage.data[id] = nil
+			Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(oldName)))
+
+			if Musician.sourceSong and oldName == Musician.sourceSong.name then
+				Musician.sourceSong.isInList = nil
+			end
+		end,
+		timeout = 30,
+		whileDead = 1,
+		hideOnEscape = 1,
+	}
+
+	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM")
 end
 
 --- OnSongImportStart
