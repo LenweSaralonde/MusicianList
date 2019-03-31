@@ -14,6 +14,8 @@ local currentProcess
 local MusicianGetCommands
 local MusicianButtonGetMenu
 
+--- OnInitialize
+--
 function MusicianList:OnInitialize()
 
 	-- Init storage
@@ -305,7 +307,7 @@ local function processSaveStep()
 	if to == #currentProcess.rawData then
 		currentProcess.cursor = to
 		currentProcess.savedData.name = currentProcess.name
-		MusicianList_Storage.data[strlower(currentProcess.name)] = Musician.Utils.DeepCopy(currentProcess.savedData)
+		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
 		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess)
 		currentProcess = nil
 
@@ -320,12 +322,12 @@ end
 function MusicianList.Save(name)
 
 	if currentProcess or Musician.importingSong then
-		MusicianList.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
 		return
 	end
 
 	if not(importedSongData) or not(Musician.sourceSong) then
-		MusicianList.PrintError(MusicianList.Msg.ERR_NO_SONG_TO_SAVE)
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_NO_SONG_TO_SAVE)
 		return
 	end
 
@@ -341,6 +343,7 @@ function MusicianList.Save(name)
 		['process'] = PROCESS_SAVE,
 		['cursor'] = 1,
 		['rawData'] = importedSongData,
+		['id'] = strlower(name),
 		['name'] = name,
 		['savedData'] = {
 			['chunks'] = {},
@@ -412,29 +415,20 @@ local function processLoadStep()
 end
 
 --- Load song
--- @param nameOrIndex (string)
+-- @param idOrIndex (string)
 -- @param play (boolean) Play song after loading
-function MusicianList.Load(nameOrIndex, play)
+function MusicianList.Load(idOrIndex, play)
 
 	if currentProcess or Musician.importingSong then
-		MusicianList.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
 		return
 	end
-
-	nameOrIndex = strtrim(strlower(nameOrIndex))
-	local name = nameOrIndex
+	local songData, id = MusicianList.GetSong(idOrIndex)
 
 	-- Song has not been found by name
-	if not(MusicianList_Storage.data[nameOrIndex]) then
-		-- Try to load by index
-		local list = MusicianList.GetSongList()
-		local index = tonumber(nameOrIndex)
-		if index ~= nil and list[index] then
-			name = strtrim(strlower(list[index].name))
-		else
-			MusicianList.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
-			return
-		end
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
 	end
 
 	currentProcess = {
@@ -442,9 +436,9 @@ function MusicianList.Load(nameOrIndex, play)
 		['cursor'] = 1,
 		['play'] = play,
 		['rawData'] = '',
-		['name'] = name,
+		['id'] = id,
 		['song'] = Musician.Song.create(),
-		['savedData'] = MusicianList_Storage.data[name]
+		['savedData'] = songData
 	}
 
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(currentProcess.savedData.name)))
@@ -456,32 +450,18 @@ end
 
 
 --- Delete song
--- @param nameOrIndex (string)
-function MusicianList.Delete(nameOrIndex)
+-- @param idOrIndex (string)
+function MusicianList.Delete(idOrIndex)
 
-	if nameOrIndex == nil or nameOrIndex == '' then
-		nameOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
-	else
-		nameOrIndex = strtrim(strlower(nameOrIndex))
+	local songData, id = MusicianList.GetSong(idOrIndex)
+
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
 	end
 
-	local name = nameOrIndex
-
-	-- Song has not been found by name
-	if not(MusicianList_Storage.data[nameOrIndex]) then
-		-- Try to load by index
-		local list = MusicianList.GetSongList()
-		local index = tonumber(nameOrIndex)
-		if index ~= nil and list[index] then
-			name = strtrim(strlower(list[index].name))
-		else
-			MusicianList.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
-			return
-		end
-	end
-
-	local oldName = MusicianList_Storage.data[name].name
-	MusicianList_Storage.data[name] = nil
+	local oldName = MusicianList_Storage.data[id].name
+	MusicianList_Storage.data[id] = nil
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(oldName)))
 
 	if Musician.sourceSong and oldName == Musician.sourceSong.name then
@@ -489,6 +469,9 @@ function MusicianList.Delete(nameOrIndex)
 	end
 end
 
+--- OnSongImportStart
+-- @param event (string)
+-- @param song (Musician.Song)
 function MusicianList.OnSongImportStart(event, song)
 	if song ~= Musician.importingSong then
 		return
@@ -496,6 +479,10 @@ function MusicianList.OnSongImportStart(event, song)
 	currentImportStep = song.import.step
 end
 
+--- OnSongImportProgress
+-- @param event (string)
+-- @param song (Musician.Song)
+-- @param progression (number)
 function MusicianList.OnSongImportProgress(event, song, progression)
 	if song ~= Musician.importingSong then
 		return
@@ -511,6 +498,9 @@ function MusicianList.OnSongImportProgress(event, song, progression)
 	end
 end
 
+--- OnSongImportFailed
+-- @param event (string)
+-- @param song (Musician.Song)
 function MusicianList.OnSongImportFailed(event, song)
 	-- Abort loading process if it failed for some reason
 	if currentProcess and currentProcess.process == PROCESS_LOAD and song == currentProcess.song then
@@ -518,6 +508,8 @@ function MusicianList.OnSongImportFailed(event, song)
 	end
 end
 
+--- OnSourceSongLoaded
+-- @param event (string)
 function MusicianList.OnSourceSongLoaded(event)
 	-- Loaded song has been imported
 	if currentProcess and currentProcess.process == PROCESS_LOAD and Musician.sourceSong == currentProcess.song then
@@ -574,11 +566,26 @@ function MusicianList.OnUpdate(frame, elapsed)
 	end
 end
 
---- Display an error message in the console
--- @param msg (string)
-function MusicianList.PrintError(msg)
-	DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 0, 0)
-	PlaySoundFile("Sound\\interface\\Error.ogg")
+--- Get saved song data by name or index
+-- @param idOrIndex (string)
+-- @return (table), (string) Song data, song ID
+function MusicianList.GetSong(idOrIndex)
+	local id = strtrim(strlower(idOrIndex))
+
+	-- Get by id
+	if MusicianList_Storage.data[id] then
+		return MusicianList_Storage.data[id], id
+	else
+		-- Try to get by index
+		local list = MusicianList.GetSongList()
+		local index = tonumber(strtrim(idOrIndex))
+		if index ~= nil and list[index] then
+			id = strtrim(strlower(list[index].name))
+			return MusicianList_Storage.data[id], id
+		else -- Not found
+			return nil, nil
+		end
+	end
 end
 
 --- Remove all accents from provided string
