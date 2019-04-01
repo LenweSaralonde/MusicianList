@@ -132,6 +132,41 @@ function MusicianList:OnInitialize()
 		hideOnEscape = 1
 	}
 
+	-- Rename song
+	StaticPopupDialogs["MUSICIAN_LIST_RENAME"] = {
+		preferredIndex = STATICPOPUPS_NUMDIALOGS,
+		text = MusicianList.Msg.RENAME_SONG,
+		button1 = ACCEPT,
+		button2 = CANCEL,
+		hasEditBox = 1,
+		editBoxWidth = 350,
+		OnAccept = function(self, songData)
+			local name = strtrim(self.editBox:GetText())
+			MusicianList.RenameConfirm(songData.id, name)
+		end,
+		EditBoxOnEnterPressed = function(self, songData)
+			local parent = self:GetParent()
+			local name = strtrim(parent.editBox:GetText())
+			MusicianList.RenameConfirm(songData.id, name)
+			parent:Hide()
+		end,
+		EditBoxOnEscapePressed = function(self)
+			self:GetParent():Hide()
+		end,
+		OnShow = function(self, songData)
+			self.editBox:SetText(songData.oldName)
+			self.editBox:HighlightText(0)
+			self.editBox:SetFocus()
+		end,
+		OnHide = function(self)
+			ChatEdit_FocusActiveWindow()
+			self.editBox:SetText("")
+		end,
+		timeout = 0,
+		exclusive = 1,
+		hideOnEscape = 1
+	}
+
 	-- Overwrite confirmation
 	StaticPopupDialogs["MUSICIAN_LIST_OVERWRITE_CONFIRM"] = {
 		preferredIndex = STATICPOPUPS_NUMDIALOGS,
@@ -151,14 +186,18 @@ function MusicianList:OnInitialize()
 
 	hooksecurefunc("ChatFrame_OnHyperlinkShow", function(self, link, text, button)
 		local args = { strsplit(':', link) }
-		if args[1] == "musicianlist" then
+		local prefix = table.remove(args, 1)
+		if prefix == "musicianlist" then
+			local command = table.remove(args, 1)
+			local value = table.concat(args, ':')
+
 			-- Load song
-			if args[2] == "load" then -- Load song
-				MusicianList.Load(args[3])
-			elseif args[2] == "play" then -- Play song
-				MusicianList.Load(args[3], true)
-			elseif args[2] == "delete" then -- Delete song
-				MusicianList.Delete(args[3])
+			if command == "load" then -- Load song
+				MusicianList.Load(value)
+			elseif command == "play" then -- Play song
+				MusicianList.Load(value, true)
+			elseif command == "delete" then -- Delete song
+				MusicianList.Delete(value)
 			end
 		end
 	end)
@@ -231,6 +270,20 @@ function MusicianList.GetCommands()
 		func = MusicianList.Delete
 	})
 
+	-- Rename song
+
+	table.insert(commands, #commands - 2, {
+		command = { "rename", "ren", "mv" },
+		text = MusicianList.Msg.COMMAND_RENAME,
+		params = MusicianList.Msg.COMMAND_RENAME_PARAMS,
+		func = function(argStr)
+			local argsTable = { strsplit(" ", argStr) }
+			local index = table.remove(argsTable, 1)
+			local name = strtrim(table.concat(argsTable, " "))
+			MusicianList.Rename(index, name)
+		end
+	})
+
 	return commands
 end
 
@@ -259,10 +312,22 @@ function MusicianList.GetMenu()
 			end
 		})
 
-		-- Delete song
+		-- Rename song
 
 		if Musician.sourceSong.isInList then
 			table.insert(menu, 8, {
+				notCheckable = true,
+				text = MusicianList.Msg.MENU_RENAME,
+				func = function()
+					MusicianList.Rename()
+				end
+			})
+		end
+
+		-- Delete song
+
+		if Musician.sourceSong.isInList then
+			table.insert(menu, 9, {
 				notCheckable = true,
 				text = MusicianList.Msg.MENU_DELETE,
 				func = function()
@@ -573,6 +638,74 @@ function MusicianList.DoDelete(id)
 	if Musician.sourceSong and songData.name == Musician.sourceSong.name then
 		Musician.sourceSong.isInList = nil
 	end
+end
+
+--- Rename song, showing "rename" dialog if no name is provided
+-- @param idOrIndex (string)
+-- @param name (string)
+function MusicianList.Rename(idOrIndex, name)
+	-- Defaults to loaded song
+	if idOrIndex == nil or idOrIndex == '' then
+		idOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
+	end
+
+	local songData, id = MusicianList.GetSong(idOrIndex)
+
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
+	end
+
+	if name == nil or name == '' then
+		StaticPopup_Show("MUSICIAN_LIST_RENAME", Musician.Utils.Highlight(songData.name), nil, { id = id, oldName = songData.name })
+	else
+		MusicianList.RenameConfirm(id, name)
+	end
+end
+
+--- Rename song, requesting to overwrite existing song
+-- @param [id] (string)
+-- @param [name] (string)
+function MusicianList.RenameConfirm(id, name)
+	-- Find out if another song already exists with the same name
+	local song2, id2 = MusicianList.GetSong(MusicianList.GetSongId(name))
+
+	if song2 and id ~= id2 then
+		StaticPopup_Show("MUSICIAN_LIST_OVERWRITE_CONFIRM", Musician.Utils.Highlight(name), nil, function()
+			MusicianList.DoRename(id, name)
+		end)
+	else
+		MusicianList.DoRename(id, name)
+	end
+end
+
+--- Rename song, without confirmation
+-- @param [id] (string)
+-- @param [name] (string)
+function MusicianList.DoRename(id, name)
+	local songData, _ = MusicianList.GetSong(id)
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
+	end
+
+	local newId = MusicianList.GetSongId(name)
+	local oldName = songData.name
+
+	MusicianList_Storage.data[id] = nil
+	songData.name = name
+	MusicianList_Storage.data[newId] = songData
+
+	if Musician.sourceSong and Musician.sourceSong.name == oldName then
+		Musician.sourceSong.name = name
+		MusicianFrame.Clear(true)
+		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
+	end
+
+	local msg = MusicianList.Msg.SONG_RENAMED
+	msg = string.gsub(msg, "{name}", Musician.Utils.Highlight(oldName))
+	msg = string.gsub(msg, "{newName}", Musician.Utils.Highlight(name))
+	Musician.Utils.Print(msg)
 end
 
 --- OnSongImportStart
