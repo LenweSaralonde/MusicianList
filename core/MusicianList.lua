@@ -610,7 +610,7 @@ end
 function MusicianList.Delete(idOrIndex)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
-		idOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
+		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
 	end
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
@@ -646,7 +646,7 @@ end
 function MusicianList.Rename(idOrIndex, name)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
-		idOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
+		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
 	end
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
@@ -696,7 +696,7 @@ function MusicianList.DoRename(id, name)
 	songData.name = name
 	MusicianList_Storage.data[newId] = songData
 
-	if Musician.sourceSong and Musician.sourceSong.name == oldName then
+	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
 		Musician.sourceSong.name = name
 		MusicianFrame.Clear(true)
 		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
