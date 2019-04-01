@@ -18,6 +18,7 @@ msg.MENU_SAVE = "Enregistrer dans la liste"
 msg.MENU_DELETE = "Supprimer de la liste"
 
 msg.SAVE_SONG_AS = "Enregistrer le morceau sous :"
+msg.OVERWRITE_CONFIRM = "\"%s\" existe déjà. Écraser ?"
 msg.SAVING_SONG = "Enregistrement de \"{name}\"…"
 msg.LOADING_SONG = "Chargement de \"{name}\"…"
 msg.DONE_LOADING = "Chargement terminé."

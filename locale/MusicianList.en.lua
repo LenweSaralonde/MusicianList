@@ -18,6 +18,7 @@ msg.MENU_SAVE = "Save into list"
 msg.MENU_DELETE = "Delete from list"
 
 msg.SAVE_SONG_AS = "Save song as:"
+msg.OVERWRITE_CONFIRM = "\"%s\" already exists. Overwrite?"
 msg.SAVING_SONG = "Saving \"{name}\"…"
 msg.LOADING_SONG = "Loading \"{name}\"…"
 msg.DONE_LOADING = "Done loading."

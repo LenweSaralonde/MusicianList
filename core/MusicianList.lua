@@ -89,13 +89,8 @@ function MusicianList:OnInitialize()
 		text = MusicianList.Msg.DELETE_CONFIRM,
 		button1 = YES,
 		button2 = NO,
-		OnAccept = function(self, data)
-			MusicianList_Storage.data[data.id] = nil
-			Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(data.oldName)))
-
-			if Musician.sourceSong and data.oldName == Musician.sourceSong.name then
-				Musician.sourceSong.isInList = nil
-			end
+		OnAccept = function(self, id)
+			MusicianList.DoDelete(id)
 		end,
 		timeout = 30,
 		whileDead = 1,
@@ -109,20 +104,19 @@ function MusicianList:OnInitialize()
 		button1 = ACCEPT,
 		button2 = CANCEL,
 		hasEditBox = 1,
-		editBoxWidth = 260,
+		editBoxWidth = 350,
 		OnAccept = function(self)
-			local name = self.editBox:GetText()
-			MusicianList.DoSave(name)
+			local name = strtrim(self.editBox:GetText())
+			MusicianList.SaveConfirm(name)
 		end,
 		EditBoxOnEnterPressed = function(self)
 			local parent = self:GetParent()
-			local name = parent.editBox:GetText()
-			MusicianList.DoSave(name)
+			local name = strtrim(parent.editBox:GetText())
+			MusicianList.SaveConfirm(name)
 			parent:Hide()
 		end,
 		EditBoxOnEscapePressed = function(self)
-			local parent = self:GetParent()
-			parent:Hide()
+			self:GetParent():Hide()
 		end,
 		OnShow = function(self, name)
 			self.editBox:SetText(name)
@@ -136,6 +130,20 @@ function MusicianList:OnInitialize()
 		timeout = 0,
 		exclusive = 1,
 		hideOnEscape = 1
+	}
+
+	-- Overwrite confirmation
+	StaticPopupDialogs["MUSICIAN_LIST_OVERWRITE_CONFIRM"] = {
+		preferredIndex = STATICPOPUPS_NUMDIALOGS,
+		text = MusicianList.Msg.OVERWRITE_CONFIRM,
+		button1 = YES,
+		button2 = NO,
+		OnAccept = function(self, callback)
+			callback()
+		end,
+		timeout = 30,
+		whileDead = 1,
+		hideOnEscape = 1,
 	}
 
 	-- Hyperlinks
@@ -378,14 +386,29 @@ end
 --- Save song, showing "save as" dialog if no name is provided
 -- @param [name] (string)
 function MusicianList.Save(name)
+	-- Defaults to loaded song
 	if name == nil or name == '' then
 		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, strtrim(Musician.sourceSong.name))
 	else
-		MusicianList.DoSave(strtrim(name))
+		MusicianList.SaveConfirm(strtrim(name))
 	end
 end
 
---- Save song
+--- Save song, requesting to overwrite existing song
+-- @param [name] (string)
+function MusicianList.SaveConfirm(name)
+	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
+
+	if song then
+		StaticPopup_Show("MUSICIAN_LIST_OVERWRITE_CONFIRM", Musician.Utils.Highlight(name), nil, function()
+			MusicianList.DoSave(name)
+		end)
+	else
+		MusicianList.DoSave(name)
+	end
+end
+
+--- Save song, without confirmation
 -- @param name (string)
 function MusicianList.DoSave(name)
 
@@ -406,11 +429,13 @@ function MusicianList.DoSave(name)
 
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
 
+	Musician.sourceSong.name = name
+
 	currentProcess = {
 		['process'] = PROCESS_SAVE,
 		['cursor'] = 1,
 		['rawData'] = importedSongData,
-		['id'] = strlower(name),
+		['id'] = MusicianList.GetSongId(name),
 		['name'] = name,
 		['savedData'] = {
 			['chunks'] = {},
@@ -515,10 +540,10 @@ function MusicianList.Load(idOrIndex, play)
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
 end
 
---- Delete song
+--- Delete song, with confirmation
 -- @param [idOrIndex] (string)
 function MusicianList.Delete(idOrIndex)
-
+	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
 		idOrIndex = Musician.sourceSong and Musician.sourceSong.name or ""
 	end
@@ -530,9 +555,24 @@ function MusicianList.Delete(idOrIndex)
 		return
 	end
 
-	local oldName = MusicianList_Storage.data[id].name
+	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(songData.name), nil, id)
+end
 
-	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(oldName), nil, { oldName = oldName, id = id })
+--- Delete song, without confirmation
+-- @param [id] (string)
+function MusicianList.DoDelete(id)
+	local songData, _ = MusicianList.GetSong(id)
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
+	end
+
+	MusicianList_Storage.data[id] = nil
+	Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(songData.name)))
+
+	if Musician.sourceSong and songData.name == Musician.sourceSong.name then
+		Musician.sourceSong.isInList = nil
+	end
 end
 
 --- OnSongImportStart
@@ -632,11 +672,18 @@ function MusicianList.OnUpdate(frame, elapsed)
 	end
 end
 
+--- Get song ID by name
+-- @param name (string)
+-- @return (string) Song ID
+function MusicianList.GetSongId(name)
+	return strtrim(strlower(name))
+end
+
 --- Get saved song data by name or index
 -- @param idOrIndex (string)
 -- @return (table), (string) Song data, song ID
 function MusicianList.GetSong(idOrIndex)
-	local id = strtrim(strlower(idOrIndex))
+	local id = MusicianList.GetSongId(idOrIndex)
 
 	-- Get by id
 	if MusicianList_Storage.data[id] then
@@ -646,7 +693,7 @@ function MusicianList.GetSong(idOrIndex)
 		local list = MusicianList.GetSongList()
 		local index = tonumber(strtrim(idOrIndex))
 		if index ~= nil and list[index] then
-			id = strtrim(strlower(list[index].name))
+			id = MusicianList.GetSongId(list[index].name)
 			return MusicianList_Storage.data[id], id
 		else -- Not found
 			return nil, nil
