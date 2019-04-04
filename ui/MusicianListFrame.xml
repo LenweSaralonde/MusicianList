@@ -1,0 +1,398 @@
+<Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
+
+	<!-- Icon fonts -->
+
+	<Font name="MusicianListFontIconsNormal" inherits="GameFontNormal" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="12" virtual="true" />
+	<Font name="MusicianListFontIconsHighlight" inherits="GameFontHighlight" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="12" virtual="true" />
+	<Font name="MusicianListFontIconsDisable" inherits="GameFontDisable" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="12" virtual="true" />
+	<Font name="MusicianListFontIconsNormalSmall" inherits="GameFontNormalSmall" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="10" virtual="true" />
+	<Font name="MusicianListFontIconsHighlightSmall" inherits="GameFontHighlightSmall" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="10" virtual="true" />
+	<Font name="MusicianListFontIconsDisableSmall" inherits="GameFontDisableSmall" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="10" virtual="true" />
+	<Font name="MusicianListFontIconsNormalLarge" inherits="GameFontNormalLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
+	<Font name="MusicianListFontIconsHighlightLarge" inherits="GameFontHighlightLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
+
+	<!-- Icon buttons -->
+
+	<Button name="MusicianListIconButtonSimple" virtual="true">
+		<Size x="14" y="14" />
+		<ButtonText name="$parentText" parentKey="text" />
+		<NormalFont style="MusicianListFontIconsNormalSmall"/>
+		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
+		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
+		<Scripts>
+			<OnMouseDown>
+				PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+			</OnMouseDown>
+		</Scripts>
+	</Button>
+
+	<!-- Standard button with icon font template -->
+
+	<Button name="MusicianListIconButtonTemplate" inherits="MusicianIconButtonTemplate" virtual="true">
+		<NormalFont style="MusicianListFontIconsNormal" />
+		<HighlightFont style="MusicianListFontIconsHighlight" />
+		<DisabledFont style="MusicianListFontIconsDisable" />
+	</Button>
+
+	<!-- Standard button with text and icon template -->
+
+	<Button name="MusicianListIconTextButtonTemplate" inherits="UIPanelButtonTemplate" virtual="true">
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="$parentIcon" parentKey="icon" inherits="MusicianListFontIconsNormal" justifyh="LEFT">
+					<Size x="32" y="32" />
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$parent" x="10" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+
+		<ButtonText name="$parentText" parentKey="Text">
+			<Anchors>
+				<Anchor point="CENTER" x="8" />
+			</Anchors>
+		</ButtonText>
+
+		<Scripts>
+			<OnEnter>
+				MusicianUIPanelButtonInstance:GetScript("OnEnter")(self, motion)
+				if self:IsEnabled() then
+					self.icon:SetFontObject(MusicianListFontIconsHighlight)
+				end
+			</OnEnter>
+			<OnLeave>
+				MusicianUIPanelButtonInstance:GetScript("OnLeave")(self, motion)
+				if self:IsEnabled() then
+					self.icon:SetFontObject(MusicianListFontIconsNormal)
+				end
+			</OnLeave>
+			<OnEnable>
+				MusicianUIPanelButtonInstance:GetScript("OnEnable")(self)
+				self.icon:SetFontObject(MusicianListFontIconsNormal)
+			</OnEnable>
+			<OnDisable>
+				MusicianUIPanelButtonInstance:GetScript("OnDisable")(self)
+				self.icon:SetFontObject(MusicianListFontIconsDisable)
+			</OnDisable>
+			<OnMouseDown inherits="prepend">
+				if self:IsEnabled() then
+					if (not self.icon.oldPoint) then
+						local point, relativeTo, relativePoint, x, y = self.icon:GetPoint(1)
+						self.icon.oldPoint = point
+						self.icon.oldX = x
+						self.icon.oldY = y
+					end
+					local ox, oy = self:GetPushedTextOffset()
+					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX + ox, self.icon.oldY + oy)
+				end
+			</OnMouseDown>
+			<OnMouseUp inherits="prepend">
+				if self:IsEnabled() then
+					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX, self.icon.oldY)
+				end
+			</OnMouseUp>
+		</Scripts>
+	</Button>
+
+	<!-- Song row template -->
+
+	<Frame name="MusicianListSongTemplate" virtual="true">
+		<Size y="20" />
+
+		<Anchors>
+			<Anchor point="LEFT" />
+			<Anchor point="RIGHT" />
+		</Anchors>
+
+		<Frames>
+
+			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListIconButtonSimple" justifyh="LEFT" justifyv="MIDDLE">
+				<Anchors>
+					<Anchor point="TOPLEFT" />
+					<Anchor point="BOTTOMRIGHT" />
+				</Anchors>
+				<ButtonText name="$parentText" parentKey="text" justifyh="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="29" y="-4" relativeTo="$parent" />
+						<Anchor point="BOTTOMRIGHT" x="-47" y="4" relativeTo="$parent" />
+					</Anchors>
+				</ButtonText>
+				<NormalFont style="MusicianListFontIconsHighlightSmall"/>
+				<Scripts>
+					<OnLoad inherit="append">
+						self.playButton:SetText(MusicianList.Icons.Play)
+						self.renameButton:SetText(MusicianList.Icons.Pencil)
+						self.deleteButton:SetText(MusicianList.Icons.Trash)
+					</OnLoad>
+					<OnClick>
+						MusicianList.Load(self:GetParent().song.id)
+					</OnClick>
+					<OnEnter inherit="append">
+						if self.text:GetStringWidth() > self.text:GetWidth() then
+							GameTooltip_AddNewbieTip(self, self:GetText(), 1.0, 1.0, 1.0)
+						end
+					</OnEnter>
+					<OnLeave inherit="append">
+						if self.text:GetStringWidth() > self.text:GetWidth() then
+							GameTooltip:Hide()
+						end
+					</OnLeave>
+				</Scripts>
+
+				<Frames>
+					<Button name="$parentDeleteButton" parentKey="deleteButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" x="-5" relativePoint="RIGHT" relativeTo="$parent" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Delete(self:GetParent():GetParent().song.id)
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button name="$parentRenameButton" parentKey="renameButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentDeleteButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Rename(self:GetParent():GetParent().song.id)
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button name="$parentPlayButton" parentKey="playButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentRenameButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Load(self:GetParent():GetParent().song.id, true)
+							</OnClick>
+						</Scripts>
+					</Button>
+				</Frames>
+			</Button>
+
+		</Frames>
+
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="$parentSongIndex" parentKey="index" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="0">
+					<Size x="24" y="18" />
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$parent" />
+					</Anchors>
+				</FontString>
+
+				<FontString name="$parentSongDuration" parentKey="duration" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="00:00">
+					<Size x="48" y="18" />
+					<Anchors>
+						<Anchor point="RIGHT" x="-5" relativePoint="RIGHT" relativeTo="$parent" />
+					</Anchors>
+				</FontString>
+			</Layer>
+
+			<Layer level="BACKGROUND">
+				<Texture name="$parentBackground" parentKey="background" >
+					<Anchors>
+						<Anchor point="TOPLEFT" x="2" y="-1" />
+						<Anchor point="BOTTOMRIGHT" x="-2" y="1" />
+					</Anchors>
+					<Color r="0" g="0" b="0" a=".5" />
+				</Texture>
+			</Layer>
+		</Layers>
+
+		<Scripts>
+			<OnUpdate>
+				if self:IsMouseOver() then
+					self.title.deleteButton:Show()
+					self.title.renameButton:Show()
+					self.title.playButton:Show()
+					self.duration:Hide()
+					self.background:SetColorTexture(.6, 0, 0, 1)
+				else
+					self.title.deleteButton:Hide()
+					self.title.renameButton:Hide()
+					self.title.playButton:Hide()
+					self.duration:Show()
+					self.background:SetColorTexture(0, 0, 0, .5)
+				end
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+
+
+	<!-- Main frame -->
+
+	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplate">
+
+		<Size x="360" y="524" />
+
+		<Frames>
+
+			<!-- Scrollable song list -->
+
+			<ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="13" y="32" relativeTo="$parent" />
+					<Anchor point="TOPRIGHT" x="-39" y="-35" relativeTo="$parent" />
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture name="$parentTop" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size x="31" y="102"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-2" y="5"/>
+							</Anchors>
+							<TexCoords left="0" right="0.484375" top="0" bottom="0.4"/>
+						</Texture>
+						<Texture name="$parentBottom" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size x="31" y="106"/>
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="-2" y="-2"/>
+							</Anchors>
+							<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+						</Texture>
+						<Texture name="$parentMiddle" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size x="31" y="1"/>
+							<Anchors>
+								<Anchor point="TOP" relativeTo="$parentTop" relativePoint="BOTTOM"/>
+								<Anchor point="BOTTOM" relativeTo="$parentBottom" relativePoint="TOP"/>
+							</Anchors>
+							<TexCoords left="0" right="0.484375" top=".75" bottom="1.0"/>
+						</Texture>
+					</Layer>
+				</Layers>
+
+				<ScrollChild>
+					<Frame name="MusicianListFrameSongContainer">
+						<Anchors>
+							<Anchor point="TOPLEFT" />
+						</Anchors>
+					</Frame>
+				</ScrollChild>
+
+				<Scripts>
+					<OnSizeChanged>
+						MusicianListFrameSongContainer:SetWidth(self:GetWidth())
+					</OnSizeChanged>
+				</Scripts>
+			</ScrollFrame>
+
+			<Frame name="$parentBackground" inherits="MusicianFieldset">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-5" y="8" relativeTo="$parentScrollFrame" />
+					<Anchor point="BOTTOMRIGHT" x="5" y="-5" relativeTo="$parentScrollFrame" />
+				</Anchors>
+			</Frame>
+
+			<!-- Song list empty -->
+
+			<Frame name="$parentListEmpty" frameLevel="8">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parentBackground" />
+					<Anchor point="BOTTOMRIGHT" relativeTo="$parentBackground" />
+				</Anchors>
+				<Frames>
+					<Button name="$parentImportButton" inherits="MusicianListIconTextButtonTemplate">
+						<Size x="170" y="22" />
+						<Anchors>
+							<Anchor point="CENTER" y="-15" />
+						</Anchors>
+						<Scripts>
+							<OnLoad>
+								self:SetText(MusicianList.Msg.IMPORT_A_SONG)
+								self.icon:SetText(MusicianList.Icons.CloudDown)
+							</OnLoad>
+							<OnClick>
+								MusicianFrame:Show()
+							</OnClick>
+						</Scripts>
+					</Button>
+				</Frames>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parentText" inherits="GameFontNormalLarge" justifyh="CENTER" justifyv="MIDDLE">
+							<Anchors>
+								<Anchor point="TOPLEFT" y="15" />
+								<Anchor point="BOTTOMRIGHT" y="15" />
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+
+			<!-- Search box -->
+
+			<EditBox name="$parentSearchBox" parentKey="searchBox" inherits="SearchBoxTemplate">
+				<Size y="18"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="$parent" relativePoint="BOTTOMLEFT" x="14" y="10"/>
+					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-11" />
+				</Anchors>
+				<Scripts>
+					<OnTextChanged>
+						SearchBoxTemplate_OnTextChanged(self,isUserInput)
+						MusicianList.Frame.Filter()
+					</OnTextChanged>
+					<OnLoad inherits="append">
+						SearchBoxTemplate_OnLoad(self)
+						self.Instructions:SetText(MusicianList.Msg.FILTER_SONG)
+					</OnLoad>
+				</Scripts>
+			</EditBox>
+
+		</Frames>
+
+		<Layers>
+			<Layer level="BACKGROUND">
+
+				<!-- Main title -->
+
+				<FontString name="$parentTitle" inherits="GameFontNormal">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-15"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+
+				<!-- Song list headers -->
+
+				<FontString name="$parentHeaderSongIndex" inherits="GameFontNormal" justifyh="RIGHT" justifyv="MIDDLE">
+					<Size x="24" />
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="0" y="8" relativeTo="$parentScrollFrame" />
+					</Anchors>
+				</FontString>
+
+				<FontString name="$parentHeaderSongTitle" inherits="GameFontNormal" justifyh="LEFT" justifyv="MIDDLE">
+					<Size x="200" />
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="5" relativeTo="$parentHeaderSongIndex" />
+					</Anchors>
+				</FontString>
+
+				<FontString name="$parentHeaderSongDuration" inherits="GameFontNormal" justifyh="RIGHT" justifyv="MIDDLE">
+					<Size x="64" />
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" y="8" relativeTo="$parentScrollFrame" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+
+		<Scripts>
+			<OnLoad inherit="append">
+				MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
+				MusicianListFrameHeaderSongIndex:SetText(MusicianList.Msg.HEADER_SONG_INDEX)
+				MusicianListFrameHeaderSongTitle:SetText(MusicianList.Msg.HEADER_SONG_TITLE)
+				MusicianListFrameHeaderSongDuration:SetText(MusicianList.Msg.HEADER_SONG_DURATION)
+			</OnLoad>
+		</Scripts>
+	</Frame>
+</Ui>

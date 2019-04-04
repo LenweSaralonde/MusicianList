@@ -11,3 +11,8 @@ core\MusicianList.lua
 constants\MusicianList.Constants.lua
 
 locale\locale.xml
+
+ui\fonts\MusicianList.Icons.lua
+
+ui\MusicianListFrame.xml
+ui\MusicianListFrame.lua

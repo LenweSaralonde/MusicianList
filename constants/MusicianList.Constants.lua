@@ -6,6 +6,7 @@ MusicianList.FILE_HEADER = 'MUS4'
 MusicianList.CHUNK_SIZE = 2048
 
 MusicianList.Events = {}
+MusicianList.Events.ListUpdate = "MusicianListUpdate"
 MusicianList.Events.SongSaveStart = "MusicianListSongSaveStart"
 MusicianList.Events.SongSaveProgress = "MusicianListSongSaveProgress"
 MusicianList.Events.SongSaveComplete = "MusicianListSongSaveComplete"

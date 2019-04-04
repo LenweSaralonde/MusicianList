@@ -17,8 +17,11 @@ msg.COMMAND_FIND_PARAMS = "**<keyword 1>** [ **<keyword 2>** ] [ … **<keyword 
 
 msg.MENU_LIST = "Song list"
 msg.MENU_SAVE = "Save into list"
-msg.MENU_RENAME = "Rename into list"
-msg.MENU_DELETE = "Delete from list"
+
+msg.HEADER_SONG_INDEX = "#"
+msg.HEADER_SONG_TITLE = "Title"
+msg.HEADER_SONG_DURATION = "Time"
+msg.HEADER_SONG_ACTIONS = "Actions"
 
 msg.SAVE_SONG_AS = "Save song as:"
 msg.RENAME_SONG = "Rename song:"
@@ -31,13 +34,11 @@ msg.DELETE_CONFIRM = "Are you sure you would like to delete \"%s\"?"
 msg.SONG_DELETED = "\"{name}\" has been deleted."
 msg.SONG_RENAMED = "\"{name}\" has been renamed into \"{newName}\"."
 
-msg.NO_SONG = "No song in list."
-msg.NO_SONG_FOUND = "No song found."
 msg.SONG_LIST = "Song list"
-msg.FOUND_SONG_LIST = "Found songs"
-
-msg.LINK_PLAY = "►"
-msg.LINK_DELETE = "X"
+msg.FILTER_SONG = "Filter"
+msg.SONG_LIST_EMPTY = "Song list is empty."
+msg.IMPORT_A_SONG = "Import a song"
+msg.NO_SONG_FOUND = "No song found."
 
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "Your version of Musician is outdated and can't be used with MusicianList. Please update Musician addon."
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "Your version of MusicianList is outdated and can no longer be used. Please update."

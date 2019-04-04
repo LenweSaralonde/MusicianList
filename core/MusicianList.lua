@@ -201,6 +201,9 @@ function MusicianList:OnInitialize()
 			end
 		end
 	end)
+
+	-- Init UI
+	MusicianList.Frame.Init()
 end
 
 --- Get command definitions
@@ -229,7 +232,9 @@ function MusicianList.GetCommands()
 	table.insert(commands, #commands - 2, {
 		command = { "list", "songs" },
 		text = MusicianList.Msg.COMMAND_LIST,
-		func = MusicianList.List
+		func = function()
+			MusicianListFrame:Show()
+		end
 	})
 
 	-- Find song
@@ -238,7 +243,10 @@ function MusicianList.GetCommands()
 		command = { "find", "search", "filter" },
 		text = MusicianList.Msg.COMMAND_FIND,
 		params = MusicianList.Msg.COMMAND_FIND_PARAMS,
-		func = MusicianList.Find
+		func = function(filter)
+			MusicianList.Frame.Filter(filter)
+			MusicianListFrame:Show()
+		end
 	})
 
 	-- Load song
@@ -297,13 +305,13 @@ function MusicianList.GetMenu()
 	table.insert(menu, 3, {
 		notCheckable = true,
 		text = MusicianList.Msg.MENU_LIST,
-		func = MusicianList.List
+		func = function()
+			MusicianListFrame:Show()
+		end
 	})
 
+	-- Save song
 	if Musician.sourceSong then
-
-		-- Save song
-
 		table.insert(menu, 7, {
 			notCheckable = true,
 			text = MusicianList.Msg.MENU_SAVE,
@@ -311,30 +319,6 @@ function MusicianList.GetMenu()
 				MusicianList.Save()
 			end
 		})
-
-		-- Rename song
-
-		if Musician.sourceSong.isInList then
-			table.insert(menu, 8, {
-				notCheckable = true,
-				text = MusicianList.Msg.MENU_RENAME,
-				func = function()
-					MusicianList.Rename()
-				end
-			})
-		end
-
-		-- Delete song
-
-		if Musician.sourceSong.isInList then
-			table.insert(menu, 9, {
-				notCheckable = true,
-				text = MusicianList.Msg.MENU_DELETE,
-				func = function()
-					MusicianList.Delete()
-				end
-			})
-		end
 	end
 
 	return menu
@@ -344,83 +328,28 @@ end
 -- @return (table)
 function MusicianList.GetSongList()
 	local list = {}
-	local song
-	for _, song in pairs(MusicianList_Storage.data) do
-		table.insert(list, song)
+	local songData, id
+	for id, songData in pairs(MusicianList_Storage.data) do
+		table.insert(list, {
+			id = id,
+			name = songData.name,
+			searchName = MusicianList.SearchString(songData.name),
+			duration = songData.cropTo - songData.cropFrom
+		})
 	end
 
 	table.sort(list, function(a, b)
-		return MusicianList.StripAccents(strlower(a.name)) < MusicianList.StripAccents(strlower(b.name))
+		return a.searchName < b.searchName
 	end)
 
 	-- Add indexes
-	local index
+	local index, song
 	for index, song in pairs(list) do
 		song.index = index
 	end
 
 	return list
 end
-
---- List songs
---
-function MusicianList.List()
-	MusicianList.DisplaySongList(MusicianList.GetSongList(), MusicianList.Msg.SONG_LIST, MusicianList.Msg.NO_SONG)
-end
-
---- Find songs matching keywords
--- @param keywords (keywords)
-function MusicianList.Find(keywords)
-	-- Filter punctuation, accents, lowercase etc.
-	keywords = string.gsub(MusicianList.StripAccents(strlower(strtrim(keywords))), '[%p%c%s ]+', ' ')
-	local keywordList = { string.split(' ', keywords) }
-
-	local list = MusicianList.GetSongList()
-	local listFiltered = {}
-
-	local song, kw
-	for _, song in pairs(list) do
-		local filteredName = string.gsub(MusicianList.StripAccents(strlower(strtrim(song.name))), '[%p%c%s ]+', ' ')
-		local found = true
-		local kw
-		for _, kw in pairs(keywordList) do
-			if not(string.match(filteredName, kw)) then
-				found = false
-			end
-		end
-		if found then
-			table.insert(listFiltered, song)
-		end
-	end
-
-	MusicianList.DisplaySongList(listFiltered, MusicianList.Msg.FOUND_SONG_LIST, MusicianList.Msg.NO_SONG_FOUND)
-end
-
---- Display song list
--- @param list (table)
--- @param title (string)
--- @param noSongTitle (string)
-function MusicianList.DisplaySongList(list, title, noSongTitle)
-
-	if #list == 0 then
-		Musician.Utils.Print(noSongTitle)
-		return
-	end
-
-	Musician.Utils.Print("══════ " .. Musician.Utils.Highlight("♫ " .. title) .. " ══════")
-
-	local song
-	for _, song in pairs(list) do
-		Musician.Utils.Print(
-			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_PLAY, "play", song.name), 'FF0000') .. ' ' ..
-			Musician.Utils.PaddingZeros(song.index, floor(log10(#list) + 1)) .. '. ' ..
-			Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", '[' .. song.name .. ']', "load", song.name)) ..
-			' (' .. Musician.Utils.FormatTime(song.cropTo - song.cropFrom, true) .. ')'
-			.. ' ' .. Musician.Utils.Highlight(Musician.Utils.GetLink("musicianlist", MusicianList.Msg.LINK_DELETE, "delete", song.name), 'FF0000') .. ''
-		)
-	end
-end
-
 
 --- Process save step on frame
 --
@@ -440,6 +369,7 @@ local function processSaveStep()
 		currentProcess.savedData.name = currentProcess.name
 		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
 		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess)
+		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 		currentProcess = nil
 
 		Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
@@ -638,6 +568,8 @@ function MusicianList.DoDelete(id)
 	if Musician.sourceSong and songData.name == Musician.sourceSong.name then
 		Musician.sourceSong.isInList = nil
 	end
+
+	Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- Rename song, showing "rename" dialog if no name is provided
@@ -706,6 +638,8 @@ function MusicianList.DoRename(id, name)
 	msg = string.gsub(msg, "{name}", Musician.Utils.Highlight(oldName))
 	msg = string.gsub(msg, "{newName}", Musician.Utils.Highlight(name))
 	Musician.Utils.Print(msg)
+
+	Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- OnSongImportStart
@@ -834,6 +768,28 @@ function MusicianList.GetSong(idOrIndex)
 	end
 end
 
+--- Format time to mm:ss.ss format
+-- @param time (number)
+-- @return (string)
+function MusicianList.FormatTime(time, simple)
+	time = floor(time + .5)
+	local s = time % 60
+	time = floor(time / 60)
+	local m = time
+
+	return m .. ":" .. Musician.Utils.PaddingZeros(s, 2)
+end
+
+--- Clean string for search, keeping only lowercase letters without accents and numbers.
+-- @param str (string)
+-- @return string without accents (string)
+function MusicianList.SearchString(str)
+	str = strlower(str)
+	str = MusicianList.StripAccents(str)
+	str = string.gsub(str, "%p+", " ")
+	return strtrim(string.gsub(str, "%s+", " "))
+end
+
 --- Remove all accents from provided string
 -- @param str (string)
 -- @return string without accents (string)
@@ -846,7 +802,9 @@ function MusicianList.StripAccents(str)
 		{"à á â ã ä å ā ă ą", "a"},
 		{"Æ", "AE"},
 		{"æ", "ae"},
-		{"ß Ɓ", "B"},
+		{"Ɓ", "B"},
+		{"ẞ", "SS"},
+		{"ß", "ss"},
 		{"ƀ", "b"},
 		{"Ç Ć Ĉ Ċ Č", "C"},
 		{"ç ć ĉ ċ č", "c"},

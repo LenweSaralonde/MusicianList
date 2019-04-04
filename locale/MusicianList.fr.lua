@@ -17,8 +17,11 @@ msg.COMMAND_FIND_PARAMS = "**<mot-clé 1>** [ **<mot-clé 2>** ] [ … **<mot-cl
 
 msg.MENU_LIST = "Liste des morceaux"
 msg.MENU_SAVE = "Enregistrer dans la liste"
-msg.MENU_RENAME = "Renommer dans la liste"
-msg.MENU_DELETE = "Supprimer de la liste"
+
+msg.HEADER_SONG_INDEX = "N°"
+msg.HEADER_SONG_TITLE = "Titre"
+msg.HEADER_SONG_DURATION = "Durée"
+msg.HEADER_SONG_ACTIONS = "Actions"
 
 msg.SAVE_SONG_AS = "Enregistrer le morceau sous :"
 msg.RENAME_SONG = "Renommer le morceau :"
@@ -31,13 +34,11 @@ msg.DELETE_CONFIRM = "Êtes vous sûr(e) de vouloir supprimer \"%s\" ?"
 msg.SONG_DELETED = "\"{name}\" a été supprimé."
 msg.SONG_RENAMED = "\"{name}\" a été renommé en {newName}."
 
-msg.NO_SONG = "Aucun morceau dans la liste."
-msg.NO_SONG_FOUND = "Aucun morceau trouvé."
 msg.SONG_LIST = "Liste des morceaux"
-msg.FOUND_SONG_LIST = "Morceaux trouvés"
-
-msg.LINK_PLAY = "►"
-msg.LINK_DELETE = "X"
+msg.FILTER_SONG = "Filtrer"
+msg.SONG_LIST_EMPTY = "La liste de morceaux est vide."
+msg.IMPORT_A_SONG = "Importer un morceau"
+msg.NO_SONG_FOUND = "Aucun morceau trouvé."
 
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "Votre version de Musician est obsolète et ne peut pas être utilisée avec MusicianList. Mettez à jour l'add-on Musician."
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "Votre version de MusicianList est obsolète et ne peut plus être utilisée. Veuillez la mettre à jour."
