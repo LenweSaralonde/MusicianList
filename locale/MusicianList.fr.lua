@@ -23,6 +23,10 @@ msg.HEADER_SONG_TITLE = "Titre"
 msg.HEADER_SONG_DURATION = "Durée"
 msg.HEADER_SONG_ACTIONS = "Actions"
 
+msg.ACTION_PLAY = "Charger et jouer"
+msg.ACTION_RENAME = "Renommer"
+msg.ACTION_DELETE = "Supprimer"
+
 msg.SAVE_SONG_AS = "Enregistrer le morceau sous :"
 msg.RENAME_SONG = "Renommer le morceau :"
 msg.OVERWRITE_CONFIRM = "\"%s\" existe déjà. Écraser ?"

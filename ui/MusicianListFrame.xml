@@ -23,6 +23,16 @@
 			<OnMouseDown>
 				PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 			</OnMouseDown>
+			<OnEnter inherit="append">
+				if self.tooltipText then
+					GameTooltip_AddNewbieTip(self, self.tooltipText, 1.0, 1.0, 1.0)
+				end
+			</OnEnter>
+			<OnLeave inherit="append">
+				if self.tooltipText then
+					GameTooltip:Hide()
+				end
+			</OnLeave>
 		</Scripts>
 	</Button>
 
@@ -122,8 +132,11 @@
 				<Scripts>
 					<OnLoad inherit="append">
 						self.playButton:SetText(MusicianList.Icons.Play)
+						self.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
 						self.renameButton:SetText(MusicianList.Icons.Pencil)
+						self.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
 						self.deleteButton:SetText(MusicianList.Icons.Trash)
+						self.deleteButton.tooltipText = MusicianList.Msg.ACTION_DELETE
 					</OnLoad>
 					<OnClick>
 						MusicianList.Load(self:GetParent().song.id)
