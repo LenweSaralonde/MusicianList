@@ -202,8 +202,33 @@ function MusicianList:OnInitialize()
 		end
 	end)
 
+	-- Upgrade database
+	MusicianList.UpgradeDB()
+
 	-- Init UI
 	MusicianList.Frame.Init()
+end
+
+--- Upgrade song database
+--
+function MusicianList.UpgradeDB()
+
+	-- Version 1 => 2
+	if MusicianList_Storage.version == 1 then
+
+		local songData, id
+		for id, songData in pairs(MusicianList_Storage.data) do
+			-- Remove unused indexe
+			songData.index = nil
+
+			-- Update song format
+			local chunk = LibDeflate:DecompressDeflate(songData.chunks[1])
+			chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
+			songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+		end
+
+		MusicianList_Storage.version = 2
+	end
 end
 
 --- Get command definitions
@@ -471,11 +496,6 @@ local function processLoadStep()
 
 	local compressedChunk = currentProcess.savedData.chunks[currentProcess.cursor]
 	local chunk = LibDeflate:DecompressDeflate(compressedChunk)
-
-	-- Check and replace header in first chunk
-	if currentProcess.rawData == "" then
-		chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
-	end
 
 	currentProcess.rawData = currentProcess.rawData .. chunk
 
