@@ -14,5 +14,9 @@ MusicianList.Events.SongLoadStart = "MusicianListSongLoadStart"
 MusicianList.Events.SongLoadProgress = "MusicianListSongLoadProgress"
 MusicianList.Events.SongLoadComplete = "MusicianListSongLoadComplete"
 
+MusicianList.LoadActions = {}
+MusicianList.LoadActions.Preview = 1
+MusicianList.LoadActions.Play = 2
+
 MusicianList.Msg = {}
 MusicianList.Locale = {}

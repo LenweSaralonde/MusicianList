@@ -77,6 +77,18 @@
       "css": "upload-cloud",
       "code": 76,
       "src": "fontawesome"
+    },
+    {
+      "uid": "76857a03fbaa6857fe063b6c25aa98ed",
+      "css": "speaker",
+      "code": 77,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f27bba41a700af51a4dd23cf4edea61d",
+      "css": "headphones",
+      "code": 78,
+      "src": "fontawesome"
     }
   ]
 }

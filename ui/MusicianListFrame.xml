@@ -125,7 +125,7 @@
 				<ButtonText name="$parentText" parentKey="text" justifyh="LEFT">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="29" y="-4" relativeTo="$parent" />
-						<Anchor point="BOTTOMRIGHT" x="-47" y="4" relativeTo="$parent" />
+						<Anchor point="BOTTOMRIGHT" x="-61" y="4" relativeTo="$parent" />
 					</Anchors>
 				</ButtonText>
 				<NormalFont style="MusicianListFontIconsHighlightSmall"/>
@@ -133,6 +133,8 @@
 					<OnLoad inherit="append">
 						self.playButton:SetText(MusicianList.Icons.Play)
 						self.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
+						self.previewButton:SetText(MusicianList.Icons.Headphones)
+						self.previewButton.tooltipText = MusicianList.Msg.ACTION_PREVIEW
 						self.renameButton:SetText(MusicianList.Icons.Pencil)
 						self.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
 						self.deleteButton:SetText(MusicianList.Icons.Trash)
@@ -174,13 +176,23 @@
 							</OnClick>
 						</Scripts>
 					</Button>
-					<Button name="$parentPlayButton" parentKey="playButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentRenameButton" />
 						</Anchors>
 						<Scripts>
 							<OnClick>
-								MusicianList.Load(self:GetParent():GetParent().song.id, true)
+								MusicianList.Load(self:GetParent():GetParent().song.id, MusicianList.LoadActions.Preview)
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button name="$parentPlayButton" parentKey="playButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentPreviewButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Load(self:GetParent():GetParent().song.id, MusicianList.LoadActions.Play)
 							</OnClick>
 						</Scripts>
 					</Button>
@@ -222,12 +234,14 @@
 				if self:IsMouseOver() then
 					self.title.deleteButton:Show()
 					self.title.renameButton:Show()
+					self.title.previewButton:Show()
 					self.title.playButton:Show()
 					self.duration:Hide()
 					self.background:SetColorTexture(.6, 0, 0, 1)
 				else
 					self.title.deleteButton:Hide()
 					self.title.renameButton:Hide()
+					self.title.previewButton:Hide()
 					self.title.playButton:Hide()
 					self.duration:Show()
 					self.background:SetColorTexture(0, 0, 0, .5)

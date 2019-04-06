@@ -181,27 +181,6 @@ function MusicianList:OnInitialize()
 		hideOnEscape = 1,
 	}
 
-	-- Hyperlinks
-	--
-
-	hooksecurefunc("ChatFrame_OnHyperlinkShow", function(self, link, text, button)
-		local args = { strsplit(':', link) }
-		local prefix = table.remove(args, 1)
-		if prefix == "musicianlist" then
-			local command = table.remove(args, 1)
-			local value = table.concat(args, ':')
-
-			-- Load song
-			if command == "load" then -- Load song
-				MusicianList.Load(value)
-			elseif command == "play" then -- Play song
-				MusicianList.Load(value, true)
-			elseif command == "delete" then -- Delete song
-				MusicianList.Delete(value)
-			end
-		end
-	end)
-
 	-- Upgrade database
 	MusicianList.UpgradeDB()
 
@@ -263,16 +242,30 @@ function MusicianList.GetCommands()
 
 	-- Replace existing "Play" command
 
-	local playCommand = table.remove(commands, 2)
-	table.insert(commands, 2, {
-		command = { "play" },
+	local playFunc = commands[2].func
+	Musician.Utils.DeepMerge(commands[2], {
 		text = MusicianList.Msg.COMMAND_PLAY,
 		params = MusicianList.Msg.COMMAND_PLAY_PARAMS,
 		func = function(value)
 			if value ~= "" then
-				MusicianList.Load(value, true)
+				MusicianList.Load(value, MusicianList.LoadActions.Play)
 			else
-				playCommand.func()
+				playFunc()
+			end
+		end
+	})
+
+	-- Replace existing "Preview" command
+
+	local previewFunc = commands[4].func
+	Musician.Utils.DeepMerge(commands[4], {
+		text = MusicianList.Msg.COMMAND_PREVIEW,
+		params = MusicianList.Msg.COMMAND_PREVIEW_PARAMS,
+		func = function(value)
+			if value ~= "" then
+				MusicianList.Load(value, MusicianList.LoadActions.Preview)
+			else
+				previewFunc()
 			end
 		end
 	})
@@ -306,7 +299,7 @@ function MusicianList.GetCommands()
 		text = MusicianList.Msg.COMMAND_LOAD,
 		params = MusicianList.Msg.COMMAND_LOAD_PARAMS,
 		func = function(value)
-			MusicianList.Load(value, false)
+			MusicianList.Load(value)
 		end
 	})
 
@@ -551,8 +544,8 @@ end
 
 --- Load song
 -- @param idOrIndex (string)
--- @param play (boolean) Play song after loading
-function MusicianList.Load(idOrIndex, play)
+-- @param action (number) Action to perform after loading
+function MusicianList.Load(idOrIndex, action)
 
 	if currentProcess or Musician.importingSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
@@ -569,7 +562,7 @@ function MusicianList.Load(idOrIndex, play)
 	currentProcess = {
 		['process'] = PROCESS_LOAD,
 		['cursor'] = 1,
-		['play'] = play,
+		['action'] = action,
 		['rawData'] = '',
 		['id'] = id,
 		['song'] = Musician.Song.create(),
@@ -750,7 +743,7 @@ function MusicianList.OnSourceSongLoaded(event)
 		Musician.sourceSong.cropTo = currentProcess.savedData.cropTo
 		Musician.sourceSong:Reset()
 
-		local doPlay = currentProcess.play
+		local action = currentProcess.action
 
 		currentProcess = nil
 		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
@@ -761,8 +754,11 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
 
-		if doPlay then
+		if action == MusicianList.LoadActions.Play then
 			Musician.Comm.PlaySong()
+		elseif action == MusicianList.LoadActions.Preview then
+			Musician.sourceSong:Play()
+			Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
 		end
 	end
 

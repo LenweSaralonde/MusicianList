@@ -11,4 +11,6 @@ MusicianList.Icons = {
 	Info = "J",
 	CloudDown = "K",
 	CloudUp = "L",
+	Speaker = "M",
+	Headphones = "N",
 }
