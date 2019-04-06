@@ -15,7 +15,7 @@ msg.COMMAND_DELETE_PARAMS = "[ { **<nom morceau>** || **<n° morceau>** } ]"
 msg.COMMAND_RENAME = "Renommer un morceau de la liste ou renommer le morceau actuel"
 msg.COMMAND_RENAME_PARAMS = "[ **<n° morceau>** [ **<nouveau nom>** ] ]"
 msg.COMMAND_FIND = "Chercher un morceau dans la liste"
-msg.COMMAND_FIND_PARAMS = "**<mot-clé 1>** [ **<mot-clé 2>** ] [ … **<mot-clé n>** ]"
+msg.COMMAND_FIND_PARAMS = "**<nom morceau>**"
 
 msg.MENU_LIST = "Liste des morceaux"
 msg.MENU_SAVE = "Enregistrer dans la liste"

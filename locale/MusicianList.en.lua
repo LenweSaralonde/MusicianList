@@ -15,7 +15,7 @@ msg.COMMAND_DELETE_PARAMS = "[ { **<song name>** || **<song #>** } ]"
 msg.COMMAND_RENAME = "Rename a song in the list or rename the current song"
 msg.COMMAND_RENAME_PARAMS = "[ **<song #>** [ **<new name>** ] ]"
 msg.COMMAND_FIND = "Find a song in the list"
-msg.COMMAND_FIND_PARAMS = "**<keyword 1>** [ **<keyword 2>** ] [ … **<keyword n>** ]"
+msg.COMMAND_FIND_PARAMS = "**<song name>**"
 
 msg.MENU_LIST = "Song list"
 msg.MENU_SAVE = "Save into list"
