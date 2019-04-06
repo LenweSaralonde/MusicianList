@@ -16,6 +16,7 @@ msg.COMMAND_RENAME = "Renommer un morceau de la liste ou renommer le morceau act
 msg.COMMAND_RENAME_PARAMS = "[ **<n° morceau>** [ **<nouveau nom>** ] ]"
 msg.COMMAND_FIND = "Chercher un morceau dans la liste"
 msg.COMMAND_FIND_PARAMS = "**<nom morceau>**"
+msg.COMMAND_RESTORE_DEMO = "Restaurer les morceaux de démonstration"
 
 msg.MENU_LIST = "Liste des morceaux"
 
@@ -40,6 +41,7 @@ msg.DONE_SAVING = "Enregistrement terminé."
 msg.DELETE_CONFIRM = "Êtes vous sûr(e) de vouloir supprimer \"%s\" ?"
 msg.SONG_DELETED = "\"{name}\" a été supprimé."
 msg.SONG_RENAMED = "\"{name}\" a été renommé en {newName}."
+msg.DEMO_SONGS_RESTORED = "Les morceaux de démonstration ont été restaurés."
 
 msg.SONG_LIST = "Liste des morceaux"
 msg.FILTER_SONG = "Filtrer"

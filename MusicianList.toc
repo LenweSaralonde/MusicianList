@@ -9,6 +9,7 @@
 core\MusicianList.lua
 
 constants\MusicianList.Constants.lua
+constants\MusicianList.DemoSongs.lua
 
 locale\locale.xml
 

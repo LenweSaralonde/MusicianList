@@ -16,6 +16,7 @@ msg.COMMAND_RENAME = "Rename a song in the list or rename the current song"
 msg.COMMAND_RENAME_PARAMS = "[ **<song #>** [ **<new name>** ] ]"
 msg.COMMAND_FIND = "Find a song in the list"
 msg.COMMAND_FIND_PARAMS = "**<song name>**"
+msg.COMMAND_RESTORE_DEMO = "Restore demo songs"
 
 msg.MENU_LIST = "Song list"
 
@@ -40,6 +41,7 @@ msg.DONE_SAVING = "Done saving."
 msg.DELETE_CONFIRM = "Are you sure you would like to delete \"%s\"?"
 msg.SONG_DELETED = "\"{name}\" has been deleted."
 msg.SONG_RENAMED = "\"{name}\" has been renamed into \"{newName}\"."
+msg.DEMO_SONGS_RESTORED = "Demo songs have been restored."
 
 msg.SONG_LIST = "Song list"
 msg.FILTER_SONG = "Filter"

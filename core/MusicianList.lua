@@ -231,6 +231,10 @@ function MusicianList.UpgradeDB()
 			MusicianList_Storage.data[id] = nil
 		end
 
+		-- Add demo songs
+		MusicianList.RestoreDemoSongs(false)
+
+		-- Increment version number
 		MusicianList_Storage.version = 2
 	end
 end
@@ -332,6 +336,18 @@ function MusicianList.GetCommands()
 			local index = table.remove(argsTable, 1)
 			local name = strtrim(table.concat(argsTable, " "))
 			MusicianList.Rename(index, name)
+		end
+	})
+
+	-- Restore demo songs
+
+	table.insert(commands, #commands - 2, {
+		command = { "demosongs" },
+		text = MusicianList.Msg.COMMAND_RESTORE_DEMO,
+		func = function(argStr)
+			MusicianList.RestoreDemoSongs(true)
+			Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+			Musician.Utils.Print(MusicianList.Msg.DEMO_SONGS_RESTORED)
 		end
 	})
 
@@ -842,7 +858,6 @@ function MusicianList.OnSourceSongLoaded(event)
 	currentImportStep = nil
 end
 
-
 --- Perform all on-frame actions
 -- @param frame (Frame)
 -- @param elapsed (number)
@@ -855,6 +870,17 @@ function MusicianList.OnUpdate(frame, elapsed)
 		processSaveStep()
 	elseif currentProcess.process == PROCESS_LOAD then
 		processLoadStep()
+	end
+end
+
+--- Restore demo songs
+-- @param overwrite (boolean)
+function MusicianList.RestoreDemoSongs(overwrite)
+	local id, song
+	for id, song in pairs(MusicianList.DemoSongs) do
+		if overwrite or MusicianList_Storage.data[id] == nil then
+			MusicianList_Storage.data[id] = Musician.Utils.DeepCopy(song)
+		end
 	end
 end
 
