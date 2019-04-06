@@ -221,10 +221,16 @@ function MusicianList.UpgradeDB()
 			-- Remove unused indexe
 			songData.index = nil
 
-			-- Update song format
+			-- Add song format
 			local chunk = LibDeflate:DecompressDeflate(songData.chunks[1])
-			chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
-			songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+			local format = string.sub(chunk, 1, 4)
+			songData.format = format -- Keep a trace of the original song format
+
+			-- Convert to new format
+			if format ~= Musician.FILE_HEADER then
+				chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
+				songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+			end
 		end
 
 		MusicianList_Storage.version = 2
@@ -392,6 +398,7 @@ local function processSaveStep()
 	if to == #currentProcess.rawData then
 		currentProcess.cursor = to
 		currentProcess.savedData.name = currentProcess.name
+		currentProcess.savedData.format = Musician.FILE_HEADER
 		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
 		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess)
 		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
