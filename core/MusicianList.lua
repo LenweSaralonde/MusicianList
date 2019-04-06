@@ -89,8 +89,8 @@ function MusicianList:OnInitialize()
 		text = MusicianList.Msg.DELETE_CONFIRM,
 		button1 = YES,
 		button2 = NO,
-		OnAccept = function(self, id)
-			MusicianList.DoDelete(id)
+		OnAccept = function(self, params)
+			MusicianList.DoDelete(params.id, params.fromCommandLine)
 		end,
 		timeout = 30,
 		whileDead = 1,
@@ -105,21 +105,21 @@ function MusicianList:OnInitialize()
 		button2 = CANCEL,
 		hasEditBox = 1,
 		editBoxWidth = 350,
-		OnAccept = function(self)
+		OnAccept = function(self, params)
 			local name = strtrim(self.editBox:GetText())
-			MusicianList.SaveConfirm(name)
+			MusicianList.SaveConfirm(name, params.fromCommandLine)
 		end,
-		EditBoxOnEnterPressed = function(self)
+		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
 			local name = strtrim(parent.editBox:GetText())
-			MusicianList.SaveConfirm(name)
+			MusicianList.SaveConfirm(name, params.fromCommandLine)
 			parent:Hide()
 		end,
 		EditBoxOnEscapePressed = function(self)
 			self:GetParent():Hide()
 		end,
-		OnShow = function(self, name)
-			self.editBox:SetText(name)
+		OnShow = function(self, params)
+			self.editBox:SetText(params.name)
 			self.editBox:HighlightText(0)
 			self.editBox:SetFocus()
 		end,
@@ -140,21 +140,21 @@ function MusicianList:OnInitialize()
 		button2 = CANCEL,
 		hasEditBox = 1,
 		editBoxWidth = 350,
-		OnAccept = function(self, songData)
+		OnAccept = function(self, params)
 			local name = strtrim(self.editBox:GetText())
-			MusicianList.RenameConfirm(songData.id, name)
+			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 		end,
-		EditBoxOnEnterPressed = function(self, songData)
+		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
 			local name = strtrim(parent.editBox:GetText())
-			MusicianList.RenameConfirm(songData.id, name)
+			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 			parent:Hide()
 		end,
 		EditBoxOnEscapePressed = function(self)
 			self:GetParent():Hide()
 		end,
-		OnShow = function(self, songData)
-			self.editBox:SetText(songData.oldName)
+		OnShow = function(self, params)
+			self.editBox:SetText(params.oldName)
 			self.editBox:HighlightText(0)
 			self.editBox:SetFocus()
 		end,
@@ -253,7 +253,7 @@ function MusicianList.GetCommands()
 		params = MusicianList.Msg.COMMAND_PLAY_PARAMS,
 		func = function(value)
 			if value ~= "" then
-				MusicianList.Load(value, MusicianList.LoadActions.Play)
+				MusicianList.Load(value, MusicianList.LoadActions.Play, true)
 			else
 				playFunc()
 			end
@@ -268,7 +268,7 @@ function MusicianList.GetCommands()
 		params = MusicianList.Msg.COMMAND_PREVIEW_PARAMS,
 		func = function(value)
 			if value ~= "" then
-				MusicianList.Load(value, MusicianList.LoadActions.Preview)
+				MusicianList.Load(value, MusicianList.LoadActions.Preview, true)
 			else
 				previewFunc()
 			end
@@ -304,7 +304,7 @@ function MusicianList.GetCommands()
 		text = MusicianList.Msg.COMMAND_LOAD,
 		params = MusicianList.Msg.COMMAND_LOAD_PARAMS,
 		func = function(value)
-			MusicianList.Load(value)
+			MusicianList.Load(value, nil, true)
 		end
 	})
 
@@ -314,7 +314,9 @@ function MusicianList.GetCommands()
 		command = { "save" },
 		text = MusicianList.Msg.COMMAND_SAVE,
 		params = MusicianList.Msg.COMMAND_SAVE_PARAMS,
-		func = MusicianList.Save
+		func = function(value)
+			MusicianList.Save(value, true)
+		end
 	})
 
 	-- Delete song
@@ -323,7 +325,9 @@ function MusicianList.GetCommands()
 		command = { "delete", "del", "remove", "rm" },
 		text = MusicianList.Msg.COMMAND_DELETE,
 		params = MusicianList.Msg.COMMAND_DELETE_PARAMS,
-		func = MusicianList.Delete
+		func = function(value)
+			MusicianList.Delete(value, true)
+		end
 	})
 
 	-- Rename song
@@ -336,7 +340,7 @@ function MusicianList.GetCommands()
 			local argsTable = { strsplit(" ", argStr) }
 			local index = table.remove(argsTable, 1)
 			local name = strtrim(table.concat(argsTable, " "))
-			MusicianList.Rename(index, name)
+			MusicianList.Rename(index, name, true)
 		end
 	})
 
@@ -397,7 +401,7 @@ function MusicianList.AddButtons()
 	end)
 
 	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor, "MusicianListIconButtonTemplate")
-	trackEditorSaveButton:SetWidth(60)
+	trackEditorSaveButton:SetWidth(50)
 	trackEditorSaveButton:SetHeight(20)
 	trackEditorSaveButton:SetText(MusicianList.Icons.Save)
 	trackEditorSaveButton.tooltipText = MusicianList.Msg.ACTION_SAVE
@@ -481,10 +485,13 @@ local function processSaveStep()
 		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
 		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 
+		if currentProcess.fromCommandLine then
+			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
+		end
+
 		currentProcess = nil
 		MusicianList.RefreshFrame()
 
-		Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
 	else
 		currentProcess.cursor = to + 1
 	end
@@ -492,32 +499,35 @@ end
 
 --- Save song, showing "save as" dialog if no name is provided
 -- @param [name] (string)
-function MusicianList.Save(name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.Save(name, fromCommandLine)
 	-- Defaults to loaded song
 	if name == nil or name == '' then
-		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, strtrim(Musician.sourceSong.name))
+		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, { name = strtrim(Musician.sourceSong.name), fromCommandLine = fromCommandLine })
 	else
-		MusicianList.SaveConfirm(strtrim(name))
+		MusicianList.SaveConfirm(strtrim(name), fromCommandLine)
 	end
 end
 
 --- Save song, requesting to overwrite existing song
 -- @param [name] (string)
-function MusicianList.SaveConfirm(name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.SaveConfirm(name, fromCommandLine)
 	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
 
 	if song then
 		StaticPopup_Show("MUSICIAN_LIST_OVERWRITE_CONFIRM", Musician.Utils.Highlight(name), nil, function()
-			MusicianList.DoSave(name)
+			MusicianList.DoSave(name, fromCommandLine)
 		end)
 	else
-		MusicianList.DoSave(name)
+		MusicianList.DoSave(name, fromCommandLine)
 	end
 end
 
 --- Save song, without confirmation
 -- @param name (string)
-function MusicianList.DoSave(name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.DoSave(name, fromCommandLine)
 
 	name = strtrim(name)
 
@@ -536,7 +546,9 @@ function MusicianList.DoSave(name)
 		return
 	end
 
-	Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
+	if fromCommandLine then
+		Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
+	end
 
 	currentProcess = {
 		['process'] = PROCESS_SAVE,
@@ -544,6 +556,7 @@ function MusicianList.DoSave(name)
 		['rawData'] = importedSongData,
 		['id'] = MusicianList.GetSongId(name),
 		['name'] = name,
+		['fromCommandLine'] = fromCommandLine,
 		['savedData'] = {
 			['chunks'] = {},
 			['tracks'] = {},
@@ -612,7 +625,8 @@ end
 --- Load song
 -- @param idOrIndex (string)
 -- @param action (number) Action to perform after loading
-function MusicianList.Load(idOrIndex, action)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 	if currentProcess or Musician.importingSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
@@ -632,11 +646,14 @@ function MusicianList.Load(idOrIndex, action)
 		['action'] = action,
 		['rawData'] = '',
 		['id'] = id,
+		['fromCommandLine'] = fromCommandLine,
 		['song'] = Musician.Song.create(),
 		['savedData'] = songData
 	}
 
-	Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(currentProcess.savedData.name)))
+	if fromCommandLine then
+		Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(currentProcess.savedData.name)))
+	end
 
 	currentProcess.song.importing = true
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadStart, currentProcess)
@@ -646,7 +663,8 @@ end
 
 --- Delete song, with confirmation
 -- @param [idOrIndex] (string)
-function MusicianList.Delete(idOrIndex)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.Delete(idOrIndex, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
 		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
@@ -659,12 +677,13 @@ function MusicianList.Delete(idOrIndex)
 		return
 	end
 
-	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(songData.name), nil, id)
+	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(songData.name), nil, { id = id, fromCommandLine = fromCommandLine })
 end
 
 --- Delete song, without confirmation
 -- @param [id] (string)
-function MusicianList.DoDelete(id)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.DoDelete(id, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
@@ -672,7 +691,10 @@ function MusicianList.DoDelete(id)
 	end
 
 	MusicianList_Storage.data[id] = nil
-	Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(songData.name)))
+
+	if fromCommandLine then
+		Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(songData.name)))
+	end
 
 	if Musician.sourceSong and songData.name == Musician.sourceSong.name then
 		Musician.sourceSong.isInList = nil
@@ -684,7 +706,8 @@ end
 --- Rename song, showing "rename" dialog if no name is provided
 -- @param idOrIndex (string)
 -- @param name (string)
-function MusicianList.Rename(idOrIndex, name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
 		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
@@ -698,32 +721,34 @@ function MusicianList.Rename(idOrIndex, name)
 	end
 
 	if name == nil or name == '' then
-		StaticPopup_Show("MUSICIAN_LIST_RENAME", Musician.Utils.Highlight(songData.name), nil, { id = id, oldName = songData.name })
+		StaticPopup_Show("MUSICIAN_LIST_RENAME", Musician.Utils.Highlight(songData.name), nil, { id = id, oldName = songData.name, fromCommandLine = fromCommandLine })
 	else
-		MusicianList.RenameConfirm(id, name)
+		MusicianList.RenameConfirm(id, name, fromCommandLine)
 	end
 end
 
 --- Rename song, requesting to overwrite existing song
 -- @param [id] (string)
 -- @param [name] (string)
-function MusicianList.RenameConfirm(id, name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.RenameConfirm(id, name, fromCommandLine)
 	-- Find out if another song already exists with the same name
 	local song2, id2 = MusicianList.GetSong(MusicianList.GetSongId(name))
 
 	if song2 and id ~= id2 then
 		StaticPopup_Show("MUSICIAN_LIST_OVERWRITE_CONFIRM", Musician.Utils.Highlight(name), nil, function()
-			MusicianList.DoRename(id, name)
+			MusicianList.DoRename(id, name, fromCommandLine)
 		end)
 	else
-		MusicianList.DoRename(id, name)
+		MusicianList.DoRename(id, name, fromCommandLine)
 	end
 end
 
 --- Rename song, without confirmation
 -- @param [id] (string)
 -- @param [name] (string)
-function MusicianList.DoRename(id, name)
+-- @param [fromCommandLine] (boolean)
+function MusicianList.DoRename(id, name, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
@@ -743,10 +768,12 @@ function MusicianList.DoRename(id, name)
 		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
 	end
 
-	local msg = MusicianList.Msg.SONG_RENAMED
-	msg = string.gsub(msg, "{name}", Musician.Utils.Highlight(oldName))
-	msg = string.gsub(msg, "{newName}", Musician.Utils.Highlight(name))
-	Musician.Utils.Print(msg)
+	if fromCommandLine then
+		local msg = MusicianList.Msg.SONG_RENAMED
+		msg = string.gsub(msg, "{name}", Musician.Utils.Highlight(oldName))
+		msg = string.gsub(msg, "{newName}", Musician.Utils.Highlight(name))
+		Musician.Utils.Print(msg)
+	end
 
 	Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 end
@@ -839,7 +866,9 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		Musician.sourceSong.isInList = true
 
-		Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
+		if currentProcess.fromCommandLine then
+			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
+		end
 
 		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
 

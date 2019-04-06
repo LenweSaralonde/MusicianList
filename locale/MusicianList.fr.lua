@@ -40,7 +40,7 @@ msg.DONE_LOADING = "Chargement terminé."
 msg.DONE_SAVING = "Enregistrement terminé."
 msg.DELETE_CONFIRM = "Êtes vous sûr(e) de vouloir supprimer \"%s\" ?"
 msg.SONG_DELETED = "\"{name}\" a été supprimé."
-msg.SONG_RENAMED = "\"{name}\" a été renommé en {newName}."
+msg.SONG_RENAMED = "\"{name}\" a été renommé en \"{newName}\"."
 msg.DEMO_SONGS_RESTORED = "Les morceaux de démonstration ont été restaurés."
 
 msg.SONG_LIST = "Liste des morceaux"
