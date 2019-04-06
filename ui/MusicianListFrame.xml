@@ -125,7 +125,6 @@
 		</Anchors>
 
 		<Frames>
-
 			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListIconButtonSimple" justifyh="LEFT" justifyv="MIDDLE">
 				<Anchors>
 					<Anchor point="TOPLEFT" />
@@ -251,25 +250,10 @@
 
 		<Scripts>
 			<OnUpdate>
-				if self:IsMouseOver() then
-					self.title.deleteButton:Show()
-					self.title.renameButton:Show()
-					self.title.previewButton:Show()
-					self.title.playButton:Show()
-					self.duration:Hide()
-					self.background:SetColorTexture(.6, 0, 0, 1)
-				else
-					self.title.deleteButton:Hide()
-					self.title.renameButton:Hide()
-					self.title.previewButton:Hide()
-					self.title.playButton:Hide()
-					self.duration:Show()
-					self.background:SetColorTexture(0, 0, 0, .5)
-				end
+				MusicianList.Frame.SongRowOnUpdate(self, elapsed)
 			</OnUpdate>
 		</Scripts>
 	</Frame>
-
 
 	<!-- Main frame -->
 

@@ -6,6 +6,9 @@ local totalSongs = 0
 --
 MusicianList.Frame.Init = function()
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
+	MusicianList.Frame:RegisterMessage(Musician.Events.SourceSongLoaded, function()
+		MusicianList.Frame.Filter()
+	end)
 
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
 
@@ -75,6 +78,7 @@ MusicianList.Frame.Filter = function(filter)
 			rowFrame:Show()
 			rowFrame:SetPoint("TOPLEFT", 0, -height)
 			height = height + rowFrame:GetHeight()
+			MusicianList.Frame.HighlightSongRow(rowFrame, rowFrame:IsMouseOver())
 		else
 			rowFrame:Hide()
 		end
@@ -144,5 +148,48 @@ MusicianList.Frame.EnableButtons = function()
 		rowFrame.title.previewButton:Enable()
 		rowFrame.title.renameButton:Enable()
 		rowFrame.title.deleteButton:Enable()
+	end
+end
+
+--- Highlight song row on frame update
+-- @param rowFrame (Frame)
+-- @param elapsed (number)
+MusicianList.Frame.SongRowOnUpdate = function(rowFrame, elapsed)
+	local isMouseOver = rowFrame:IsMouseOver()
+	if rowFrame.isHighlighted ~= isMouseOver then
+		rowFrame.isHighlighted = isMouseOver
+		MusicianList.Frame.HighlightSongRow(rowFrame, isMouseOver)
+	end
+end
+
+--- Highlight song row
+-- @param rowFrame (Frame)
+-- @param isHighlighted (boolean)
+MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
+	if isHighlighted then
+		rowFrame.title.deleteButton:Show()
+		rowFrame.title.renameButton:Show()
+		rowFrame.title.previewButton:Show()
+		rowFrame.title.playButton:Show()
+		rowFrame.duration:Hide()
+		rowFrame.background:SetColorTexture(.6, 0, 0, 1)
+	else
+		rowFrame.title.deleteButton:Hide()
+		rowFrame.title.renameButton:Hide()
+		rowFrame.title.previewButton:Hide()
+		rowFrame.title.playButton:Hide()
+		rowFrame.duration:Show()
+
+		-- Change background color if the song is the currently loaded one
+		if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == rowFrame.song.name then
+			rowFrame.background:SetColorTexture(.5, .5, .5, .5)
+		else
+			-- Odd and even colors
+			if rowFrame.song.index % 2 == 0 then
+				rowFrame.background:SetColorTexture(0, 0, 0, .5)
+			else
+				rowFrame.background:SetColorTexture(.1, .1, .1, .5)
+			end
+		end
 	end
 end
