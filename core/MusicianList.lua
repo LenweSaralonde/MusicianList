@@ -227,6 +227,9 @@ function MusicianList.UpgradeDB()
 				invalidIds[id] = validId
 			end
 
+			-- Trim song name
+			songData.name = strtrim(songData.name)
+
 			-- Remove unused indexes
 			songData.index = nil
 
@@ -454,6 +457,8 @@ end
 --- Save song, without confirmation
 -- @param name (string)
 function MusicianList.DoSave(name)
+
+	name = strtrim(name)
 
 	if currentProcess or Musician.importingSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
