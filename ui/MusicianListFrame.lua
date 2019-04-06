@@ -6,10 +6,6 @@ local totalSongs = 0
 --
 MusicianList.Frame.Init = function()
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
-	MusicianList.Frame:RegisterMessage(Musician.Events.SourceSongLoaded, function()
-		MusicianList.Frame.Filter()
-	end)
-
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
 
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, function()
@@ -149,6 +145,7 @@ MusicianList.Frame.EnableButtons = function()
 		rowFrame.title.renameButton:Enable()
 		rowFrame.title.deleteButton:Enable()
 	end
+	MusicianList.Frame.Filter()
 end
 
 --- Highlight song row on frame update
