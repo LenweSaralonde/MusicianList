@@ -18,7 +18,6 @@ msg.COMMAND_FIND = "Find a song in the list"
 msg.COMMAND_FIND_PARAMS = "**<song name>**"
 
 msg.MENU_LIST = "Song list"
-msg.MENU_SAVE = "Save into list"
 
 msg.HEADER_SONG_INDEX = "#"
 msg.HEADER_SONG_TITLE = "Title"
@@ -29,6 +28,7 @@ msg.ACTION_PLAY = "Load and play"
 msg.ACTION_PREVIEW = "Load and preview"
 msg.ACTION_RENAME = "Rename"
 msg.ACTION_DELETE = "Delete"
+msg.ACTION_SAVE = "Save in the list"
 
 msg.SAVE_SONG_AS = "Save song as:"
 msg.RENAME_SONG = "Rename song:"

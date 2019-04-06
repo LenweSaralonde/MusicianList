@@ -44,6 +44,13 @@
 		<NormalFont style="MusicianListFontIconsNormal" />
 		<HighlightFont style="MusicianListFontIconsHighlight" />
 		<DisabledFont style="MusicianListFontIconsDisable" />
+		<Scripts>
+			<OnMouseDown inherit="append">
+				if self:IsEnabled() then
+					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+				end
+			</OnMouseDown>
+		</Scripts>
 	</Button>
 
 	<!-- Standard button with text and icon template -->

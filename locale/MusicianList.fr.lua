@@ -18,7 +18,6 @@ msg.COMMAND_FIND = "Chercher un morceau dans la liste"
 msg.COMMAND_FIND_PARAMS = "**<nom morceau>**"
 
 msg.MENU_LIST = "Liste des morceaux"
-msg.MENU_SAVE = "Enregistrer dans la liste"
 
 msg.HEADER_SONG_INDEX = "N°"
 msg.HEADER_SONG_TITLE = "Titre"
@@ -29,6 +28,7 @@ msg.ACTION_PLAY = "Charger et jouer"
 msg.ACTION_PREVIEW = "Charger et aperçu"
 msg.ACTION_RENAME = "Renommer"
 msg.ACTION_DELETE = "Supprimer"
+msg.ACTION_SAVE = "Enregistrer dans la liste"
 
 msg.SAVE_SONG_AS = "Enregistrer le morceau sous :"
 msg.RENAME_SONG = "Renommer le morceau :"

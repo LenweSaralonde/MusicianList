@@ -3,7 +3,9 @@ MusicianList
 
 Load and save songs in game for the addon [Musician](https://lenwe.info/musician).
 
-Left-click on the Musician minimap button to open the main menu, from there you can open the song list or save the currently imported song into it.
+The song list is accessible from Musician main menu on the minimap or by clicking the list button in the main import window.
+
+To save the current song to the list, press the **Save** button in the main import window or in the song editor.
 
 Type `/mus help` to get the command list.
 

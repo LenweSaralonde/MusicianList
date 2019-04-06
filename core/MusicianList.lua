@@ -185,6 +185,7 @@ function MusicianList:OnInitialize()
 
 	-- Init UI
 	MusicianList.Frame.Init()
+	MusicianList.AddButtons()
 end
 
 --- Upgrade song database
@@ -352,18 +353,66 @@ function MusicianList.GetMenu()
 		end
 	})
 
-	-- Save song
-	if Musician.sourceSong then
-		table.insert(menu, 7, {
-			notCheckable = true,
-			text = MusicianList.Msg.MENU_SAVE,
-			func = function()
-				MusicianList.Save()
-			end
-		})
-	end
-
 	return menu
+end
+
+--- Add buttons in Musician UI
+--
+function MusicianList.AddButtons()
+	local listButton = CreateFrame("Button", "MusicianFrameListButton", MusicianFrame, "MusicianListIconButtonTemplate")
+	listButton:SetWidth(35)
+	listButton:SetHeight(22)
+	listButton:SetText(MusicianList.Icons.List)
+	listButton.tooltipText = MusicianList.Msg.MENU_LIST
+	listButton:SetPoint("TOPRIGHT", -10, -10)
+	listButton:HookScript("OnClick", function()
+		MusicianListFrame:Show()
+	end)
+
+	local saveButton = CreateFrame("Button", "MusicianFrameSaveButton", MusicianFrame, "MusicianListIconButtonTemplate")
+	saveButton:SetWidth(35)
+	saveButton:SetHeight(22)
+	saveButton:SetText(MusicianList.Icons.Save)
+	saveButton.tooltipText = MusicianList.Msg.ACTION_SAVE
+	saveButton:SetPoint("TOPRIGHT", -45, -10)
+	saveButton:HookScript("OnClick", function()
+		MusicianList.Save()
+	end)
+
+	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor, "MusicianListIconButtonTemplate")
+	trackEditorSaveButton:SetWidth(60)
+	trackEditorSaveButton:SetHeight(20)
+	trackEditorSaveButton:SetText(MusicianList.Icons.Save)
+	trackEditorSaveButton.tooltipText = MusicianList.Msg.ACTION_SAVE
+	trackEditorSaveButton:SetPoint("RIGHT", MusicianTrackEditorGoToStartButton, "LEFT", -40, 0)
+	trackEditorSaveButton:HookScript("OnClick", function()
+		MusicianList.Save()
+	end)
+
+	-- Enable or disable buttons according to current UI state
+	MusicianList:RegisterMessage(Musician.Events.RefreshFrame, MusicianList.RefreshFrame)
+	MusicianList.RefreshFrame()
+end
+
+--- Update Musician UI elements
+--
+function MusicianList.RefreshFrame()
+	if currentProcess == nil then
+		if Musician.sourceSong then
+			MusicianFrameSaveButton:Enable()
+			MusicianTrackEditorSaveButton:Enable()
+		else
+			MusicianFrameSaveButton:Disable()
+			MusicianTrackEditorSaveButton:Disable()
+		end
+		MusicianFrameSource:Enable()
+		MusicianFrameClearButton:Enable()
+	else
+		MusicianFrameSaveButton:Disable()
+		MusicianTrackEditorSaveButton:Disable()
+		MusicianFrameSource:Disable()
+		MusicianFrameClearButton:Disable()
+	end
 end
 
 --- Get sorted song list
@@ -414,7 +463,9 @@ local function processSaveStep()
 		Musician.sourceSong.name = currentProcess.name
 		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
 		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+
 		currentProcess = nil
+		MusicianList.RefreshFrame()
 
 		Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
 	else
@@ -501,6 +552,7 @@ function MusicianList.DoSave(name)
 
 	Musician.Comm:SendMessage(MusicianList.Events.SongSaveStart, currentProcess)
 	Musician.Comm:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, 0)
+	MusicianList.RefreshFrame()
 
 	Musician.sourceSong.isInList = true
 end
@@ -572,6 +624,7 @@ function MusicianList.Load(idOrIndex, action)
 	currentProcess.song.importing = true
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadStart, currentProcess)
 	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
+	MusicianList.RefreshFrame()
 end
 
 --- Delete song, with confirmation
@@ -699,6 +752,7 @@ function MusicianList.OnSongImportStart(event, song)
 		end
 
 		currentProcess = nil
+		MusicianList.RefreshFrame()
 	end
 end
 
@@ -735,6 +789,7 @@ function MusicianList.OnSongImportFailed(event, song)
 	if currentProcess and currentProcess.process == PROCESS_LOAD and song == currentProcess.song then
 		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
 		currentProcess = nil
+		MusicianList.RefreshFrame()
 	end
 end
 
@@ -772,6 +827,7 @@ function MusicianList.OnSourceSongLoaded(event)
 		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
 
 		currentProcess = nil
+		MusicianList.RefreshFrame()
 
 		if action == MusicianList.LoadActions.Play then
 			Musician.Comm.PlaySong()
