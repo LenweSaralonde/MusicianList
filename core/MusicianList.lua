@@ -216,9 +216,18 @@ function MusicianList.UpgradeDB()
 	-- Version 1 => 2
 	if MusicianList_Storage.version == 1 then
 
+		local invalidIds = {}
+
 		local songData, id
 		for id, songData in pairs(MusicianList_Storage.data) do
-			-- Remove unused indexe
+
+			-- Check for invalid ID
+			local validId = MusicianList.GetSongId(songData.name)
+			if validId ~= id then
+				invalidIds[id] = validId
+			end
+
+			-- Remove unused indexes
 			songData.index = nil
 
 			-- Add song format
@@ -231,6 +240,13 @@ function MusicianList.UpgradeDB()
 				chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
 				songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
 			end
+		end
+
+		-- Fix invalid IDs
+		local validId
+		for id, validId in pairs(invalidIds) do
+			MusicianList_Storage.data[validId] = MusicianList_Storage.data[id]
+			MusicianList_Storage.data[id] = nil
 		end
 
 		MusicianList_Storage.version = 2
