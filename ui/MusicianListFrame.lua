@@ -5,7 +5,10 @@ local totalSongs = 0
 --- Init
 --
 MusicianList.Frame.Init = function()
-	Musician.TrackEditor:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, MusicianList.Frame.ResetProgressBars)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, MusicianList.Frame.ResetProgressBars)
 	MusicianList.Frame.SetData()
 end
 
@@ -78,5 +81,30 @@ MusicianList.Frame.Filter = function(filter)
 		end
 	else
 		MusicianListFrameListEmpty:Hide()
+	end
+end
+
+--- ResetProgressBars
+--
+MusicianList.Frame.ResetProgressBars = function(event, process, success)
+	local rowFrame
+	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
+		rowFrame.progressBar:Hide()
+		rowFrame.progressBar:SetWidth(0)
+	end
+end
+
+--- OnProgress
+-- @param filter (string)
+-- @param process (table)
+-- @param progression (number)
+MusicianList.Frame.OnProgress = function(event, process, progression)
+	local rowFrame
+	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
+		if process.id == rowFrame.song.id then
+			rowFrame.progressBar:Show()
+			rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
+			return
+		end
 	end
 end

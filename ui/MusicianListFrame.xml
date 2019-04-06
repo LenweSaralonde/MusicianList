@@ -202,22 +202,6 @@
 		</Frames>
 
 		<Layers>
-			<Layer level="OVERLAY">
-				<FontString name="$parentSongIndex" parentKey="index" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="0">
-					<Size x="24" y="18" />
-					<Anchors>
-						<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$parent" />
-					</Anchors>
-				</FontString>
-
-				<FontString name="$parentSongDuration" parentKey="duration" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="00:00">
-					<Size x="48" y="18" />
-					<Anchors>
-						<Anchor point="RIGHT" x="-5" relativePoint="RIGHT" relativeTo="$parent" />
-					</Anchors>
-				</FontString>
-			</Layer>
-
 			<Layer level="BACKGROUND">
 				<Texture name="$parentBackground" parentKey="background" >
 					<Anchors>
@@ -225,6 +209,33 @@
 						<Anchor point="BOTTOMRIGHT" x="-2" y="1" />
 					</Anchors>
 					<Color r="0" g="0" b="0" a=".5" />
+				</Texture>
+			</Layer>
+
+			<Layer level="OVERLAY">
+				<!-- Song index -->
+				<FontString name="$parentSongIndex" parentKey="index" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="0">
+					<Size x="24" y="18" />
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$parent" />
+					</Anchors>
+				</FontString>
+
+				<!-- Song duration -->
+				<FontString name="$parentSongDuration" parentKey="duration" inherits="GameFontNormalSmall" justifyh="RIGHT" justifyv="MIDDLE" text="00:00">
+					<Size x="48" y="18" />
+					<Anchors>
+						<Anchor point="RIGHT" x="-5" relativePoint="RIGHT" relativeTo="$parent" />
+					</Anchors>
+				</FontString>
+
+				<!-- Loading progress bar -->
+				<Texture name="$parentLoadingProgressBar" parentKey="progressBar" hidden="true">
+					<Size y="2"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeTo="$parentBackground" />
+					</Anchors>
+					<Color a="1" r="1" g="1" b="1" />
 				</Texture>
 			</Layer>
 		</Layers>

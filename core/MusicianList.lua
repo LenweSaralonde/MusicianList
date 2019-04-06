@@ -59,11 +59,10 @@ function MusicianList:OnInitialize()
 	MusicianList:RegisterMessage(Musician.Events.SongImportProgress, MusicianList.OnSongImportProgress)
 	MusicianList:RegisterMessage(Musician.Events.SongImportFailed, MusicianList.OnSongImportFailed)
 	MusicianList:RegisterMessage(Musician.Events.SourceSongLoaded, MusicianList.OnSourceSongLoaded)
-	MusicianList:RegisterMessage(Musician.Events.SongImportStart, MusicianList.OnSongImportStart)
 
 	-- Show progress bar while loading
 	MusicianList:RegisterMessage(MusicianList.Events.SongLoadProgress, function(event, process, progression)
-		MusicianFrame.RefreshLoadingProgressBar(event, process.song, progression * .75)
+		MusicianFrame.RefreshLoadingProgressBar(event, process.song, progression)
 	end)
 
 	-- Show progress bar while saving
@@ -412,7 +411,8 @@ local function processSaveStep()
 		currentProcess.savedData.name = currentProcess.name
 		currentProcess.savedData.format = Musician.FILE_HEADER
 		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
-		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess)
+		Musician.sourceSong.name = currentProcess.name
+		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
 		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
 		currentProcess = nil
 
@@ -470,8 +470,6 @@ function MusicianList.DoSave(name)
 
 	Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
 
-	Musician.sourceSong.name = name
-
 	currentProcess = {
 		['process'] = PROCESS_SAVE,
 		['cursor'] = 1,
@@ -520,7 +518,7 @@ local function processLoadStep()
 
 	currentProcess.rawData = currentProcess.rawData .. chunk
 
-	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, currentProcess.cursor / #currentProcess.savedData.chunks)
+	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 * currentProcess.cursor / #currentProcess.savedData.chunks)
 
 	-- Process complete
 	if currentProcess.cursor == #currentProcess.savedData.chunks then
@@ -691,6 +689,17 @@ function MusicianList.OnSongImportStart(event, song)
 		return
 	end
 	currentImportStep = song.import.step
+
+	-- Importing over a current process: abort it
+	if currentProcess then
+		if currentProcess.process == PROCESS_SAVE then
+			Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, false)
+		elseif currentProcess.process == PROCESS_LOAD then
+			Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
+		end
+
+		currentProcess = nil
+	end
 end
 
 --- OnSongImportProgress
@@ -702,6 +711,7 @@ function MusicianList.OnSongImportProgress(event, song, progression)
 		return
 	end
 
+	-- New Musician import step
 	if currentImportStep ~= song.import.step then
 		currentImportStep = song.import.step
 
@@ -709,6 +719,11 @@ function MusicianList.OnSongImportProgress(event, song, progression)
 		if song.import.step == 2 then
 			currentImportData = song.import.data
 		end
+	end
+
+	-- Forward Musician's import progression for the rest of the loading process
+	if currentProcess and song == currentProcess.song and currentProcess.process == PROCESS_LOAD and song.import.step >= 2 then
+		Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 + (progression - .75) * 2 )
 	end
 end
 
@@ -718,6 +733,7 @@ end
 function MusicianList.OnSongImportFailed(event, song)
 	-- Abort loading process if it failed for some reason
 	if currentProcess and currentProcess.process == PROCESS_LOAD and song == currentProcess.song then
+		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
 		currentProcess = nil
 	end
 end
@@ -745,7 +761,6 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		local action = currentProcess.action
 
-		currentProcess = nil
 		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
 		MusicianFrame.Clear(true)
 		Musician.TrackEditor.OnLoad()
@@ -753,6 +768,10 @@ function MusicianList.OnSourceSongLoaded(event)
 		Musician.sourceSong.isInList = true
 
 		Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
+
+		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
+
+		currentProcess = nil
 
 		if action == MusicianList.LoadActions.Play then
 			Musician.Comm.PlaySong()
