@@ -24,6 +24,7 @@ function MusicianList:OnInitialize()
 			['version'] = MusicianList.STORAGE_VERSION,
 			['data'] = {}
 		}
+		MusicianList.RestoreDemoSongs()
 	end
 
 	-- Check for outdated Musician version
