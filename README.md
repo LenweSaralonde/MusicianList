@@ -1,11 +1,9 @@
 MusicianList
 ============
 
-Add load and save features for the addon [Musician](https://lenwe.info/musician).
+Load and save songs in game for the addon [Musician](https://lenwe.info/musician).
 
-This addon has no UI and has to be used in command line only.
-
-Musician commands start by `/musician` but you can also use `/music` or `/mus`.
+Left-click on the Musician minimap button to open the main menu, from there you can open the song list or save the currently imported song into it.
 
 Type `/mus help` to get the command list.
 
@@ -32,11 +30,17 @@ Load and play song
 ------------------
 `/musician play (<song name>|<song number>)`
 
+Load and preview song
+---------------------
+`/musician preview (<song name>|<song number>)`
+
 Find a song
 -----------
-`/musician find <keywords>`
+`/musician find <song name>`
 
-`/musician search <keywords>`
+`/musician search <song name>`
+
+`/musician filter <song name>`
 
 Delete song
 -----------
@@ -47,3 +51,13 @@ Delete song
 `/musician remove [(<song name>|<song number>)]`
 
 If no song name or number is specified, the currently loaded song will be deleted.
+
+Rename song
+-----------
+`/musician rename [<song number> [<new name>]]`
+
+`/musician ren [<song number> [<new name>]]`
+
+`/musician mv [<song number> [<new name>]]`
+
+If no parameter is specified, the currently loaded song will be renamed.
