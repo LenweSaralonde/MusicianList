@@ -21,7 +21,9 @@
 		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
 		<Scripts>
 			<OnMouseDown>
-				PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+				if self:IsEnabled() then
+					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+				end
 			</OnMouseDown>
 			<OnEnter inherit="append">
 				if self.tooltipText then

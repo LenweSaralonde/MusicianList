@@ -6,9 +6,21 @@ local totalSongs = 0
 --
 MusicianList.Frame.Init = function()
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
+
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, MusicianList.Frame.ResetProgressBars)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, MusicianList.Frame.ResetProgressBars)
+
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, function()
+		MusicianList.Frame.ResetProgressBars()
+		MusicianList.Frame.DisableButtons()
+	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, function()
+		MusicianList.Frame.ResetProgressBars()
+		MusicianList.Frame.EnableButtons()
+	end)
+
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveStart, MusicianList.Frame.DisableButtons)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, MusicianList.Frame.EnableButtons)
+
 	MusicianList.Frame.SetData()
 end
 
@@ -106,5 +118,31 @@ MusicianList.Frame.OnProgress = function(event, process, progression)
 			rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
 			return
 		end
+	end
+end
+
+--- Disable all buttons while a process is running
+--
+MusicianList.Frame.DisableButtons = function()
+	local rowFrame
+	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
+		rowFrame.title:Disable()
+		rowFrame.title.playButton:Disable()
+		rowFrame.title.previewButton:Disable()
+		rowFrame.title.renameButton:Disable()
+		rowFrame.title.deleteButton:Disable()
+	end
+end
+
+--- Enable all buttons when a process finishes
+--
+MusicianList.Frame.EnableButtons = function()
+	local rowFrame
+	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
+		rowFrame.title:Enable()
+		rowFrame.title.playButton:Enable()
+		rowFrame.title.previewButton:Enable()
+		rowFrame.title.renameButton:Enable()
+		rowFrame.title.deleteButton:Enable()
 	end
 end
