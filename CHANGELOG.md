@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.5.0
+------
+* Full graphical UI
+* Added song renaming
+* Bugfixes and performance improvements
+
 v1.1.0
 ------
 * Updated for Musician v1.5
