@@ -70,14 +70,17 @@ MusicianList.Frame.Filter = function(filter)
 	filter = MusicianList.SearchString(filter)
 
 	local index = 1
+	local visibleIndex = 1
 	local height = 0
 	for index = 1, MusicianListFrameSongContainer:GetNumChildren() do
 		local rowFrame = _G["MusicianListSong" .. index]
 		if rowFrame.song ~= nil and (filter == "" or string.match(rowFrame.song.searchName, filter)) then
 			rowFrame:Show()
 			rowFrame:SetPoint("TOPLEFT", 0, -height)
+			rowFrame.visibleIndex = visibleIndex
 			height = height + rowFrame:GetHeight()
 			MusicianList.Frame.HighlightSongRow(rowFrame, rowFrame:IsMouseOver())
+			visibleIndex = visibleIndex + 1
 		else
 			rowFrame:Hide()
 		end
@@ -185,7 +188,7 @@ MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 			rowFrame.background:SetColorTexture(.5, .5, .5, .5)
 		else
 			-- Odd and even colors
-			if rowFrame.song.index % 2 == 0 then
+			if rowFrame.visibleIndex % 2 == 0 then
 				rowFrame.background:SetColorTexture(0, 0, 0, .5)
 			else
 				rowFrame.background:SetColorTexture(.1, .1, .1, .5)
