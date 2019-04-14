@@ -1,6 +1,6 @@
 ## Interface: 80100
 ## Title: Musician List
-## Version: 1.5.0
+## Version: 1.5.1
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0

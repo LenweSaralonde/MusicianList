@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.1
+------
+* Fixed row coloring when filtering is enabled
+
 v1.5.0
 ------
 * Full graphical UI
