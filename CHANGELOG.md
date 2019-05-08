@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.2
+------
+* Fixed demo songs corruption when the addon is downloaded from CurseForge
+
 v1.5.1
 ------
 * Fixed row coloring when filtering is enabled
