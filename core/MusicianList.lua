@@ -854,8 +854,8 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		-- Update song settings
 		Musician.sourceSong.name = currentProcess.savedData.name
-		Musician.sourceSong.cropFrom = currentProcess.savedData.cropFrom
-		Musician.sourceSong.cropTo = currentProcess.savedData.cropTo
+		Musician.sourceSong.cropFrom = floor(currentProcess.savedData.cropFrom * 100000) / 100000 -- Apply rounding since serialized saved values lose precision
+		Musician.sourceSong.cropTo = ceil(currentProcess.savedData.cropTo * 100000) / 100000
 		Musician.sourceSong:Reset()
 
 		local action = currentProcess.action
