@@ -194,6 +194,8 @@ end
 function MusicianList.UpgradeDB()
 
 	-- Version 1 => 2
+	-- ==============
+
 	if MusicianList_Storage.version == 1 then
 
 		local invalidIds = {}
@@ -215,13 +217,15 @@ function MusicianList.UpgradeDB()
 
 			-- Add song format
 			local chunk = LibDeflate:DecompressDeflate(songData.chunks[1])
-			local format = string.sub(chunk, 1, 4)
-			songData.format = format -- Keep a trace of the original song format
+			if chunk ~= nil then
+				local format = string.sub(chunk, 1, 4)
+				songData.format = format -- Keep a trace of the original song format
 
-			-- Convert to new format
-			if format ~= Musician.FILE_HEADER then
-				chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
-				songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+				-- Convert to new format
+				if format ~= Musician.FILE_HEADER then
+					chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
+					songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+				end
 			end
 		end
 
@@ -237,6 +241,37 @@ function MusicianList.UpgradeDB()
 
 		-- Increment version number
 		MusicianList_Storage.version = 2
+	end
+
+	-- Version 2 => 3
+	-- ==============
+
+	if MusicianList_Storage.version == 2 then
+		-- Remove songs corrupted by the CurseForge packager
+
+		local checkSong = function(songData)
+			local compressedChunk
+			for _, compressedChunk in pairs(songData.chunks) do
+				local chunk = LibDeflate:DecompressDeflate(compressedChunk)
+				if chunk == nil then
+					return false
+				end
+			end
+			return true
+		end
+
+		local songData, id
+		for id, songData in pairs(MusicianList_Storage.data) do
+			if not(checkSong(songData)) then
+				MusicianList_Storage.data[id] = nil
+			end
+		end
+
+		-- Restore demo songs if needed
+		MusicianList.RestoreDemoSongs(false)
+
+		-- Increment version number
+		MusicianList_Storage.version = 3
 	end
 end
 
