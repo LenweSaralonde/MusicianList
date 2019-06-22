@@ -279,12 +279,13 @@ end
 -- @return (table)
 function MusicianList.GetCommands()
 	local commands = MusicianGetCommands()
+	local isOldPlayCommand = Musician.Utils.VersionCompare(GetAddOnMetadata("Musician", "Version"), '1.5.0.4') <= 0
 
 	-- Replace existing "Play" command
 
 	local playFunc = commands[2].func
 	Musician.Utils.DeepMerge(commands[2], {
-		text = MusicianList.Msg.COMMAND_PLAY,
+		text = isOldPlayCommand and MusicianList.Msg.COMMAND_PLAY_OLD or MusicianList.Msg.COMMAND_PLAY,
 		params = MusicianList.Msg.COMMAND_PLAY_PARAMS,
 		func = function(value)
 			if value ~= "" then
@@ -299,7 +300,7 @@ function MusicianList.GetCommands()
 
 	local previewFunc = commands[4].func
 	Musician.Utils.DeepMerge(commands[4], {
-		text = MusicianList.Msg.COMMAND_PREVIEW,
+		text = isOldPlayCommand and MusicianList.Msg.COMMAND_PREVIEW_OLD or MusicianList.Msg.COMMAND_PREVIEW,
 		params = MusicianList.Msg.COMMAND_PREVIEW_PARAMS,
 		func = function(value)
 			if value ~= "" then
