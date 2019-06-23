@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.3
+------
+* WoW 8.2 update
+
 v1.5.2
 ------
 * Fixed demo songs corruption when the addon is downloaded from CurseForge
