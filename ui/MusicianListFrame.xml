@@ -257,7 +257,7 @@
 
 	<!-- Main frame -->
 
-	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplate">
+	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplate" resizable="true">
 
 		<Size x="360" y="524" />
 
@@ -364,6 +364,14 @@
 					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-11" />
 				</Anchors>
 				<Scripts>
+					<OnEditFocusGained inherits="append">
+						local resizeButton = self:GetParent().resizeButton
+						resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
+					</OnEditFocusGained>
+					<OnEditFocusLost inherits="append">
+						local resizeButton = self:GetParent().resizeButton
+						resizeButton:SetFrameLevel(resizeButton.frameLevel)
+					</OnEditFocusLost>
 					<OnTextChanged>
 						SearchBoxTemplate_OnTextChanged(self,isUserInput)
 						MusicianList.Frame.Filter()
@@ -374,6 +382,43 @@
 					</OnLoad>
 				</Scripts>
 			</EditBox>
+
+			<!-- Resize button -->
+
+			<Button name="$parentResizeButton" parentKey="resizeButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="3" y="-3"/>
+				</Anchors>
+				<Scripts>
+					<OnMouseDown>
+						self:SetButtonState("PUSHED", true)
+						self:GetHighlightTexture():Hide()
+						local window = self:GetParent()
+						window:StartSizing("BOTTOMRIGHT")
+					</OnMouseDown>
+					<OnMouseUp>
+						self:SetButtonState("NORMAL", false)
+						self:GetHighlightTexture():Show()
+						local window = self:GetParent()
+						window:StopMovingOrSizing()
+						FCF_SavePositionAndDimensions(window)
+					</OnMouseUp>
+					<OnLoad>
+						local texture
+						for _, texture in ipairs({ self:GetNormalTexture(), self:GetHighlightTexture(), self:GetPushedTexture() }) do
+							texture:ClearAllPoints()
+							texture:SetPoint("BOTTOMRIGHT", -10, 10)
+							texture:SetSize(20, 20)
+						end
+						self.frameLevel = self:GetParent().searchBox:GetFrameLevel() + 100
+						self:SetFrameLevel(self.frameLevel)
+					</OnLoad>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up"/>
+				<HighlightTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down"/>
+			</Button>
 
 		</Frames>
 
@@ -419,6 +464,9 @@
 
 		<Scripts>
 			<OnLoad inherit="append">
+				self:SetMinResize(160, 160)
+				self:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
+
 				MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
 				MusicianListFrameHeaderSongIndex:SetText(MusicianList.Msg.HEADER_SONG_INDEX)
 				MusicianListFrameHeaderSongTitle:SetText(MusicianList.Msg.HEADER_SONG_TITLE)
