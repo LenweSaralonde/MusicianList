@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.4
+------
+* Song list can now be resized
+
 v1.5.3
 ------
 * WoW 8.2 update
