@@ -1,7 +1,7 @@
 MusicianList
 ============
 
-Load and save songs in game for the addon [Musician](https://lenwe.info/musician).
+Load and save songs in game for the [Musician](https://musician.lenwe.io) add-on.
 
 The song list is accessible from Musician main menu on the minimap or by clicking the list button in the main import window.
 
