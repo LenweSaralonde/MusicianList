@@ -387,7 +387,7 @@ function MusicianList.GetCommands()
 		text = MusicianList.Msg.COMMAND_RESTORE_DEMO,
 		func = function(argStr)
 			MusicianList.RestoreDemoSongs(true)
-			Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+			MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 			Musician.Utils.Print(MusicianList.Msg.DEMO_SONGS_RESTORED)
 		end
 	})
@@ -509,7 +509,7 @@ local function processSaveStep()
 
 	table.insert(currentProcess.savedData.chunks, compressedChunk)
 
-	Musician.Comm:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, to / #currentProcess.rawData)
+	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, to / #currentProcess.rawData)
 
 	-- Process complete
 	if to == #currentProcess.rawData then
@@ -518,8 +518,8 @@ local function processSaveStep()
 		currentProcess.savedData.format = Musician.FILE_HEADER
 		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
 		Musician.sourceSong.name = currentProcess.name
-		Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
-		Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
+		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 
 		if currentProcess.fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
@@ -616,8 +616,8 @@ function MusicianList.DoSave(name, fromCommandLine)
 	currentProcess.savedData.cropFrom = Musician.sourceSong.cropFrom
 	currentProcess.savedData.cropTo = Musician.sourceSong.cropTo
 
-	Musician.Comm:SendMessage(MusicianList.Events.SongSaveStart, currentProcess)
-	Musician.Comm:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, 0)
+	MusicianList:SendMessage(MusicianList.Events.SongSaveStart, currentProcess)
+	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, 0)
 	MusicianList.RefreshFrame()
 
 	Musician.sourceSong.isInList = true
@@ -636,7 +636,7 @@ local function processLoadStep()
 
 	currentProcess.rawData = currentProcess.rawData .. chunk
 
-	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 * currentProcess.cursor / #currentProcess.savedData.chunks)
+	MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 * currentProcess.cursor / #currentProcess.savedData.chunks)
 
 	-- Process complete
 	if currentProcess.cursor == #currentProcess.savedData.chunks then
@@ -692,8 +692,8 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 	end
 
 	currentProcess.song.importing = true
-	Musician.Comm:SendMessage(MusicianList.Events.SongLoadStart, currentProcess)
-	Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
+	MusicianList:SendMessage(MusicianList.Events.SongLoadStart, currentProcess)
+	MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
 	MusicianList.RefreshFrame()
 end
 
@@ -736,7 +736,7 @@ function MusicianList.DoDelete(id, fromCommandLine)
 		Musician.sourceSong.isInList = nil
 	end
 
-	Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- Rename song, showing "rename" dialog if no name is provided
@@ -801,7 +801,7 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
 		Musician.sourceSong.name = name
 		MusicianFrame.Clear(true)
-		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
+		MusicianList:SendMessage(Musician.Events.RefreshFrame)
 	end
 
 	if fromCommandLine then
@@ -811,7 +811,7 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 		Musician.Utils.Print(msg)
 	end
 
-	Musician.Comm:SendMessage(MusicianList.Events.ListUpdate)
+	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- OnSongImportStart
@@ -826,9 +826,9 @@ function MusicianList.OnSongImportStart(event, song)
 	-- Importing over a current process: abort it
 	if currentProcess then
 		if currentProcess.process == PROCESS_SAVE then
-			Musician.Comm:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, false)
+			MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, false)
 		elseif currentProcess.process == PROCESS_LOAD then
-			Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
+			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
 		end
 
 		currentProcess = nil
@@ -857,7 +857,7 @@ function MusicianList.OnSongImportProgress(event, song, progression)
 
 	-- Forward Musician's import progression for the rest of the loading process
 	if currentProcess and song == currentProcess.song and currentProcess.process == PROCESS_LOAD and song.import.step >= 2 then
-		Musician.Comm:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 + (progression - .75) * 2 )
+		MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 + (progression - .75) * 2 )
 	end
 end
 
@@ -867,7 +867,7 @@ end
 function MusicianList.OnSongImportFailed(event, song)
 	-- Abort loading process if it failed for some reason
 	if currentProcess and currentProcess.process == PROCESS_LOAD and song == currentProcess.song then
-		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
+		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
 		currentProcess = nil
 		MusicianList.RefreshFrame()
 	end
@@ -896,7 +896,7 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		local action = currentProcess.action
 
-		Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
+		MusicianList:SendMessage(Musician.Events.RefreshFrame)
 		MusicianFrame.Clear(true)
 		Musician.TrackEditor.OnLoad()
 
@@ -906,7 +906,7 @@ function MusicianList.OnSourceSongLoaded(event)
 			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
 		end
 
-		Musician.Comm:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
+		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
 
 		currentProcess = nil
 		MusicianList.RefreshFrame()
@@ -915,7 +915,7 @@ function MusicianList.OnSourceSongLoaded(event)
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
 			Musician.sourceSong:Play()
-			Musician.Comm:SendMessage(Musician.Events.RefreshFrame)
+			MusicianList:SendMessage(Musician.Events.RefreshFrame)
 		end
 	end
 
