@@ -801,7 +801,7 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
 		Musician.sourceSong.name = name
 		MusicianFrame.Clear(true)
-		MusicianList:SendMessage(Musician.Events.RefreshFrame)
+		MusicianList.RefreshFrame()
 	end
 
 	if fromCommandLine then
@@ -896,7 +896,7 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		local action = currentProcess.action
 
-		MusicianList:SendMessage(Musician.Events.RefreshFrame)
+		MusicianList.RefreshFrame()
 		MusicianFrame.Clear(true)
 		Musician.TrackEditor.OnLoad()
 
@@ -915,7 +915,7 @@ function MusicianList.OnSourceSongLoaded(event)
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
 			Musician.sourceSong:Play()
-			MusicianList:SendMessage(Musician.Events.RefreshFrame)
+			MusicianList.RefreshFrame()
 		end
 	end
 
