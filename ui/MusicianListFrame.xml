@@ -74,27 +74,23 @@
 		</ButtonText>
 
 		<Scripts>
-			<OnEnter>
-				MusicianUIPanelButtonInstance:GetScript("OnEnter")(self, motion)
+			<OnEnter inherit="append">
 				if self:IsEnabled() then
 					self.icon:SetFontObject(MusicianListFontIconsHighlight)
 				end
 			</OnEnter>
-			<OnLeave>
-				MusicianUIPanelButtonInstance:GetScript("OnLeave")(self, motion)
+			<OnLeave inherit="append">
 				if self:IsEnabled() then
 					self.icon:SetFontObject(MusicianListFontIconsNormal)
 				end
 			</OnLeave>
-			<OnEnable>
-				MusicianUIPanelButtonInstance:GetScript("OnEnable")(self)
+			<OnEnable inherit="append">
 				self.icon:SetFontObject(MusicianListFontIconsNormal)
 			</OnEnable>
-			<OnDisable>
-				MusicianUIPanelButtonInstance:GetScript("OnDisable")(self)
+			<OnDisable inherit="append">
 				self.icon:SetFontObject(MusicianListFontIconsDisable)
 			</OnDisable>
-			<OnMouseDown inherits="prepend">
+			<OnMouseDown inherit="prepend">
 				if self:IsEnabled() then
 					if (not self.icon.oldPoint) then
 						local point, relativeTo, relativePoint, x, y = self.icon:GetPoint(1)
@@ -106,7 +102,7 @@
 					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX + ox, self.icon.oldY + oy)
 				end
 			</OnMouseDown>
-			<OnMouseUp inherits="prepend">
+			<OnMouseUp inherit="prepend">
 				if self:IsEnabled() then
 					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX, self.icon.oldY)
 				end
@@ -364,11 +360,11 @@
 					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-11" />
 				</Anchors>
 				<Scripts>
-					<OnEditFocusGained inherits="append">
+					<OnEditFocusGained inherit="append">
 						local resizeButton = self:GetParent().resizeButton
 						resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
 					</OnEditFocusGained>
-					<OnEditFocusLost inherits="append">
+					<OnEditFocusLost inherit="append">
 						local resizeButton = self:GetParent().resizeButton
 						resizeButton:SetFrameLevel(resizeButton.frameLevel)
 					</OnEditFocusLost>
@@ -376,7 +372,7 @@
 						SearchBoxTemplate_OnTextChanged(self,isUserInput)
 						MusicianList.Frame.Filter()
 					</OnTextChanged>
-					<OnLoad inherits="append">
+					<OnLoad inherit="append">
 						SearchBoxTemplate_OnLoad(self)
 						self.Instructions:SetText(MusicianList.Msg.FILTER_SONG)
 					</OnLoad>
