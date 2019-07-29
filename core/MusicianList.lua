@@ -447,7 +447,6 @@ function MusicianList.AddButtons()
 	end)
 
 	-- Enable or disable buttons according to current UI state
-	MusicianList:RegisterMessage(Musician.Events.RefreshFrame, MusicianList.RefreshFrame)
 	MusicianList.RefreshFrame()
 end
 
@@ -896,7 +895,6 @@ function MusicianList.OnSourceSongLoaded(event)
 
 		local action = currentProcess.action
 
-		MusicianList.RefreshFrame()
 		MusicianFrame.Clear(true)
 		Musician.TrackEditor.OnLoad()
 
@@ -909,19 +907,19 @@ function MusicianList.OnSourceSongLoaded(event)
 		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
 
 		currentProcess = nil
-		MusicianList.RefreshFrame()
 
 		if action == MusicianList.LoadActions.Play then
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
 			Musician.sourceSong:Play()
-			MusicianList.RefreshFrame()
 		end
 	end
 
 	importedSongData = currentImportData
 	currentImportData = nil
 	currentImportStep = nil
+
+	MusicianList.RefreshFrame()
 end
 
 --- Perform all on-frame actions
