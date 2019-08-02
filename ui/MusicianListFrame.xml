@@ -365,16 +365,25 @@
 						resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
 					</OnEditFocusGained>
 					<OnEditFocusLost inherit="append">
-						local resizeButton = self:GetParent().resizeButton
-						resizeButton:SetFrameLevel(resizeButton.frameLevel)
+						self:ReorderButtons()
 					</OnEditFocusLost>
 					<OnTextChanged>
-						SearchBoxTemplate_OnTextChanged(self,isUserInput)
+						SearchBoxTemplate_OnTextChanged(self, isUserInput)
 						MusicianList.Frame.Filter()
+						self:ReorderButtons()
 					</OnTextChanged>
 					<OnLoad inherit="append">
 						SearchBoxTemplate_OnLoad(self)
 						self.Instructions:SetText(MusicianList.Msg.FILTER_SONG)
+
+						self.ReorderButtons = function(self)
+							local resizeButton = self:GetParent().resizeButton
+							if #self:GetText() > 0 then
+								resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
+							else
+								resizeButton:SetFrameLevel(resizeButton.frameLevel)
+							end
+						end
 					</OnLoad>
 				</Scripts>
 			</EditBox>
