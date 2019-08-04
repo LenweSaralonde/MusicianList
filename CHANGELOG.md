@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.5
+------
+* Updated for Musician v1.5.5
+
 v1.5.4
 ------
 * Song list can now be resized
