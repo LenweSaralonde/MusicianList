@@ -224,7 +224,7 @@ function MusicianList.UpgradeDB()
 				-- Convert to new format
 				if format ~= Musician.FILE_HEADER then
 					chunk = Musician.FILE_HEADER .. string.sub(chunk, 5)
-					songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+					songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { level = 9 })
 				end
 			end
 		end
@@ -272,6 +272,23 @@ function MusicianList.UpgradeDB()
 
 		-- Increment version number
 		MusicianList_Storage.version = 3
+	end
+
+	-- Version 3 => 4
+	-- ==============
+
+	if MusicianList_Storage.version == 3 then
+		-- Increment song version from MUS4 to MUS5
+		local songData
+		for _, songData in pairs(MusicianList_Storage.data) do
+			songData.format = "MUS5"
+			local chunk = LibDeflate:DecompressDeflate(songData.chunks[1])
+			chunk = "MUS5" .. string.sub(chunk, 5)
+			songData.chunks[1] = LibDeflate:CompressDeflate(chunk, { level = 9 })
+		end
+
+		-- Increment version number
+		MusicianList_Storage.version = 4
 	end
 end
 
@@ -504,7 +521,7 @@ local function processSaveStep()
 	local to = min(#currentProcess.rawData, currentProcess.cursor + MusicianList.CHUNK_SIZE - 1)
 	local from = currentProcess.cursor
 	local chunk = string.sub(currentProcess.rawData, from, to)
-	local compressedChunk = LibDeflate:CompressDeflate(chunk, { ['level'] = 9 })
+	local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
 
 	table.insert(currentProcess.savedData.chunks, compressedChunk)
 
