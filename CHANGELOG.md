@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.6
+------
+* Chinese localization by @Kalevalar
+
 v1.5.5
 ------
 * Updated for Musician v1.5.5
