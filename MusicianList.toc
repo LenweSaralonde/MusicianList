@@ -1,4 +1,4 @@
-## Interface: 80200
+## Interface: 11302
 ## Title: Musician List
 ## Version: 1.5.6
 ## RequiredDeps: Musician
