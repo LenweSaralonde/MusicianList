@@ -9,6 +9,8 @@ To save the current song to the list, press the **Save** button in the main impo
 
 Type `/mus help` to get the command list.
 
+MusicianList is also available for WoW Classic, be sure to install the right version of the add-on.
+
 List available songs
 --------------------
 `/musician list`
