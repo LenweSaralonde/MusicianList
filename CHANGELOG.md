@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.7
+------
+* Player can now save or rename a song when dead (Issue #4)
+
 v1.5.6
 ------
 * Chinese localization by @Kalevalar
