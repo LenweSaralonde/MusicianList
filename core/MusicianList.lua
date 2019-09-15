@@ -129,6 +129,7 @@ function MusicianList:OnInitialize()
 		end,
 		timeout = 0,
 		exclusive = 1,
+		whileDead = 1,
 		hideOnEscape = 1
 	}
 
@@ -164,6 +165,7 @@ function MusicianList:OnInitialize()
 		end,
 		timeout = 0,
 		exclusive = 1,
+		whileDead = 1,
 		hideOnEscape = 1
 	}
 
