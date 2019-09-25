@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.8
+------
+* Update for WoW 8.2.5
+
 v1.5.7
 ------
 * Player can now save or rename a song when dead (Issue #4)
