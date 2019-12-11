@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.8
+------
+* TOC update for WoW Classic 1.13.3
+
 v1.5.7
 ------
 * Player can now save or rename a song when dead (Issue #4)
