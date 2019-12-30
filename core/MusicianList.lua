@@ -104,6 +104,7 @@ function MusicianList:OnInitialize()
 		button1 = ACCEPT,
 		button2 = CANCEL,
 		hasEditBox = 1,
+		maxLetters = 255,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
 			local name = strtrim(self.editBox:GetText())
@@ -140,6 +141,7 @@ function MusicianList:OnInitialize()
 		button1 = ACCEPT,
 		button2 = CANCEL,
 		hasEditBox = 1,
+		maxLetters = 255,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
 			local name = strtrim(self.editBox:GetText())
