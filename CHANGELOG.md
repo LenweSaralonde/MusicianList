@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.5.9
+------
+* Fixed max length for song titles in save and rename popups
+
 v1.5.8
 ------
 * TOC update for WoW Classic 1.13.3
