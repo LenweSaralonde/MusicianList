@@ -1,9 +1,12 @@
 Changelog
 =========
 
+v1.5.10
+-------
+* Update for WoW 8.3
+
 v1.5.9
 ------
-* Update for WoW 8.3
 * Fixed max length for song titles in save and rename popups
 
 v1.5.8

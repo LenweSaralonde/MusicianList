@@ -1,6 +1,6 @@
-## Interface: 80205
+## Interface: 80300
 ## Title: Musician List
-## Version: 1.5.9
+## Version: 1.5.10
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
