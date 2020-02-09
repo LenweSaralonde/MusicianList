@@ -297,7 +297,7 @@ function MusicianList.UpgradeDB()
 end
 
 --- Get command definitions
--- @return (table)
+-- @return commands (table)
 function MusicianList.GetCommands()
 	local commands = MusicianGetCommands()
 	local isOldPlayCommand = Musician.Utils.VersionCompare(GetAddOnMetadata("Musician", "Version"), '1.5.0.4') <= 0
@@ -417,7 +417,7 @@ function MusicianList.GetCommands()
 end
 
 --- Return main menu elements
--- @return (table)
+-- @return menu (table)
 function MusicianList.GetMenu()
 	local menu = MusicianButtonGetMenu()
 
@@ -493,7 +493,7 @@ function MusicianList.RefreshFrame()
 end
 
 --- Get sorted song list
--- @return (table)
+-- @return list (table)
 function MusicianList.GetSongList()
 	local list = {}
 	local songData, id
@@ -554,8 +554,8 @@ local function processSaveStep()
 end
 
 --- Save song, showing "save as" dialog if no name is provided
--- @param [name] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [name (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.Save(name, fromCommandLine)
 	-- Defaults to loaded song
 	if name == nil or name == '' then
@@ -566,8 +566,8 @@ function MusicianList.Save(name, fromCommandLine)
 end
 
 --- Save song, requesting to overwrite existing song
--- @param [name] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [name (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.SaveConfirm(name, fromCommandLine)
 	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
 
@@ -582,7 +582,7 @@ end
 
 --- Save song, without confirmation
 -- @param name (string)
--- @param [fromCommandLine] (boolean)
+-- @param [fromCommandLine (boolean)]
 function MusicianList.DoSave(name, fromCommandLine)
 
 	name = strtrim(name)
@@ -681,7 +681,7 @@ end
 --- Load song
 -- @param idOrIndex (string)
 -- @param action (number) Action to perform after loading
--- @param [fromCommandLine] (boolean)
+-- @param [fromCommandLine (boolean)]
 function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 	if currentProcess or Musician.importingSong then
@@ -718,8 +718,8 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 end
 
 --- Delete song, with confirmation
--- @param [idOrIndex] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [idOrIndex (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.Delete(idOrIndex, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
@@ -737,8 +737,8 @@ function MusicianList.Delete(idOrIndex, fromCommandLine)
 end
 
 --- Delete song, without confirmation
--- @param [id] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [id (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.DoDelete(id, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
@@ -762,7 +762,7 @@ end
 --- Rename song, showing "rename" dialog if no name is provided
 -- @param idOrIndex (string)
 -- @param name (string)
--- @param [fromCommandLine] (boolean)
+-- @param [fromCommandLine (boolean)]
 function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
@@ -784,9 +784,9 @@ function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 end
 
 --- Rename song, requesting to overwrite existing song
--- @param [id] (string)
--- @param [name] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [id (string)]
+-- @param [name (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.RenameConfirm(id, name, fromCommandLine)
 	-- Find out if another song already exists with the same name
 	local song2, id2 = MusicianList.GetSong(MusicianList.GetSongId(name))
@@ -801,9 +801,9 @@ function MusicianList.RenameConfirm(id, name, fromCommandLine)
 end
 
 --- Rename song, without confirmation
--- @param [id] (string)
--- @param [name] (string)
--- @param [fromCommandLine] (boolean)
+-- @param [id (string)]
+-- @param [name (string)]
+-- @param [fromCommandLine (boolean)]
 function MusicianList.DoRename(id, name, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
@@ -971,14 +971,15 @@ end
 
 --- Get song ID by name
 -- @param name (string)
--- @return (string) Song ID
+-- @return songId (string) Song ID
 function MusicianList.GetSongId(name)
 	return strtrim(strlower(name))
 end
 
 --- Get saved song data by name or index
 -- @param idOrIndex (string)
--- @return (table), (string) Song data, song ID
+-- @return songData (table)
+-- @return songId (table)
 function MusicianList.GetSong(idOrIndex)
 	local id = MusicianList.GetSongId(idOrIndex)
 
@@ -1000,7 +1001,7 @@ end
 
 --- Format time to mm:ss.ss format
 -- @param time (number)
--- @return (string)
+-- @return formattedTime (string)
 function MusicianList.FormatTime(time, simple)
 	time = floor(time + .5)
 	local s = time % 60
@@ -1012,7 +1013,7 @@ end
 
 --- Clean string for search, keeping only lowercase letters without accents and numbers.
 -- @param str (string)
--- @return string without accents (string)
+-- @return filteredStr (string)
 function MusicianList.SearchString(str)
 	str = strlower(str)
 	str = MusicianList.StripAccents(str)
@@ -1022,7 +1023,7 @@ end
 
 --- Remove all accents from provided string
 -- @param str (string)
--- @return string without accents (string)
+-- @return filteredStr (string)
 function MusicianList.StripAccents(str)
 
 	if(str == nil) then return "" end
