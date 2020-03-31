@@ -2,6 +2,62 @@ MusicianList.Frame = LibStub("AceAddon-3.0"):NewAddon("MusicianList.Frame", "Ace
 
 local totalSongs = 0
 
+local isDragging = false
+
+--- Handle magnetic edges
+--
+function magneticEdges()
+	local isTopSticky = abs(MusicianFrame:GetBottom() - MusicianListFrame:GetTop()) <= 20
+	local isBottomSticky = abs(MusicianFrame:GetTop() - MusicianListFrame:GetBottom()) <= 20
+	local isLeftSticky = abs(MusicianFrame:GetLeft() - MusicianListFrame:GetLeft()) <= 20
+	local isRightSticky = abs(MusicianFrame:GetRight() - MusicianListFrame:GetRight()) <= 20
+
+	local isTopLeftSticky = isTopSticky and isLeftSticky
+	local isTopRightSticky = isTopSticky and isRightSticky
+	local isBottomLeftSticky = isBottomSticky and isLeftSticky
+	local isBottomRightSticky = isBottomSticky and isRightSticky
+
+	MusicianListFrame:ClearAllPoints()
+
+	if isTopLeftSticky then
+		MusicianListFrame:SetPoint('TOPLEFT', MusicianFrame, 'BOTTOMLEFT', 0, 0)
+	end
+
+	if isTopRightSticky then
+		MusicianListFrame:SetPoint('TOPRIGHT', MusicianFrame, 'BOTTOMRIGHT', 0, 0)
+	end
+
+	if isBottomLeftSticky then
+		MusicianListFrame:SetPoint('BOTTOMLEFT', MusicianFrame, 'TOPLEFT', 0, 0)
+	end
+
+	if isBottomRightSticky then
+		MusicianListFrame:SetPoint('BOTTOMRIGHT', MusicianFrame, 'TOPRIGHT', 0, 0)
+	end
+end
+
+--- Handle magnetic edges on frame move or resize
+--
+function magneticEdgesOnMove()
+	if MusicianFrame:IsVisible() and MusicianListFrame:IsVisible() then
+		magneticEdges()
+	end
+end
+
+--- Handle magnetic edges on drag start
+--
+function onMagneticDragStart()
+	isDragging = true
+	magneticEdgesOnMove()
+end
+
+--- Handle magnetic edges on drag stop
+--
+function onMagneticDragStop()
+	isDragging = false
+	magneticEdgesOnMove()
+end
+
 --- Init
 --
 MusicianList.Frame.Init = function()
@@ -24,6 +80,20 @@ MusicianList.Frame.Init = function()
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, MusicianList.Frame.EnableButtons)
 
 	MusicianList.Frame.SetData()
+
+	-- Handle magnetic edges
+	MusicianListFrame:HookScript('OnDragStart', onMagneticDragStart)
+	MusicianListFrame:HookScript('OnDragStop', onMagneticDragStop)
+	MusicianFrame:HookScript('OnDragStart', onMagneticDragStart)
+	MusicianFrame:HookScript('OnDragStop', onMagneticDragStop)
+	MusicianListFrameResizeButton:HookScript('OnMouseDown', onMagneticDragStart)
+	MusicianListFrameResizeButton:HookScript('OnMouseUp', onMagneticDragStop)
+	MusicianFrame:HookScript('OnShow', magneticEdges)
+	MusicianFrame:HookScript('OnUpdate', function()
+		if isDragging then
+			magneticEdgesOnMove()
+		end
+	end)
 end
 
 --- SetData
