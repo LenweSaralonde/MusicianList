@@ -184,12 +184,12 @@ end
 
 --- OnProgress
 -- @param filter (string)
--- @param process (table)
+-- @param song (MusicianSong)
 -- @param progression (number)
-MusicianList.Frame.OnProgress = function(event, process, progression)
+MusicianList.Frame.OnProgress = function(event, song, progression)
 	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		if process.id == rowFrame.song.id then
+		if song.savedId == rowFrame.song.id then
 			rowFrame.progressBar:Show()
 			rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
 			return

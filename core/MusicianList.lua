@@ -14,6 +14,8 @@ local currentProcess
 local MusicianGetCommands
 local MusicianButtonGetMenu
 
+local EXTRACT_PROGRESSION_RATIO = .33
+
 --- OnInitialize
 --
 function MusicianList:OnInitialize()
@@ -56,15 +58,9 @@ function MusicianList:OnInitialize()
 	MusicianList.processFrame:SetScript("OnUpdate", MusicianList.OnUpdate)
 
 	-- Register events
-	MusicianList:RegisterMessage(Musician.Events.SongImportStart, MusicianList.OnSongImportStart)
-	MusicianList:RegisterMessage(Musician.Events.SongImportProgress, MusicianList.OnSongImportProgress)
-	MusicianList:RegisterMessage(Musician.Events.SongImportFailed, MusicianList.OnSongImportFailed)
-	MusicianList:RegisterMessage(Musician.Events.SourceSongLoaded, MusicianList.OnSourceSongLoaded)
 
 	-- Show progress bar while loading
-	MusicianList:RegisterMessage(MusicianList.Events.SongLoadProgress, function(event, process, progression)
-		MusicianFrame.RefreshLoadingProgressBar(event, process.song, progression)
-	end)
+	MusicianList:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianFrame.RefreshLoadingProgressBar)
 
 	-- Show progress bar while saving
 	MusicianList:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, process, progression)
@@ -643,51 +639,12 @@ function MusicianList.DoSave(name, fromCommandLine)
 	Musician.sourceSong.isInList = true
 end
 
---- Process load step on frame
---
-local function processLoadStep()
-	-- Uncompressing complete, waiting for standard Musician import to complete
-	if currentProcess.cursor == nil then
-		return
-	end
-
-	local compressedChunk = currentProcess.savedData.chunks[currentProcess.cursor]
-	local chunk = LibDeflate:DecompressDeflate(compressedChunk)
-
-	currentProcess.rawData = currentProcess.rawData .. chunk
-
-	MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 * currentProcess.cursor / #currentProcess.savedData.chunks)
-
-	-- Process complete
-	if currentProcess.cursor == #currentProcess.savedData.chunks then
-		currentProcess.cursor = nil
-
-		currentProcess.song.importing = true
-		currentProcess.song.import = {}
-		local import = currentProcess.song.import
-		import.step = 2
-		import.data = currentProcess.rawData
-		import.cursor = 1
-		import.progression = 0
-		import.crop = false
-
-		Musician.importingSong = currentProcess.song
-		importedSongData = import.data
-	else
-		currentProcess.cursor = currentProcess.cursor + 1
-	end
-end
-
 --- Load song
 -- @param idOrIndex (string)
 -- @param action (number) Action to perform after loading
 -- @param [fromCommandLine (boolean)]
 function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
-	if currentProcess or Musician.importingSong then
-		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
-		return
-	end
 	local songData, id = MusicianList.GetSong(idOrIndex)
 
 	-- Song has not been found by name
@@ -696,25 +653,136 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 		return
 	end
 
-	currentProcess = {
-		['process'] = PROCESS_LOAD,
-		['cursor'] = 1,
-		['action'] = action,
-		['rawData'] = '',
-		['id'] = id,
-		['fromCommandLine'] = fromCommandLine,
-		['song'] = Musician.Song.create(),
-		['savedData'] = songData
-	}
-
-	if fromCommandLine then
-		Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(currentProcess.savedData.name)))
+	-- A song is already being imported
+	if Musician.importingSong then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_LOAD_NOW)
+		return
 	end
 
-	currentProcess.song.importing = true
-	MusicianList:SendMessage(MusicianList.Events.SongLoadStart, currentProcess)
-	MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, 0)
+	-- Initiate loading process
+	if fromCommandLine then
+		Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(songData.name)))
+	end
+
+	local song = Musician.Song.create()
+	song.savedId = id
+	song.importing = true
+
+	-- Remove previously importing song
+	if Musician.importingSong ~= nil then
+		Musician.importingSong:CancelImport()
+		Musician.importingSong = nil
+	end
+	Musician.importingSong = song
+	collectgarbage()
+
+	MusicianList:SendMessage(Musician.Events.SongImportStart, song)
+	MusicianList:SendMessage(MusicianList.Events.SongLoadStart, song, songData)
+	MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, song, 0)
 	MusicianList.RefreshFrame()
+
+	local cancelImport = function()
+		Musician.Worker.Remove(songExtractWorker)
+		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, song, false)
+		MusicianList.RefreshFrame()
+	end
+
+	-- Extract song
+	local chunkIndex = 1
+	local extractedSongData = ''
+	local songExtractWorker
+
+	-- Extract compressed chunks using worker
+	songExtractWorker = function()
+		-- Import canceled
+		if not(song.importing) then
+			cancelImport()
+			return
+		end
+
+		if songData.chunks[chunkIndex] == nil then
+			-- Extract complete!
+			Musician.Worker.Remove(songExtractWorker)
+
+			-- Forward Musician's import progression for the rest of the loading process
+			local onImportProgress = function(event, importingSong, progression)
+				if song ~= importingSong then return end
+				MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, song, progression )
+			end
+			MusicianList:RegisterMessage(Musician.Events.SongImportProgress, onImportProgress)
+
+			-- Cancel import if another import is started over
+			local onSongImportStart = function(event, importingSong)
+				if song ~= importingSong then return end
+				cancelImport()
+			end
+			MusicianList:RegisterMessage(Musician.Events.SongImportStart, onSongImportStart)
+
+			-- Operations performed after the import is complete, successful or not
+			local onComplete = function(success)
+				MusicianList:UnregisterMessage(Musician.Events.SongImportProgress, onImportProgress)
+				MusicianList:UnregisterMessage(Musician.Events.SongImportStart, onSongImportStart)
+
+				if success then
+					-- Update track settings
+					local trackIndex, track, trackSetting
+					for trackIndex, track in pairs(song.tracks) do
+						trackSetting = songData.tracks[trackIndex]
+						track.instrument = trackSetting.instrument
+						track.transpose = trackSetting.transpose
+						song:SetTrackSolo(track, trackSetting.solo)
+						song:SetTrackMuted(track, trackSetting.muted)
+					end
+
+					-- Update song settings
+					song.name = songData.name
+					song.cropFrom = floor(songData.cropFrom * 100000) / 100000 -- Apply rounding since serialized saved values lose precision
+					song.cropTo = ceil(songData.cropTo * 100000) / 100000
+					song:Reset()
+
+					MusicianFrame.Clear(true)
+					Musician.TrackEditor.OnLoad()
+
+					song.isInList = true
+
+					if fromCommandLine then
+						Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
+					end
+
+					if action == MusicianList.LoadActions.Play then
+						Musician.Comm.PlaySong()
+					elseif action == MusicianList.LoadActions.Preview then
+						song:Play()
+					end
+				else
+					song:OnImportError()
+				end
+
+				MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, song, true)
+				MusicianList.RefreshFrame()
+			end
+
+			-- Do importation
+			song.importing = false
+			local success, err = pcall(function()
+				song:Import(extractedSongData, false, EXTRACT_PROGRESSION_RATIO, onComplete)
+			end)
+
+			-- Handle importing error
+			-- May happen if database is corrupted
+			if not(success) then
+				onComplete(false)
+			end
+
+			return
+		end
+
+		MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, song, EXTRACT_PROGRESSION_RATIO * chunkIndex / #songData.chunks)
+		extractedSongData = extractedSongData .. LibDeflate:DecompressDeflate(songData.chunks[chunkIndex])
+		chunkIndex = chunkIndex + 1
+	end
+
+	Musician.Worker.Set(songExtractWorker)
 end
 
 --- Delete song, with confirmation
@@ -834,115 +902,6 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
---- OnSongImportStart
--- @param event (string)
--- @param song (Musician.Song)
-function MusicianList.OnSongImportStart(event, song)
-	if song ~= Musician.importingSong then
-		return
-	end
-	currentImportStep = song.import.step
-
-	-- Importing over a current process: abort it
-	if currentProcess then
-		if currentProcess.process == PROCESS_SAVE then
-			MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, false)
-		elseif currentProcess.process == PROCESS_LOAD then
-			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
-		end
-
-		currentProcess = nil
-		MusicianList.RefreshFrame()
-	end
-end
-
---- OnSongImportProgress
--- @param event (string)
--- @param song (Musician.Song)
--- @param progression (number)
-function MusicianList.OnSongImportProgress(event, song, progression)
-	if song ~= Musician.importingSong then
-		return
-	end
-
-	-- New Musician import step
-	if currentImportStep ~= song.import.step then
-		currentImportStep = song.import.step
-
-		-- Import step 2: song is base64-decoded
-		if song.import.step == 2 then
-			currentImportData = song.import.data
-		end
-	end
-
-	-- Forward Musician's import progression for the rest of the loading process
-	if currentProcess and song == currentProcess.song and currentProcess.process == PROCESS_LOAD and song.import.step >= 2 then
-		MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, currentProcess, .5 + (progression - .75) * 2 )
-	end
-end
-
---- OnSongImportFailed
--- @param event (string)
--- @param song (Musician.Song)
-function MusicianList.OnSongImportFailed(event, song)
-	-- Abort loading process if it failed for some reason
-	if currentProcess and currentProcess.process == PROCESS_LOAD and song == currentProcess.song then
-		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, false)
-		currentProcess = nil
-		MusicianList.RefreshFrame()
-	end
-end
-
---- OnSourceSongLoaded
--- @param event (string)
-function MusicianList.OnSourceSongLoaded(event)
-	-- Loaded song has been imported
-	if currentProcess and currentProcess.process == PROCESS_LOAD and Musician.sourceSong == currentProcess.song then
-		-- Update track settings
-		local trackIndex, track, trackSetting
-		for trackIndex, track in pairs(Musician.sourceSong.tracks) do
-			trackSetting = currentProcess.savedData.tracks[trackIndex]
-			track.instrument = trackSetting.instrument
-			track.transpose = trackSetting.transpose
-			Musician.sourceSong:SetTrackSolo(track, trackSetting.solo)
-			Musician.sourceSong:SetTrackMuted(track, trackSetting.muted)
-		end
-
-		-- Update song settings
-		Musician.sourceSong.name = currentProcess.savedData.name
-		Musician.sourceSong.cropFrom = floor(currentProcess.savedData.cropFrom * 100000) / 100000 -- Apply rounding since serialized saved values lose precision
-		Musician.sourceSong.cropTo = ceil(currentProcess.savedData.cropTo * 100000) / 100000
-		Musician.sourceSong:Reset()
-
-		local action = currentProcess.action
-
-		MusicianFrame.Clear(true)
-		Musician.TrackEditor.OnLoad()
-
-		Musician.sourceSong.isInList = true
-
-		if currentProcess.fromCommandLine then
-			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
-		end
-
-		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, currentProcess, true)
-
-		currentProcess = nil
-
-		if action == MusicianList.LoadActions.Play then
-			Musician.Comm.PlaySong()
-		elseif action == MusicianList.LoadActions.Preview then
-			Musician.sourceSong:Play()
-		end
-	end
-
-	importedSongData = currentImportData
-	currentImportData = nil
-	currentImportStep = nil
-
-	MusicianList.RefreshFrame()
-end
-
 --- Perform all on-frame actions
 -- @param frame (Frame)
 -- @param elapsed (number)
@@ -953,8 +912,6 @@ function MusicianList.OnUpdate(frame, elapsed)
 
 	if currentProcess.process == PROCESS_SAVE then
 		processSaveStep()
-	elseif currentProcess.process == PROCESS_LOAD then
-		processLoadStep()
 	end
 end
 
