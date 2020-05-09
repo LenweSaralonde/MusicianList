@@ -2,14 +2,8 @@ MusicianList = LibStub("AceAddon-3.0"):NewAddon("MusicianList", "AceEvent-3.0")
 
 local LibDeflate
 
-local PROCESS_SAVE = "save"
-local PROCESS_LOAD = "load"
-
-local currentImportStep
-local currentImportData
 local importedSongData
-
-local currentProcess
+local isSongSaving = false
 
 local MusicianGetCommands
 local MusicianButtonGetMenu
@@ -55,15 +49,20 @@ function MusicianList:OnInitialize()
 	MusicianList.processFrame:SetFrameStrata("HIGH")
 	MusicianList.processFrame:EnableMouse(false)
 	MusicianList.processFrame:SetMovable(false)
-	MusicianList.processFrame:SetScript("OnUpdate", MusicianList.OnUpdate)
 
-	-- Register events
+	-- Keep the raw binary song data so we can save it later
+	MusicianList:RegisterMessage(Musician.Events.SourceSongLoaded, function(event, song, data)
+		if song == Musician.sourceSong then
+			importedSongData = data
+		end
+		MusicianList.RefreshFrame()
+	end)
 
 	-- Show progress bar while loading
 	MusicianList:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianFrame.RefreshLoadingProgressBar)
 
 	-- Show progress bar while saving
-	MusicianList:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, process, progression)
+	MusicianList:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, song, progression)
 		MusicianFrame.RefreshLoadingProgressBar(event, { ['importing'] = true }, progression)
 	end)
 	MusicianList:RegisterMessage(MusicianList.Events.SongSaveComplete, function(event)
@@ -470,7 +469,7 @@ end
 --- Update Musician UI elements
 --
 function MusicianList.RefreshFrame()
-	if currentProcess == nil then
+	if not(isSongSaving) and not(Musician.importingSong) then
 		if Musician.sourceSong then
 			MusicianFrameSaveButton:Enable()
 			MusicianTrackEditorSaveButton:Enable()
@@ -515,40 +514,6 @@ function MusicianList.GetSongList()
 	return list
 end
 
---- Process save step on frame
---
-local function processSaveStep()
-	local to = min(#currentProcess.rawData, currentProcess.cursor + MusicianList.CHUNK_SIZE - 1)
-	local from = currentProcess.cursor
-	local chunk = string.sub(currentProcess.rawData, from, to)
-	local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
-
-	table.insert(currentProcess.savedData.chunks, compressedChunk)
-
-	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, to / #currentProcess.rawData)
-
-	-- Process complete
-	if to == #currentProcess.rawData then
-		currentProcess.cursor = to
-		currentProcess.savedData.name = currentProcess.name
-		currentProcess.savedData.format = Musician.FILE_HEADER
-		MusicianList_Storage.data[currentProcess.id] = Musician.Utils.DeepCopy(currentProcess.savedData)
-		Musician.sourceSong.name = currentProcess.name
-		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, currentProcess, true)
-		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
-
-		if currentProcess.fromCommandLine then
-			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
-		end
-
-		currentProcess = nil
-		MusicianList.RefreshFrame()
-
-	else
-		currentProcess.cursor = to + 1
-	end
-end
-
 --- Save song, showing "save as" dialog if no name is provided
 -- @param [name (string)]
 -- @param [fromCommandLine (boolean)]
@@ -583,12 +548,12 @@ function MusicianList.DoSave(name, fromCommandLine)
 
 	name = strtrim(name)
 
-	if currentProcess or Musician.importingSong then
+	if isSongSaving or Musician.importingSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
 		return
 	end
 
-	if not(importedSongData) or not(Musician.sourceSong) then
+	if not(importedSongData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_NO_SONG_TO_SAVE)
 		return
 	end
@@ -602,25 +567,23 @@ function MusicianList.DoSave(name, fromCommandLine)
 		Musician.Utils.Print(string.gsub(MusicianList.Msg.SAVING_SONG, "{name}", Musician.Utils.Highlight(name)))
 	end
 
-	currentProcess = {
-		['process'] = PROCESS_SAVE,
-		['cursor'] = 1,
-		['rawData'] = importedSongData,
-		['id'] = MusicianList.GetSongId(name),
-		['name'] = name,
-		['fromCommandLine'] = fromCommandLine,
-		['savedData'] = {
-			['chunks'] = {},
-			['tracks'] = {},
-			['cropFrom'] = nil,
-			['cropTo'] = nil,
-		}
+	isSongSaving = true
+	local song = Musician.sourceSong
+
+	local songId = MusicianList.GetSongId(name)
+	local songData = {
+		name = name,
+		format = Musician.FILE_HEADER,
+		chunks = {},
+		tracks = {},
+		cropFrom = nil,
+		cropTo = nil,
 	}
 
 	-- Save track settings
 	local track
-	for _, track in pairs(Musician.sourceSong.tracks) do
-		table.insert(currentProcess.savedData.tracks, {
+	for _, track in pairs(song.tracks) do
+		table.insert(songData.tracks, {
 			['instrument'] = track.instrument,
 			['transpose'] = track.transpose,
 			['muted'] = track.muted,
@@ -629,14 +592,47 @@ function MusicianList.DoSave(name, fromCommandLine)
 	end
 
 	-- Save song settings
-	currentProcess.savedData.cropFrom = Musician.sourceSong.cropFrom
-	currentProcess.savedData.cropTo = Musician.sourceSong.cropTo
+	songData.cropFrom = song.cropFrom
+	songData.cropTo = song.cropTo
 
-	MusicianList:SendMessage(MusicianList.Events.SongSaveStart, currentProcess)
-	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, currentProcess, 0)
+	MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song)
+	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, 0)
 	MusicianList.RefreshFrame()
 
-	Musician.sourceSong.isInList = true
+	song.isInList = true
+
+	local cursor = 1
+	local rawData = importedSongData
+
+	-- Compress and save song using a worker
+	local songSavingWorker
+	songSavingWorker = function()
+		local to = min(#rawData, cursor + MusicianList.CHUNK_SIZE - 1)
+		local chunk = string.sub(rawData, cursor, to)
+		local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
+		table.insert(songData.chunks, compressedChunk)
+
+		MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, to / #rawData)
+
+		-- Process complete
+		if to == #rawData then
+			Musician.Worker.Remove(songSavingWorker)
+			MusicianList_Storage.data[songId] = Musician.Utils.DeepCopy(songData)
+			Musician.sourceSong.name = name
+			MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, true)
+			MusicianList:SendMessage(MusicianList.Events.ListUpdate)
+
+			if fromCommandLine then
+				Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
+			end
+
+			isSongSaving = false
+			MusicianList.RefreshFrame()
+		else
+			cursor = to + 1
+		end
+	end
+	Musician.Worker.Set(songSavingWorker)
 end
 
 --- Load song
@@ -900,19 +896,6 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	end
 
 	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
-end
-
---- Perform all on-frame actions
--- @param frame (Frame)
--- @param elapsed (number)
-function MusicianList.OnUpdate(frame, elapsed)
-	if currentProcess == nil then
-		return
-	end
-
-	if currentProcess.process == PROCESS_SAVE then
-		processSaveStep()
-	end
 end
 
 --- Restore demo songs

@@ -63,6 +63,8 @@ end
 MusicianList.Frame.Init = function()
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportStart, MusicianList.Frame.DisableButtons)
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportComplete, MusicianList.Frame.EnableButtons)
 	MusicianList.Frame:RegisterMessage(Musician.Events.SourceSongLoaded, function()
 		MusicianList.Frame.Filter()
 	end)
