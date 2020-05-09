@@ -736,7 +736,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 					song.cropTo = ceil(songData.cropTo * 100000) / 100000
 					song:Reset()
 
-					MusicianFrame.Clear(true)
+					MusicianFrame.Clear()
 					Musician.TrackEditor.OnLoad()
 
 					song.isInList = true
@@ -884,7 +884,7 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
 		Musician.sourceSong.name = name
-		MusicianFrame.Clear(true)
+		MusicianFrame.Clear()
 		MusicianList.RefreshFrame()
 	end
 
