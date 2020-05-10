@@ -51,6 +51,9 @@ msg.SONG_LIST_EMPTY = "La liste de morceaux est vide."
 msg.IMPORT_A_SONG = "Importer un morceau"
 msg.NO_SONG_FOUND = "Aucun morceau trouvé."
 
+msg.UPDATING_DB = "Mise à jour de MusicianList..."
+msg.UPDATING_DB_COMPLETE = "Mise à jour de MusicianList terminée."
+
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "Votre version de Musician est obsolète et ne peut pas être utilisée avec MusicianList. Mettez à jour l'add-on Musician."
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "Votre version de MusicianList est obsolète et ne peut plus être utilisée. Veuillez la mettre à jour."
 msg.ERR_NO_SONG_TO_SAVE = "Aucun morceau à enregistrer."

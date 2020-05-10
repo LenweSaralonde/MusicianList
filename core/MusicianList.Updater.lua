@@ -119,10 +119,62 @@ end
 local function updateTo5(onComplete)
 	local LibDeflate = LibStub:GetLibrary("LibDeflate")
 
+	-- Create updater frame
+	local updaterFrame = CreateFrame("Frame", "MusicianListUpdater5Frame", UIParent, "MusicianDialogTemplate")
+	updaterFrame:SetWidth(500)
+	updaterFrame:SetHeight(90)
+
+	local titleLabel = updaterFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	titleLabel:SetWidth(updaterFrame:GetWidth() - 30)
+	titleLabel:SetText(MusicianList.Msg.UPDATING_DB)
+	titleLabel:SetPoint("TOP", 0, -15)
+
+	local songLabel = updaterFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	songLabel:SetWidth(updaterFrame:GetWidth() - 30)
+	songLabel:SetHeight(30)
+	songLabel:SetPoint("TOP", titleLabel, "BOTTOM", 0, 0)
+
+	local progressBarBackground = updaterFrame:CreateTexture(nil, "BACKGROUND")
+	progressBarBackground:SetWidth(updaterFrame:GetWidth() - 30)
+	progressBarBackground:SetHeight(10)
+	progressBarBackground:SetColorTexture(0, 0, 0, .75)
+	progressBarBackground:SetPoint("BOTTOM", 0, 15)
+
+	local progressBar = updaterFrame:CreateTexture(nil, "ARTWORK")
+	progressBar:SetWidth(0)
+	progressBar:SetHeight(10)
+	progressBar:SetColorTexture(1, 1, 1, 1)
+	progressBar:SetPoint("LEFT", progressBarBackground, "LEFT")
+
+	updaterFrame:Show()
+
 	local songIds = {}
-	local songId
-	for songId, _ in pairs(MusicianList_Storage.data) do
+	local cumulatedChunkCount = {}
+	local songId, songData
+	local totalChunkCount = 0
+	for songId, songData in pairs(MusicianList_Storage.data) do
 		table.insert(songIds, songId)
+		table.insert(cumulatedChunkCount, totalChunkCount + #songData.chunks)
+		totalChunkCount = totalChunkCount + #songData.chunks
+	end
+
+	local setProgression = function(songIndex, step, stepProgression)
+		local prevSongChunkCount = cumulatedChunkCount[songIndex - 1] or 0
+		local songChunkCount = cumulatedChunkCount[min(#songIds, songIndex)] - prevSongChunkCount
+		local songProgressionRange = songChunkCount / totalChunkCount
+
+		local songProgression = 0
+		if step == 1 then
+			songProgression = stepProgression * .1
+		elseif step == 2 then
+			songProgression = .1 + stepProgression * .8
+		elseif step == 3 then
+			songProgression = .9 + stepProgression * .1
+		end
+
+		local progression = prevSongChunkCount / totalChunkCount + songProgression * songProgressionRange
+
+		progressBar:SetWidth(progression * progressBarBackground:GetWidth())
 	end
 
 	local currentSongIndex = 0
@@ -133,6 +185,8 @@ local function updateTo5(onComplete)
 	local currentNoteIndex
 	local cursor
 	local trackCount
+	local songNoteCount
+	local songNoteIndex
 	local trackNoteCount
 	local trackInstruments
 	local trackNoteIndex
@@ -148,17 +202,21 @@ local function updateTo5(onComplete)
 
 		if currentStep == nil then
 			currentSongIndex = currentSongIndex + 1
+			setProgression(currentSongIndex, 1, 0)
 
 			-- No more song to proceed: we're done!
 			if songIds[currentSongIndex] == nil then
 				Musician.Worker.Remove(updaterWorker)
 				MusicianList_Storage.version = 5
+				updaterFrame:Hide()
 				MusicianList.Updater.UpdateDB(onComplete)
+				Musician.Utils.Print(MusicianList.Msg.UPDATING_DB_COMPLETE)
 				return
 			-- Processing new song
 			else
 				currentSong = MusicianList_Storage.data[songIds[currentSongIndex]]
 				Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS6 format", currentSong.name)
+				songLabel:SetText(currentSong.name)
 				rawSongData = ''
 				newSongData = ''
 				currentSongChunkIndex = 0
@@ -171,12 +229,15 @@ local function updateTo5(onComplete)
 
 		elseif currentStep == 1 then
 			currentSongChunkIndex = currentSongChunkIndex + 1
+
 			-- Last chunk has been uncompressed: go to step 2
 			if currentSong.chunks[currentSongChunkIndex] == nil then
 				currentStep = 2
 				cursor = 1
 				return
 			end
+
+			setProgression(currentSongIndex, 1, currentSongChunkIndex / #currentSong.chunks)
 
 			rawSongData = rawSongData .. LibDeflate:DecompressDeflate(currentSong.chunks[currentSongChunkIndex])
 
@@ -199,6 +260,9 @@ local function updateTo5(onComplete)
 		-- Step 2: Update track information in header
 		-- ==========================================
 		elseif currentStep == 2 then
+
+			setProgression(currentSongIndex, 1, 1)
+
 			-- Header (4)
 			newSongData = 'MUS6'
 			cursor = cursor + 4
@@ -216,6 +280,7 @@ local function updateTo5(onComplete)
 			local trackIndex
 			trackNoteCount = {}
 			trackInstruments = {}
+			songNoteCount = 0
 			for trackIndex = 1, trackCount do
 
 				-- Instrument (1)
@@ -237,12 +302,14 @@ local function updateTo5(onComplete)
 
 				-- Note count (2)
 				trackNoteCount[trackIndex] = Musician.Utils.UnpackNumber(string.sub(rawSongData, cursor, cursor + 1))
+				songNoteCount = songNoteCount + trackNoteCount[trackIndex]
 				newSongData = newSongData .. string.sub(rawSongData, cursor, cursor + 1)
 				cursor = cursor + 2
 			end
 
 			currentTrackIndex = 1
 			currentNoteIndex = 1
+			songNoteIndex = 1
 			currentStep = 3
 			return
 
@@ -258,8 +325,11 @@ local function updateTo5(onComplete)
 				updatedChunks = {}
 				cursor = 1
 				currentStep = 4
+				setProgression(currentSongIndex, 2, 1)
 				return
 			end
+
+			setProgression(currentSongIndex, 2, songNoteIndex / songNoteCount)
 
 			-- Process 36 notes per cycle
 			local notesTodo = min(36, trackNoteCount[currentTrackIndex] - currentNoteIndex + 1)
@@ -290,6 +360,7 @@ local function updateTo5(onComplete)
 
 				-- Proceed with next note
 				currentNoteIndex = currentNoteIndex + 1
+				songNoteIndex = songNoteIndex + 1
 			end
 
 			-- No more note to process: go to next track
@@ -307,6 +378,8 @@ local function updateTo5(onComplete)
 		elseif currentStep == 4 then
 			local to = min(#newSongData, cursor + MusicianList.CHUNK_SIZE - 1)
 			local chunk = string.sub(newSongData, cursor, to)
+			setProgression(currentSongIndex, 3, cursor / #newSongData)
+
 			local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
 			table.insert(updatedChunks, compressedChunk)
 
@@ -314,6 +387,7 @@ local function updateTo5(onComplete)
 				currentSong.chunks = updatedChunks
 				currentSong.format = "MUS6"
 				currentStep = nil
+				setProgression(currentSongIndex, 3, 1)
 			else
 				cursor = cursor + MusicianList.CHUNK_SIZE
 			end
