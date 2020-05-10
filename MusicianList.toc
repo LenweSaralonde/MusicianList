@@ -8,6 +8,7 @@
 ## SavedVariables: MusicianList_Storage
 
 core\MusicianList.lua
+core\MusicianList.Updater.lua
 
 constants\MusicianList.Constants.lua
 constants\MusicianList.DemoSongs.lua
