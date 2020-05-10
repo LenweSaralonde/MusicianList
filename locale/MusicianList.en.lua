@@ -51,6 +51,9 @@ msg.SONG_LIST_EMPTY = "Song list is empty."
 msg.IMPORT_A_SONG = "Import a song"
 msg.NO_SONG_FOUND = "No song found."
 
+msg.UPDATING_DB = "Updating MusicianList..."
+msg.UPDATING_DB_COMPLETE = "MusicianList update complete."
+
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "Your version of Musician is outdated and can't be used with MusicianList. Please update Musician addon."
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "Your version of MusicianList is outdated and can no longer be used. Please update."
 msg.ERR_NO_SONG_TO_SAVE = "No song to save."
