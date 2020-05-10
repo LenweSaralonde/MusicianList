@@ -40,6 +40,12 @@ function MusicianList:OnInitialize()
 		return
 	end
 
+	MusicianList.Updater.UpdateDB(MusicianList.OnReady)
+end
+
+--- Second initialization phase, when all DB updates are complete
+--
+function MusicianList.OnReady()
 	-- Import libraries
 	LibDeflate = LibStub:GetLibrary("LibDeflate")
 
@@ -179,9 +185,6 @@ function MusicianList:OnInitialize()
 		whileDead = 1,
 		hideOnEscape = 1,
 	}
-
-	-- Upgrade database
-	MusicianList.UpgradeDB()
 
 	-- Init UI
 	MusicianList.Frame.Init()
