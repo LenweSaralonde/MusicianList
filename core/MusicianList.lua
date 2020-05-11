@@ -415,8 +415,8 @@ function MusicianList.GetSongList()
 end
 
 --- Save song, showing "save as" dialog if no name is provided
--- @param [name (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] name (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Save(name, fromCommandLine)
 	-- Defaults to loaded song
 	if name == nil or name == '' then
@@ -427,8 +427,8 @@ function MusicianList.Save(name, fromCommandLine)
 end
 
 --- Save song, requesting to overwrite existing song
--- @param [name (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] name (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.SaveConfirm(name, fromCommandLine)
 	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
 
@@ -443,7 +443,7 @@ end
 
 --- Save song, without confirmation
 -- @param name (string)
--- @param [fromCommandLine (boolean)]
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoSave(name, fromCommandLine)
 
 	name = strtrim(name)
@@ -538,7 +538,7 @@ end
 --- Load song
 -- @param idOrIndex (string)
 -- @param action (number) Action to perform after loading
--- @param [fromCommandLine (boolean)]
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
@@ -682,8 +682,8 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 end
 
 --- Delete song, with confirmation
--- @param [idOrIndex (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] idOrIndex (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Delete(idOrIndex, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
@@ -701,8 +701,8 @@ function MusicianList.Delete(idOrIndex, fromCommandLine)
 end
 
 --- Delete song, without confirmation
--- @param [id (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] id (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoDelete(id, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
@@ -726,7 +726,7 @@ end
 --- Rename song, showing "rename" dialog if no name is provided
 -- @param idOrIndex (string)
 -- @param name (string)
--- @param [fromCommandLine (boolean)]
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
@@ -748,9 +748,9 @@ function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 end
 
 --- Rename song, requesting to overwrite existing song
--- @param [id (string)]
--- @param [name (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] id (string)
+-- @param[opt] name (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.RenameConfirm(id, name, fromCommandLine)
 	-- Find out if another song already exists with the same name
 	local song2, id2 = MusicianList.GetSong(MusicianList.GetSongId(name))
@@ -765,9 +765,9 @@ function MusicianList.RenameConfirm(id, name, fromCommandLine)
 end
 
 --- Rename song, without confirmation
--- @param [id (string)]
--- @param [name (string)]
--- @param [fromCommandLine (boolean)]
+-- @param[opt] id (string)
+-- @param[opt] name (string)
+-- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoRename(id, name, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
