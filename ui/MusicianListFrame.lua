@@ -4,35 +4,65 @@ local totalSongs = 0
 
 local isDragging = false
 
+local MAGNETIC_EDGES_RANGE = 20
+
 --- Handle magnetic edges
 --
-function magneticEdges()
-	local isTopSticky = abs(MusicianFrame:GetBottom() - MusicianListFrame:GetTop()) <= 20
-	local isBottomSticky = abs(MusicianFrame:GetTop() - MusicianListFrame:GetBottom()) <= 20
-	local isLeftSticky = abs(MusicianFrame:GetLeft() - MusicianListFrame:GetLeft()) <= 20
-	local isRightSticky = abs(MusicianFrame:GetRight() - MusicianListFrame:GetRight()) <= 20
+local function magneticEdges()
 
-	local isTopLeftSticky = isTopSticky and isLeftSticky
-	local isTopRightSticky = isTopSticky and isRightSticky
-	local isBottomLeftSticky = isBottomSticky and isLeftSticky
-	local isBottomRightSticky = isBottomSticky and isRightSticky
+	local frame = MusicianListFrame
+	local anchor = MusicianFrame
 
-	MusicianListFrame:ClearAllPoints()
+	local isTopSticky = abs(anchor:GetBottom() - frame:GetTop()) <= MAGNETIC_EDGES_RANGE
+	local isBottomSticky = abs(anchor:GetTop() - frame:GetBottom()) <= MAGNETIC_EDGES_RANGE
+	local isLeftSticky = abs(anchor:GetRight() - frame:GetLeft()) <= MAGNETIC_EDGES_RANGE
+	local isRightSticky = abs(anchor:GetLeft() - frame:GetRight()) <= MAGNETIC_EDGES_RANGE
 
-	if isTopLeftSticky then
-		MusicianListFrame:SetPoint('TOPLEFT', MusicianFrame, 'BOTTOMLEFT', 0, 0)
+	local isLeftAligned = abs(anchor:GetLeft() - frame:GetLeft()) <= MAGNETIC_EDGES_RANGE
+	local isRightAligned = abs(anchor:GetRight() - frame:GetRight()) <= MAGNETIC_EDGES_RANGE
+	local isTopAligned = abs(anchor:GetTop() - frame:GetTop()) <= MAGNETIC_EDGES_RANGE
+	local isBottomAligned = abs(anchor:GetBottom() - frame:GetBottom()) <= MAGNETIC_EDGES_RANGE
+
+	frame:ClearAllPoints()
+
+	-- Anchored by top border
+	if isTopSticky then
+		if isLeftAligned then
+			frame:SetPoint('TOPLEFT', anchor, 'BOTTOMLEFT', 0, 0)
+		end
+		if isRightAligned then
+			frame:SetPoint('TOPRIGHT', anchor, 'BOTTOMRIGHT', 0, 0)
+		end
 	end
 
-	if isTopRightSticky then
-		MusicianListFrame:SetPoint('TOPRIGHT', MusicianFrame, 'BOTTOMRIGHT', 0, 0)
+	-- Anchored by bottom border
+	if isBottomSticky then
+		if isLeftAligned then
+			frame:SetPoint('BOTTOMLEFT', anchor, 'TOPLEFT', 0, 0)
+		end
+		if isRightAligned then
+			frame:SetPoint('BOTTOMRIGHT', anchor, 'TOPRIGHT', 0, 0)
+		end
 	end
 
-	if isBottomLeftSticky then
-		MusicianListFrame:SetPoint('BOTTOMLEFT', MusicianFrame, 'TOPLEFT', 0, 0)
+	-- Anchored by left border
+	if isLeftSticky then
+		if isTopAligned then
+			frame:SetPoint('TOPLEFT', anchor, 'TOPRIGHT', 0, 0)
+		end
+		if isBottomAligned then
+			frame:SetPoint('BOTTOMLEFT', anchor, 'BOTTOMRIGHT', 0, 0)
+		end
 	end
 
-	if isBottomRightSticky then
-		MusicianListFrame:SetPoint('BOTTOMRIGHT', MusicianFrame, 'TOPRIGHT', 0, 0)
+	-- Anchored by right border
+	if isRightSticky then
+		if isTopAligned then
+			frame:SetPoint('TOPRIGHT', anchor, 'TOPLEFT', 0, 0)
+		end
+		if isBottomAligned then
+			frame:SetPoint('BOTTOMRIGHT', anchor, 'BOTTOMLEFT', 0, 0)
+		end
 	end
 end
 
