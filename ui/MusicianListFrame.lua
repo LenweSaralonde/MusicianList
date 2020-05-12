@@ -66,26 +66,19 @@ local function magneticEdges()
 	end
 end
 
---- Handle magnetic edges on frame move or resize
---
-function magneticEdgesOnMove()
-	if MusicianFrame:IsVisible() and MusicianListFrame:IsVisible() then
-		magneticEdges()
-	end
-end
-
 --- Handle magnetic edges on drag start
 --
 function onMagneticDragStart()
 	isDragging = true
-	magneticEdgesOnMove()
 end
 
 --- Handle magnetic edges on drag stop
 --
 function onMagneticDragStop()
 	isDragging = false
-	magneticEdgesOnMove()
+	if MusicianFrame:IsVisible() and MusicianListFrame:IsVisible() then
+		magneticEdges()
+	end
 end
 
 --- Init
@@ -121,11 +114,6 @@ MusicianList.Frame.Init = function()
 	MusicianListFrameResizeButton:HookScript('OnMouseDown', onMagneticDragStart)
 	MusicianListFrameResizeButton:HookScript('OnMouseUp', onMagneticDragStop)
 	MusicianFrame:HookScript('OnShow', magneticEdges)
-	MusicianFrame:HookScript('OnUpdate', function()
-		if isDragging then
-			magneticEdgesOnMove()
-		end
-	end)
 end
 
 --- SetData
