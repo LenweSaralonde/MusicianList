@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.6.0
+-------
+* Update for Musician 1.6
+* Added magnetic edges
+* Minor bugfixes and improvements
+
 v1.5.9
 ------
 * Fixed max length for song titles in save and rename popups
