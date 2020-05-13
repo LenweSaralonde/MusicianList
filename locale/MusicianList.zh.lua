@@ -51,8 +51,8 @@ msg.SONG_LIST_EMPTY = "播放列表为空。"
 msg.IMPORT_A_SONG = "导入音乐"
 msg.NO_SONG_FOUND = "没有找到音乐"
 
-msg.UPDATING_DB = "Updating MusicianList..." -- TODO
-msg.UPDATING_DB_COMPLETE = "MusicianList update complete." --TODO
+msg.UPDATING_DB = "MusicianList正在更新…"
+msg.UPDATING_DB_COMPLETE = "MusicianList更新完成。"
 
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "你的Musician已过期，不能和MusicianList一起使用，请升级你的Musician插件。"
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "你的MusicianList已过期并无法继续使用，请升级。"
