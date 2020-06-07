@@ -159,6 +159,8 @@ local function updateTo5(onComplete)
 	end
 
 	local setProgression = function(songIndex, step, stepProgression)
+		if totalChunkCount == 0 then return end
+
 		local prevSongChunkCount = cumulatedChunkCount[songIndex - 1] or 0
 		local songChunkCount = cumulatedChunkCount[min(#songIds, songIndex)] - prevSongChunkCount
 		local songProgressionRange = songChunkCount / totalChunkCount
