@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.6.1
+------
+* Fixed updater crash from v4 if song list is empty #5
+
 v1.6.0
 -------
 * Update for Musician 1.6
