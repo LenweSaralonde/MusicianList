@@ -27,7 +27,8 @@
 			</OnMouseDown>
 			<OnEnter inherit="append">
 				if self.tooltipText then
-					GameTooltip_AddNewbieTip(self, self.tooltipText, 1.0, 1.0, 1.0)
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip_SetTitle(GameTooltip, self.tooltipText)
 				end
 			</OnEnter>
 			<OnLeave inherit="append">
@@ -149,7 +150,8 @@
 					</OnClick>
 					<OnEnter inherit="append">
 						if self.text:GetStringWidth() > self.text:GetWidth() then
-							GameTooltip_AddNewbieTip(self, self:GetText(), 1.0, 1.0, 1.0)
+							GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+							GameTooltip_SetTitle(GameTooltip, self:GetText())
 						end
 					</OnEnter>
 					<OnLeave inherit="append">
