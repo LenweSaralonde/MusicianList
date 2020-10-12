@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.6.2
+------
+* Updated for WoW Shadowlands 9.0.1 prepatch
+* Set default list position under the main window
+
 v1.6.1
 ------
 * Fixed updater crash from v4 if song list is empty #5
