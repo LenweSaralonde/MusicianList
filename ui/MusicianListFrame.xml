@@ -255,7 +255,11 @@
 
 	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplate" resizable="true">
 
-		<Size x="360" y="524" />
+		<Size x="320" y="330" />
+
+		<Anchors>
+			<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="MusicianFrame" />
+		</Anchors>
 
 		<Frames>
 
