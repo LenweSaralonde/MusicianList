@@ -1,7 +1,7 @@
 ## Interface: 11305
 ## Title: Musician List
 ## Notes: Load and save songs for Musician
-## Version: 1.6.1
+## Version: 1.6.2
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
