@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: Musician List
 ## Notes: Load and save songs for Musician
 ## Version: 1.6.1
