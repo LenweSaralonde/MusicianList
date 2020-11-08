@@ -11,14 +11,13 @@
 	<Font name="MusicianListFontIconsNormalLarge" inherits="GameFontNormalLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
 	<Font name="MusicianListFontIconsHighlightLarge" inherits="GameFontHighlightLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
 
-	<!-- Icon buttons -->
+	<!-- Simple buttons -->
 
-	<Button name="MusicianListIconButtonSimple" virtual="true">
-		<Size x="14" y="14" />
+	<Button name="MusicianListButtonSimple" virtual="true">
 		<ButtonText name="$parentText" parentKey="text" />
-		<NormalFont style="MusicianListFontIconsNormalSmall"/>
-		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
-		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
+		<NormalFont style="GameFontNormalSmall"/>
+		<HighlightFont style="GameFontHighlightSmall"/>
+		<DisabledFont style="GameFontDisableSmall"/>
 		<Scripts>
 			<OnMouseDown>
 				if self:IsEnabled() then
@@ -37,6 +36,15 @@
 				end
 			</OnLeave>
 		</Scripts>
+	</Button>
+
+	<!-- Icon buttons -->
+
+	<Button name="MusicianListIconButtonSimple" inherits="MusicianListButtonSimple" virtual="true">
+		<Size x="14" y="14" />
+		<NormalFont style="MusicianListFontIconsNormalSmall"/>
+		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
+		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
 	</Button>
 
 	<!-- Standard button with icon font template -->
@@ -122,7 +130,7 @@
 		</Anchors>
 
 		<Frames>
-			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListIconButtonSimple" justifyh="LEFT" justifyv="MIDDLE">
+			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListButtonSimple" justifyh="LEFT" justifyv="MIDDLE">
 				<Anchors>
 					<Anchor point="TOPLEFT" />
 					<Anchor point="BOTTOMRIGHT" />
@@ -133,7 +141,7 @@
 						<Anchor point="BOTTOMRIGHT" x="-61" y="4" relativeTo="$parent" />
 					</Anchors>
 				</ButtonText>
-				<NormalFont style="MusicianListFontIconsHighlightSmall"/>
+				<NormalFont style="GameFontHighlightSmall"/>
 				<Scripts>
 					<OnLoad inherit="append">
 						self.playButton:SetText(MusicianList.Icons.Play)
