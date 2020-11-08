@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.6.3
+------
+* Fixed font issue in song list
+
 v1.6.2
 ------
 * Set default list position under the main window
