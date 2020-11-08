@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.6.3
+------
+* Fixed font issue in song list
+
 v1.6.2
 ------
 * Updated for WoW Shadowlands 9.0.1 prepatch
