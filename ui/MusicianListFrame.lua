@@ -84,14 +84,17 @@ end
 --- Init
 --
 MusicianList.Frame.Init = function()
+	-- Data refresh events
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
+
+	-- Source import events
 	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportStart, MusicianList.Frame.DisableButtons)
 	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportComplete, MusicianList.Frame.EnableButtons)
 	MusicianList.Frame:RegisterMessage(Musician.Events.SourceSongLoaded, function()
 		MusicianList.Frame.Filter()
 	end)
 
+	-- Load song events
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, function()
 		MusicianList.Frame.ResetProgressBars()
 		MusicianList.Frame.DisableButtons()
@@ -100,9 +103,20 @@ MusicianList.Frame.Init = function()
 		MusicianList.Frame.ResetProgressBars()
 		MusicianList.Frame.EnableButtons()
 	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnLoadProgress)
 
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveStart, MusicianList.Frame.DisableButtons)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, MusicianList.Frame.EnableButtons)
+	-- Save song events
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveStart, function()
+		MusicianList.Frame.DisableButtons()
+		MusicianList.RefreshFrame()
+	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, function()
+		MusicianFrame.SetLoadingProgressBar(nil)
+		MusicianFrame.Clear()
+		MusicianList.Frame.EnableButtons()
+		MusicianList.RefreshFrame()
+	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveProgress, MusicianList.Frame.OnSaveProgress)
 
 	MusicianList.Frame.SetData()
 
@@ -202,11 +216,11 @@ MusicianList.Frame.ResetProgressBars = function(event, process, success)
 	end
 end
 
---- OnProgress
+--- OnLoadProgress
 -- @param filter (string)
 -- @param song (MusicianSong)
 -- @param progression (number)
-MusicianList.Frame.OnProgress = function(event, song, progression)
+MusicianList.Frame.OnLoadProgress = function(event, song, progression)
 	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
 		if song.savedId == rowFrame.song.id then
@@ -217,6 +231,13 @@ MusicianList.Frame.OnProgress = function(event, song, progression)
 	end
 end
 
+--- OnSaveProgress
+-- @param filter (string)
+-- @param song (MusicianSong)
+-- @param progression (number)
+MusicianList.Frame.OnSaveProgress = function(event, song, progression)
+	MusicianFrame.SetLoadingProgressBar(progression)
+end
 --- Disable all buttons while a process is running
 --
 MusicianList.Frame.DisableButtons = function()

@@ -1,7 +1,7 @@
 MusicianList.MUSICIAN_MIN_VERSION = '1.6.0.0'
 
-MusicianList.STORAGE_VERSION = 5
-MusicianList.FILE_HEADER = 'MUS6'
+MusicianList.STORAGE_VERSION = 6
+MusicianList.FILE_HEADER = 'MUS7'
 
 MusicianList.CHUNK_SIZE = 2048
 
