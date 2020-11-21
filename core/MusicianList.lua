@@ -70,6 +70,12 @@ function MusicianList.OnReady()
 	MusicianList:RegisterMessage(Musician.Events.SongExportProgress, function(event, song, progression)
 		MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, progression)
 	end)
+	MusicianList:RegisterMessage(Musician.Events.SongExportStart, function(event, song, ...)
+		MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song, ...)
+	end)
+	MusicianList:RegisterMessage(Musician.Events.SongExportComplete, function(event, song, ...)
+		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, ...)
+	end)
 
 	-- Hook Musician functions
 	MusicianGetCommands = Musician.GetCommands
@@ -480,8 +486,8 @@ function MusicianList.DoSave(name, fromCommandLine)
 		duration = song.cropTo - song.cropFrom,
 	}
 
-	MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song)
-	MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, 0)
+	--MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song)
+	--MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, 0)
 	MusicianList.RefreshFrame()
 
 	song.isInList = true
@@ -491,7 +497,7 @@ function MusicianList.DoSave(name, fromCommandLine)
 
 		MusicianList_Storage.data[songId] = Musician.Utils.DeepCopy(songData)
 		Musician.sourceSong.name = name
-		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, true)
+		--MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, true)
 		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 
 		if fromCommandLine then
