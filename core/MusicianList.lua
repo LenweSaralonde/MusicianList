@@ -344,8 +344,11 @@ end
 --- Add buttons in Musician UI
 --
 function MusicianList.AddButtons()
+	local buttonWidth = 25
+
 	local listButton = CreateFrame("Button", "MusicianFrameListButton", MusicianFrame, "MusicianListIconButtonTemplate")
-	listButton:SetWidth(35)
+	MusicianFrameListButtonText:SetPoint("LEFT", 6, 0)
+	listButton:SetWidth(buttonWidth)
 	listButton:SetHeight(22)
 	listButton:SetText(MusicianList.Icons.List)
 	listButton.tooltipText = MusicianList.Msg.MENU_LIST
@@ -355,14 +358,24 @@ function MusicianList.AddButtons()
 	end)
 
 	local saveButton = CreateFrame("Button", "MusicianFrameSaveButton", MusicianFrame, "MusicianListIconButtonTemplate")
-	saveButton:SetWidth(35)
+	MusicianFrameSaveButtonText:SetPoint("LEFT", 8, 0)
+	saveButton:SetWidth(buttonWidth)
 	saveButton:SetHeight(22)
 	saveButton:SetText(MusicianList.Icons.Save)
 	saveButton.tooltipText = MusicianList.Msg.ACTION_SAVE
-	saveButton:SetPoint("TOPRIGHT", -45, -10)
+	saveButton:SetPoint("TOPRIGHT", -10 - buttonWidth, -10)
 	saveButton:HookScript("OnClick", function()
 		MusicianList.Save()
 	end)
+
+	local linkButton = MusicianFrameLinkButton
+	linkButton.icon:SetPoint("LEFT", 7, 0)
+	linkButton:SetWidth(buttonWidth)
+	linkButton.tooltipText = linkButton:GetText()
+	linkButton:SetText('')
+	linkButton:SetPoint("TOPRIGHT", -10 - 2 * buttonWidth, -10)
+
+	MusicianFrameTrackEditorButton:SetWidth(buttonWidth * 3)
 
 	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor, "MusicianListIconButtonTemplate")
 	trackEditorSaveButton:SetWidth(50)
@@ -385,15 +398,18 @@ function MusicianList.RefreshFrame()
 		if Musician.sourceSong then
 			MusicianFrameSaveButton:Enable()
 			MusicianTrackEditorSaveButton:Enable()
+			MusicianFrameLinkButton:Enable()
 		else
 			MusicianFrameSaveButton:Disable()
 			MusicianTrackEditorSaveButton:Disable()
+			MusicianFrameLinkButton:Disable()
 		end
 		MusicianFrameSource:Enable()
 		MusicianFrameClearButton:Enable()
 	else
 		MusicianFrameSaveButton:Disable()
 		MusicianTrackEditorSaveButton:Disable()
+		MusicianFrameLinkButton:Disable()
 		MusicianFrameSource:Disable()
 		MusicianFrameClearButton:Disable()
 	end
