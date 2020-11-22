@@ -67,15 +67,9 @@ function MusicianList.OnReady()
 	end)
 
 	-- Notify saving progression
-	MusicianList:RegisterMessage(Musician.Events.SongExportProgress, function(event, song, progression)
-		MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, progression)
-	end)
-	MusicianList:RegisterMessage(Musician.Events.SongExportStart, function(event, song, ...)
-		MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song, ...)
-	end)
-	MusicianList:RegisterMessage(Musician.Events.SongExportComplete, function(event, song, ...)
-		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, ...)
-	end)
+	MusicianList:RegisterMessage(Musician.Events.SongExportProgress, MusicianList.OnSongExport)
+	MusicianList:RegisterMessage(Musician.Events.SongExportStart, MusicianList.OnSongExport)
+	MusicianList:RegisterMessage(Musician.Events.SongExportComplete, MusicianList.OnSongExport)
 
 	-- Hook Musician functions
 	MusicianGetCommands = Musician.GetCommands
@@ -191,6 +185,22 @@ function MusicianList.OnReady()
 	-- Init UI
 	MusicianList.Frame.Init()
 	MusicianList.AddButtons()
+end
+
+--- OnSongExport
+-- Handle song export events
+function MusicianList.OnSongExport(event, song, ...)
+	if not(song.isSaving) then return end
+
+	local saveEvent
+	if event == Musician.Events.SongExportProgress then
+		saveEvent = MusicianList.Events.SongSaveProgress
+	elseif event == Musician.Events.SongExportStart then
+		saveEvent = MusicianList.Events.SongSaveStart
+	elseif event == Musician.Events.SongExportComplete then
+		saveEvent = MusicianList.Events.SongSaveComplete
+	end
+	MusicianList:SendMessage(saveEvent, song, ...)
 end
 
 --- Get command definitions
@@ -486,24 +496,23 @@ function MusicianList.DoSave(name, fromCommandLine)
 		duration = song.cropTo - song.cropFrom,
 	}
 
-	--MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song)
-	--MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, 0)
 	MusicianList.RefreshFrame()
 
 	song.isInList = true
+	song.isSaving = true
 
 	song:ExportCompressed(function(data)
 		songData.data = data
 
 		MusicianList_Storage.data[songId] = Musician.Utils.DeepCopy(songData)
 		Musician.sourceSong.name = name
-		--MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, true)
 		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
 		end
 
+		song.isSaving = nil
 		isSongSaving = false
 		MusicianList.RefreshFrame()
 	end)
