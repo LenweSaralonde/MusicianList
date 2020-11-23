@@ -29,6 +29,7 @@ msg.HEADER_SONG_ACTIONS = "Actions"
 
 msg.ACTION_PLAY = "Load and play"
 msg.ACTION_PREVIEW = "Load and preview"
+msg.ACTION_LINK = "Post link in the chat"
 msg.ACTION_RENAME = "Rename"
 msg.ACTION_DELETE = "Delete"
 msg.ACTION_SAVE = "Save in the list"
