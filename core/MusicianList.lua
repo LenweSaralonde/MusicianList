@@ -718,6 +718,26 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
+--- Post song link in the chat
+-- @param idOrIndex (string)
+-- @param[opt=false] fromCommandLine (boolean)
+function MusicianList.Link(idOrIndex, fromCommandLine)
+	-- Defaults to loaded song
+	if idOrIndex == nil or idOrIndex == '' then
+		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
+	end
+
+	local songData, id = MusicianList.GetSong(idOrIndex)
+
+	if not(songData) then
+		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
+		return
+	end
+
+	Musician.SongLinks.AddSongData(songData.data, songData.name)
+	ChatEdit_LinkItem(nil, Musician.SongLinks.GetHyperlink(songData.name))
+end
+
 --- Restore demo songs
 -- @param overwrite (boolean)
 function MusicianList.RestoreDemoSongs(overwrite)

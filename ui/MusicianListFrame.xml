@@ -148,6 +148,8 @@
 						self.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
 						self.previewButton:SetText(MusicianList.Icons.Headphones)
 						self.previewButton.tooltipText = MusicianList.Msg.ACTION_PREVIEW
+						self.linkButton:SetText(MusicianList.Icons.Export)
+						self.linkButton.tooltipText = MusicianList.Msg.ACTION_LINK
 						self.renameButton:SetText(MusicianList.Icons.Pencil)
 						self.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
 						self.deleteButton:SetText(MusicianList.Icons.Trash)
@@ -190,9 +192,19 @@
 							</OnClick>
 						</Scripts>
 					</Button>
-					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentLinkButton" parentKey="linkButton" inherits="MusicianListIconButtonSimple" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentRenameButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Link(self:GetParent():GetParent().song.id)
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentLinkButton" />
 						</Anchors>
 						<Scripts>
 							<OnClick>

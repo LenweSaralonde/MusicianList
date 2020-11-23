@@ -14,4 +14,6 @@ MusicianList.Icons = {
 	Speaker = "M",
 	Headphones = "N",
 	List = "O",
+	Export = "#",
+	Link = "8",
 }
