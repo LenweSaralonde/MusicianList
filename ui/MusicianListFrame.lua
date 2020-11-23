@@ -223,7 +223,7 @@ end
 MusicianList.Frame.OnLoadProgress = function(event, song, progression)
 	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		if song.savedId == rowFrame.song.id then
+		if rowFrame.song and song.savedId == rowFrame.song.id then
 			rowFrame.progressBar:Show()
 			rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
 			return
