@@ -420,8 +420,11 @@ local function updateTo6(onComplete)
 	-- Grab song IDs
 	local songIds = {}
 	local songId
-	for songId, _ in pairs(MusicianList_Storage.data) do
-		table.insert(songIds, songId)
+	for songId, songData in pairs(MusicianList_Storage.data) do
+		-- Song is not already converted
+		if songData.format == 'MUS6' then
+			table.insert(songIds, songId)
+		end
 	end
 
 	-- Init progress bar
@@ -431,88 +434,189 @@ local function updateTo6(onComplete)
 
 	-- Update each song
 	local currentSongIndex = 0
+	local currentChunkIndex = 1
+	local songStep = 0
+	local songData = ''
+	local newSongData = ''
+	local newCompressedSongData = ''
+	local song
 
 	local updaterWorker
 	updaterWorker = function(elapsed)
 
-		-- No more song to update
-		if currentSongIndex == #songIds then
-			Musician.Worker.Remove(updaterWorker)
-			MusicianList_Storage.version = 6
-			updaterFrame:Hide()
-			MusicianList.Updater.UpdateDB(onComplete)
+		-- Step 0: Next song
+		-- =================
+		if songStep == 0 then
+
+			-- No more song to update
+			if currentSongIndex == #songIds then
+				Musician.Worker.Remove(updaterWorker)
+				MusicianList_Storage.version = 6
+				updaterFrame:Hide()
+				MusicianList.Updater.UpdateDB(onComplete)
+				return
+			end
+
+			currentSongIndex = currentSongIndex + 1
+			songData = ''
+			newSongData = ''
+			newCompressedSongData = ''
+			currentChunkIndex = 1
+			songStep = 1
+
+			song = MusicianList_Storage.data[songIds[currentSongIndex]]
+			Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS7 format", song.name)
+
+			-- Update progress bar
+			local progression = (currentSongIndex - 1) / #songIds
+			updaterFrame.progressBar:SetWidth(progression * updaterFrame.progressBarBackground:GetWidth())
+			updaterFrame.songLabel:SetText(song.name)
+		end
+
+		-- Step 1: Extract chunks
+		-- ======================
+
+		if songStep == 1 then
+			local song = MusicianList_Storage.data[songIds[currentSongIndex]]
+			local chunk = song.chunks[currentChunkIndex]
+			songData = songData .. LibDeflate:DecompressDeflate(chunk)
+
+			-- No more chunk to uncompress
+			if currentChunkIndex == #song.chunks then
+				songStep = 2
+			else
+				currentChunkIndex = currentChunkIndex + 1
+			end
+		end
+
+		-- Step 2: Fix song data
+		-- ======================
+
+		if songStep == 2 then
+			local cursor = 5
+			local oldCursor
+
+			-- Song mode (1)
+			local strMode = Musician.Utils.PackNumber(Musician.Song.MODE_DURATION, 1)
+
+			-- Duration (3)
+			local strDuration = string.sub(songData, cursor, cursor + 2)
+			cursor = cursor + 3
+
+			-- Number of tracks (1)
+			local strTrackCount = string.sub(songData, cursor, cursor)
+			local trackCount = Musician.Utils.UnpackNumber(strTrackCount)
+			cursor = cursor + 1
+
+			-- Track information: instrument (1), channel (1), number of notes (2)
+			oldCursor = cursor
+			local trackNoteCount = {}
+			for trackIndex = 1, trackCount do
+				trackNoteCount[trackIndex] = Musician.Utils.UnpackNumber(string.sub(songData, cursor + 2, cursor + 3))
+				cursor = cursor + 4
+			end
+			local strTracks = string.sub(songData, oldCursor, cursor - 1)
+
+			-- Note information: key(1), time (2), duration (3)
+			oldCursor = cursor
+			for trackIndex = 1, trackCount do
+				for noteIndex = 1, trackNoteCount[trackIndex] do
+					local key = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor))
+
+					-- Deal with spacers
+					while key == 0xFF do
+						cursor = cursor + 1
+						key = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor))
+					end
+
+					cursor = cursor + 4
+				end
+			end
+			local strNotes = string.sub(songData, oldCursor, cursor - 1)
+
+			-- Song title
+			local songTitleLength = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor + 1))
+			cursor = cursor + 2
+			local strTitle = string.sub(songData, cursor, cursor + songTitleLength - 1)
+			cursor = cursor + songTitleLength
+
+			-- Track names
+			local strTrackNames = string.sub(songData, cursor, #songData)
+
+			-- Create song and track settings metadata
+			local strSettingsMetadata = ''
+
+			-- Song settings
+
+			-- cropFrom (4)
+			strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(floor(song.cropFrom * 100), 4)
+
+			-- cropTo (4)
+			strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(ceil(song.cropTo * 100), 4)
+
+			-- Track settings
+			local track
+			for _, track in pairs(song.tracks) do
+
+				-- Track options (1)
+				local hasInstrument = (track.instrument ~= -1) and Musician.Song.TRACK_OPTION_HAS_INSTRUMENT or 0
+				local muted = track.muted and Musician.Song.TRACK_OPTION_MUTED or 0
+				local solo = track.solo and Musician.Song.TRACK_OPTION_SOLO or 0
+				local trackOptions = bit.bor(hasInstrument, muted, solo)
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(trackOptions, 1)
+
+				-- Instrument (1)
+				local instrument = hasInstrument and track.instrument or 0
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(instrument, 1)
+
+				-- Transpose (1)
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(track.transpose + 127, 1)
+			end
+
+			-- Rebuild new structure
+			newSongData = Musician.Utils.PackNumber(#song.name, 2) .. song.name .. strMode .. strDuration .. strTrackCount .. strTracks .. strNotes .. strTrackNames .. strSettingsMetadata
+
+			-- Next step
+			songStep = 3
 			return
 		end
 
-		currentSongIndex = currentSongIndex + 1
+		-- Step 3: Compress chunk
+		-- ======================
 
-		local song = MusicianList_Storage.data[songIds[currentSongIndex]]
+		if songStep == 3 then
+			-- No more data to compress
+			if newSongData == '' then
+				-- Update structure
+				song.data = newCompressedSongData
+				song.format = 'MUS7'
+				song.duration = song.cropTo - song.cropFrom
+				song.cropFrom = nil
+				song.cropTo = nil
+				song.chunks = nil
+				song.tracks = nil
 
-		Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS7 format", song.name)
+				-- Proceed with next song
+				songStep = 0
+				return
+			end
 
-		-- Update progress bar
-		local progression = (currentSongIndex - 1) / #songIds
-		updaterFrame.progressBar:SetWidth(progression * updaterFrame.progressBarBackground:GetWidth())
-		updaterFrame.songLabel:SetText(song.name)
+			-- First chunk: Uncompressed header + compressed song title only
+			local chunk
+			if newCompressedSongData == '' then
+				-- Header
+				newCompressedSongData = "MUZ7"
 
-		-- Song is already converted
-		if song.format == 'MUS7' then return end
-
-		-- Extract first song chunk and replace MUS7 format
-		local firstChunk = LibDeflate:DecompressDeflate(song.chunks[1])
-		firstChunk = 'MUS7' .. string.sub(firstChunk, 5)
-		song.chunks[1] = LibDeflate:CompressDeflate(firstChunk, { level = 9 })
-
-		-- Create new data string
-		local songData = ''
-		local chunk
-		for _, chunk in pairs(song.chunks) do
-			songData = songData .. Musician.Utils.PackNumber(#chunk, 2) .. chunk
+				-- Title
+				local titleLength = Musician.Utils.UnpackNumber(string.sub(newSongData, 1, 2))
+				chunk = string.sub(newSongData, 1, 2 + titleLength)
+			else
+				chunk = string.sub(newSongData, 1, 2048)
+			end
+			local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
+			newCompressedSongData = newCompressedSongData .. Musician.Utils.PackNumber(#compressedChunk, 2) .. compressedChunk
+			newSongData = string.sub(newSongData, #chunk + 1)
 		end
-
-		-- Create song and track settings metadata
-		local settingsMetadata = ''
-
-		-- Song settings
-
-		-- cropFrom (4)
-		settingsMetadata = settingsMetadata .. Musician.Utils.PackNumber(floor(song.cropFrom * 100), 4)
-
-		-- cropTo (4)
-		settingsMetadata = settingsMetadata .. Musician.Utils.PackNumber(ceil(song.cropTo * 100), 4)
-
-		-- Track settings
-		local track
-		for _, track in pairs(song.tracks) do
-
-			-- Track options (1)
-			local hasInstrument = (track.instrument ~= -1) and Musician.Song.TRACK_OPTION_HAS_INSTRUMENT or 0
-			local muted = track.muted and Musician.Song.TRACK_OPTION_MUTED or 0
-			local solo = track.solo and Musician.Song.TRACK_OPTION_SOLO or 0
-			local trackOptions = bit.bor(hasInstrument, muted, solo)
-			settingsMetadata = settingsMetadata .. Musician.Utils.PackNumber(trackOptions, 1)
-
-			-- Instrument (1)
-			local instrument = hasInstrument and track.instrument or 0
-			settingsMetadata = settingsMetadata .. Musician.Utils.PackNumber(instrument, 1)
-
-			-- Transpose (1)
-			settingsMetadata = settingsMetadata .. Musician.Utils.PackNumber(track.transpose + 127, 1)
-		end
-
-		-- Append
-		local settingsChunk = LibDeflate:CompressDeflate(settingsMetadata, { level = 9 })
-		songData = songData .. Musician.Utils.PackNumber(#settingsChunk, 2) .. settingsChunk
-
-		-- Update structure
-		song.data = songData
-		song.format = 'MUS7'
-		song.duration = song.cropTo - song.cropFrom
-		song.cropFrom = nil
-		song.cropTo = nil
-		song.chunks = nil
-		song.tracks = nil
-		-- MusicianList_Storage.data[songIds[currentSongIndex]] = song
 	end
 
 	Musician.Worker.Set(updaterWorker)
