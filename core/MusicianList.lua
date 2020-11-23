@@ -517,6 +517,8 @@ function MusicianList.DoSave(name, fromCommandLine)
 	song.isInList = true
 	song.isSaving = true
 
+	song.name = name
+
 	song:ExportCompressed(function(data)
 		songData.data = data
 
@@ -573,9 +575,6 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, song, false)
 			return
 		end
-
-		-- Use saved name
-		song.name = songData.name
 
 		-- Stop previous source song being played
 		if Musician.sourceSong and Musician.sourceSong:IsPlaying() then
@@ -701,6 +700,16 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 
 	MusicianList_Storage.data[id] = nil
 	songData.name = name
+
+	-- Update song title in compressed song data
+	local cursor = #Musician.FILE_HEADER_COMPRESSED + 1
+	local titleCompressedChunkLength = Musician.Utils.UnpackNumber(string.sub(songData.data, cursor, cursor + 1))
+	cursor = cursor + titleCompressedChunkLength + 2
+	local newTitleChunk = Musician.Utils.PackNumber(#name, 2) .. name
+	local newTitleCompressedChunk = LibDeflate:CompressDeflate(newTitleChunk, { level = 9 })
+	songData.data = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
+
+	-- Update song data in storage
 	MusicianList_Storage.data[newId] = songData
 
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
