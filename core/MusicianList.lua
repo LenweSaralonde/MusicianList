@@ -582,6 +582,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 			Musician.sourceSong:Stop()
 		end
 
+		song.isInList = true
 		Musician.sourceSong = song
 		collectgarbage()
 
