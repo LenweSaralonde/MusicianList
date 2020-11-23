@@ -574,6 +574,7 @@ local function updateTo6(onComplete)
 			end
 
 			-- Rebuild new structure
+			song.name = Musician.Utils.NormalizeSongName(song.name)
 			newSongData = Musician.Utils.PackNumber(#song.name, 2) .. song.name .. strMode .. strDuration .. strTrackCount .. strTracks .. strNotes .. strTrackNames .. strSettingsMetadata
 
 			-- Next step
@@ -595,6 +596,11 @@ local function updateTo6(onComplete)
 				song.cropTo = nil
 				song.chunks = nil
 				song.tracks = nil
+
+				-- Refresh ID
+				local newId = MusicianList.GetSongId(song.name)
+				MusicianList_Storage.data[songIds[currentSongIndex]] = nil
+				MusicianList_Storage.data[newId] = song
 
 				-- Proceed with next song
 				songStep = 0

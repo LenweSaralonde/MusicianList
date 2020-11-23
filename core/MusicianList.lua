@@ -101,15 +101,15 @@ function MusicianList.OnReady()
 		button1 = ACCEPT,
 		button2 = CANCEL,
 		hasEditBox = 1,
-		maxLetters = 255,
+		maxBytes = Musician.Song.MAX_NAME_LENGTH,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
-			local name = strtrim(self.editBox:GetText())
+			local name = self.editBox:GetText()
 			MusicianList.SaveConfirm(name, params.fromCommandLine)
 		end,
 		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
-			local name = strtrim(parent.editBox:GetText())
+			local name = parent.editBox:GetText()
 			MusicianList.SaveConfirm(name, params.fromCommandLine)
 			parent:Hide()
 		end,
@@ -117,7 +117,7 @@ function MusicianList.OnReady()
 			self:GetParent():Hide()
 		end,
 		OnShow = function(self, params)
-			self.editBox:SetText(params.name)
+			self.editBox:SetText(Musician.Utils.NormalizeSongName(params.name))
 			self.editBox:HighlightText(0)
 			self.editBox:SetFocus()
 		end,
@@ -138,15 +138,15 @@ function MusicianList.OnReady()
 		button1 = ACCEPT,
 		button2 = CANCEL,
 		hasEditBox = 1,
-		maxLetters = 255,
+		maxBytes = Musician.Song.MAX_NAME_LENGTH,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
-			local name = strtrim(self.editBox:GetText())
+			local name = self.editBox:GetText()
 			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 		end,
 		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
-			local name = strtrim(parent.editBox:GetText())
+			local name = parent.editBox:GetText()
 			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 			parent:Hide()
 		end,
@@ -154,7 +154,7 @@ function MusicianList.OnReady()
 			self:GetParent():Hide()
 		end,
 		OnShow = function(self, params)
-			self.editBox:SetText(params.oldName)
+			self.editBox:SetText(Musician.Utils.NormalizeSongName(params.oldName))
 			self.editBox:HighlightText(0)
 			self.editBox:SetFocus()
 		end,
@@ -454,9 +454,9 @@ function MusicianList.Save(name, fromCommandLine)
 
 	-- Defaults to loaded song
 	if name == nil or name == '' then
-		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, { name = strtrim(Musician.sourceSong.name), fromCommandLine = fromCommandLine })
+		StaticPopup_Show("MUSICIAN_LIST_SAVE", nil, nil, { name = Musician.sourceSong.name, fromCommandLine = fromCommandLine })
 	else
-		MusicianList.SaveConfirm(strtrim(name), fromCommandLine)
+		MusicianList.SaveConfirm(name, fromCommandLine)
 	end
 end
 
@@ -464,6 +464,8 @@ end
 -- @param[opt] name (string)
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.SaveConfirm(name, fromCommandLine)
+	name = Musician.Utils.NormalizeSongName(name)
+
 	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
 
 	if song then
@@ -479,8 +481,7 @@ end
 -- @param name (string)
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoSave(name, fromCommandLine)
-
-	name = strtrim(name)
+	name = Musician.Utils.NormalizeSongName(name)
 
 	if isSongSaving or isSongLoading then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_CANNOT_SAVE_NOW)
@@ -672,6 +673,8 @@ end
 -- @param[opt] name (string)
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.RenameConfirm(id, name, fromCommandLine)
+	name = Musician.Utils.NormalizeSongName(name)
+
 	-- Find out if another song already exists with the same name
 	local song2, id2 = MusicianList.GetSong(MusicianList.GetSongId(name))
 
@@ -689,6 +692,8 @@ end
 -- @param[opt] name (string)
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoRename(id, name, fromCommandLine)
+	name = Musician.Utils.NormalizeSongName(name)
+
 	local songData, _ = MusicianList.GetSong(id)
 	if not(songData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
