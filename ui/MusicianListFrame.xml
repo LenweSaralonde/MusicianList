@@ -137,8 +137,8 @@
 				</Anchors>
 				<ButtonText name="$parentText" parentKey="text" justifyh="LEFT">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="29" y="-4" relativeTo="$parent" />
-						<Anchor point="BOTTOMRIGHT" x="-61" y="4" relativeTo="$parent" />
+						<Anchor point="TOPLEFT" x="29" y="-4" />
+						<Anchor point="BOTTOMRIGHT" x="-34" y="4" />
 					</Anchors>
 				</ButtonText>
 				<NormalFont style="GameFontHighlightSmall"/>
@@ -159,13 +159,15 @@
 						MusicianList.Load(self:GetParent().song.id)
 					</OnClick>
 					<OnEnter inherit="append">
+						self.text:SetPoint('BOTTOMRIGHT', -76, 4)
 						if self.text:GetStringWidth() > self.text:GetWidth() then
 							GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 							GameTooltip_SetTitle(GameTooltip, self:GetText())
 						end
 					</OnEnter>
 					<OnLeave inherit="append">
-						if self.text:GetStringWidth() > self.text:GetWidth() then
+						self.text:SetPoint('BOTTOMRIGHT', -34, 4)
+						if GameTooltip:GetOwner() == self then
 							GameTooltip:Hide()
 						end
 					</OnLeave>
