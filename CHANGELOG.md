@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.6.4
+------
+* Updated for WoW Classic 1.13.6
+
 v1.6.3
 ------
 * Fixed font issue in song list
