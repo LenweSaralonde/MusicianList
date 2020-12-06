@@ -51,6 +51,7 @@ msg.FILTER_SONG = "Filter"
 msg.SONG_LIST_EMPTY = "Song list is empty."
 msg.IMPORT_A_SONG = "Import a song"
 msg.NO_SONG_FOUND = "No song found."
+msg.LINK_IMPORT_WINDOW_IMPORT_BUTTON = "Import song into the list"
 
 msg.UPDATING_DB = "Updating MusicianList..."
 msg.UPDATING_DB_COMPLETE = "MusicianList update complete."
