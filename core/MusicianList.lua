@@ -387,6 +387,114 @@ function MusicianList.AddButtons()
 		MusicianList.Save()
 	end)
 
+	local importFrame = MusicianSongLinkImportFrame
+	local importIntoListButton = CreateFrame("Button", "MusicianListImportIntoListButton", importFrame, "UIPanelButtonTemplate")
+	local importButton = importFrame.importButton
+	local cancelButton = importFrame.cancelImportButton
+	importIntoListButton:SetWidth(importButton:GetWidth())
+	importIntoListButton:SetHeight(importButton:GetHeight())
+	importIntoListButton:SetText(MusicianList.Msg.LINK_IMPORT_WINDOW_IMPORT_BUTTON)
+	importIntoListButton:SetPoint("TOP", importButton, "BOTTOM", 0, -5)
+	importFrame:SetHeight(importFrame:GetHeight() + importIntoListButton:GetHeight() + 5)
+	importIntoListButton:HookScript("OnClick", function()
+		importIntoListButton.onClick()
+	end)
+
+	local function updateSongLinkImportFrame(title, playerName)
+		playerName = Musician.Utils.NormalizePlayerName(playerName)
+
+		-- Get currently requesting song title from the player, if any
+		local requestingSong = Musician.SongLinks.GetRequestingSong(playerName)
+		if requestingSong then
+			title = requestingSong.title
+			if requestingSong.dataOnly then
+				importButton:Disable()
+				importButton:Show()
+				importIntoListButton:Hide()
+				cancelButton:SetPoint('TOP', importIntoListButton, 'TOP')
+			else
+				importButton:Hide()
+				importIntoListButton:Disable()
+				importIntoListButton:Show()
+				cancelButton:SetPoint('TOP', importButton, 'TOP')
+			end
+		else
+			importButton:Enable()
+			importButton:Show()
+			importIntoListButton:Enable()
+			importIntoListButton:Show()
+		end
+	end
+
+	MusicianList:RegisterMessage(Musician.Events.SongLink, function(event, title, playerName)
+		playerName = Musician.Utils.NormalizePlayerName(playerName)
+
+		updateSongLinkImportFrame(title, playerName)
+
+		importIntoListButton.onClick = function()
+			if not(Musician.SongLinks.GetRequestingSong(playerName)) then
+				Musician.SongLinks.RequestSong(title, playerName, true)
+			end
+		end
+
+		-- Start import
+		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
+			sender = Musician.Utils.NormalizePlayerName(sender)
+			if sender ~= playerName then return end
+			updateSongLinkImportFrame(title, playerName)
+		end)
+
+		-- Import successful
+		MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song)
+			sender = Musician.Utils.NormalizePlayerName(sender)
+			if sender ~= playerName then return end
+
+			local isDataOnly = song == nil
+			if not(isDataOnly) then return end
+
+			local compressedCursor = 1
+
+			-- Check file format
+			local compressedHeader = string.sub(songData, compressedCursor, #Musician.FILE_HEADER_COMPRESSED)
+			compressedCursor = compressedCursor + #Musician.FILE_HEADER_COMPRESSED
+			if compressedHeader ~= Musician.FILE_HEADER_COMPRESSED then
+				Musician.Utils.Error(Musician.Msg.INVALID_MUSIC_CODE)
+				return
+			end
+
+			-- Extract first compressed chunk containing full song name
+			local firstChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
+			compressedCursor = compressedCursor + 2
+			local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + firstChunkLength - 1))
+			compressedCursor = compressedCursor + firstChunkLength
+
+			-- Extract second compressed chunk containing the song duration
+			local secondChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
+			compressedCursor = compressedCursor + 2
+			local secondChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + secondChunkLength - 1))
+
+			-- Extract song name from the first chunk
+			local cursor = 1
+			local songTitleLength = Musician.Utils.UnpackNumber(string.sub(firstChunk, cursor, cursor + 1))
+			cursor = cursor + 2
+			local songName = Musician.Utils.NormalizeSongName(string.sub(firstChunk, cursor, cursor + songTitleLength - 1))
+
+			-- Extract duration from the second chunk
+			local duration = Musician.Utils.UnpackNumber(string.sub(secondChunk, 2, 4))
+
+			-- Add song to the list
+			local songId = MusicianList.GetSongId(songName)
+			MusicianList_Storage.data[songId] = {
+				name = songName,
+				format = Musician.FILE_HEADER,
+				data = songData,
+				duration = duration,
+			}
+			MusicianList:SendMessage(MusicianList.Events.ListUpdate)
+			MusicianList.RefreshFrame()
+		end)
+	end)
+
 	-- Enable or disable buttons according to current UI state
 	MusicianList.RefreshFrame()
 end
@@ -523,7 +631,7 @@ function MusicianList.DoSave(name, fromCommandLine)
 	song:ExportCompressed(function(data)
 		songData.data = data
 
-		MusicianList_Storage.data[songId] = Musician.Utils.DeepCopy(songData)
+		MusicianList_Storage.data[songId] = songData
 		Musician.sourceSong.name = name
 		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 
