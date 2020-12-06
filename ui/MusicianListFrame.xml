@@ -157,18 +157,6 @@
 					<OnClick>
 						MusicianList.Load(self:GetParent().song.id)
 					</OnClick>
-					<OnEnter inherit="append">
-						self.text:SetPoint('BOTTOMRIGHT', -76, 4)
-						if self.text:GetStringWidth() > self.text:GetWidth() then
-							GameTooltip_AddNewbieTip(self, self:GetText(), 1.0, 1.0, 1.0)
-						end
-					</OnEnter>
-					<OnLeave inherit="append">
-						self.text:SetPoint('BOTTOMRIGHT', -34, 4)
-						if GameTooltip:GetOwner() == self then
-							GameTooltip:Hide()
-						end
-					</OnLeave>
 				</Scripts>
 
 				<Frames>

@@ -154,11 +154,6 @@ MusicianList.Frame.SetData = function()
 
 	totalSongs = #list
 
-	-- Disable unused frames
-	for index = #list + 1, MusicianListFrameSongContainer:GetNumChildren() do
-		_G["MusicianListSong" .. index].song = nil
-	end
-
 	MusicianList.Frame.Filter()
 end
 
@@ -176,8 +171,8 @@ MusicianList.Frame.Filter = function(filter)
 	local index = 1
 	local visibleIndex = 1
 	local height = 0
-	for index = 1, MusicianListFrameSongContainer:GetNumChildren() do
-		local rowFrame = _G["MusicianListSong" .. index]
+	local children = { MusicianListFrameSongContainer:GetChildren() }
+	for index, rowFrame in ipairs(children) do
 		if rowFrame.song ~= nil and (filter == "" or string.match(rowFrame.song.searchName, filter)) then
 			rowFrame:Show()
 			rowFrame:SetPoint("TOPLEFT", 0, -height)
@@ -283,6 +278,12 @@ end
 -- @param isHighlighted (boolean)
 MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 	if isHighlighted then
+		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -76, 4)
+		if rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
+			GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
+			GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
+		end
+
 		rowFrame.title.deleteButton:Show()
 		rowFrame.title.renameButton:Show()
 		rowFrame.title.linkButton:Show()
@@ -291,6 +292,11 @@ MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 		rowFrame.duration:Hide()
 		rowFrame.background:SetColorTexture(.6, 0, 0, 1)
 	else
+		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -34, 4)
+		if GameTooltip:GetOwner() == rowFrame.title then
+			GameTooltip:Hide()
+		end
+
 		rowFrame.title.deleteButton:Hide()
 		rowFrame.title.renameButton:Hide()
 		rowFrame.title.linkButton:Hide()
