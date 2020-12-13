@@ -10,9 +10,9 @@ local MusicianButtonGetMenu
 
 local EXTRACT_PROGRESSION_RATIO = .33
 
---- OnInitialize
+--- OnEnable
 --
-function MusicianList:OnInitialize()
+function MusicianList:OnEnable()
 
 	-- Init storage
 	if MusicianList_Storage == nil then
@@ -346,6 +346,9 @@ end
 function MusicianList.AddButtons()
 	local buttonWidth = 25
 
+	-- Add List button to the main window
+	--
+
 	local listButton = CreateFrame("Button", "MusicianFrameListButton", MusicianFrame, "MusicianListIconButtonTemplate")
 	MusicianFrameListButtonText:SetPoint("LEFT", 6, 0)
 	listButton:SetWidth(buttonWidth)
@@ -356,6 +359,9 @@ function MusicianList.AddButtons()
 	listButton:HookScript("OnClick", function()
 		MusicianListFrame:Show()
 	end)
+
+	-- Add Save button to the main window
+	--
 
 	local saveButton = CreateFrame("Button", "MusicianFrameSaveButton", MusicianFrame, "MusicianListIconButtonTemplate")
 	MusicianFrameSaveButtonText:SetPoint("LEFT", 8, 0)
@@ -368,6 +374,9 @@ function MusicianList.AddButtons()
 		MusicianList.Save()
 	end)
 
+	-- Resize the Link button in the main window
+	--
+
 	local linkButton = MusicianFrameLinkButton
 	linkButton.icon:SetPoint("LEFT", 7, 0)
 	linkButton:SetWidth(buttonWidth)
@@ -375,7 +384,13 @@ function MusicianList.AddButtons()
 	linkButton:SetText('')
 	linkButton:SetPoint("TOPRIGHT", -10 - 2 * buttonWidth, -10)
 
+	-- Resize the Edit button in the main window to match the total width of the 3 buttons above
+	--
+
 	MusicianFrameTrackEditorButton:SetWidth(buttonWidth * 3)
+
+	-- Add Save button in track editor window
+	--
 
 	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor, "MusicianListIconButtonTemplate")
 	trackEditorSaveButton:SetWidth(50)
@@ -386,6 +401,10 @@ function MusicianList.AddButtons()
 	trackEditorSaveButton:HookScript("OnClick", function()
 		MusicianList.Save()
 	end)
+
+
+	-- Add Import song to the list button in song link import window
+	--
 
 	local importFrame = MusicianSongLinkImportFrame
 	local importIntoListButton = CreateFrame("Button", "MusicianListImportIntoListButton", importFrame, "UIPanelButtonTemplate")
