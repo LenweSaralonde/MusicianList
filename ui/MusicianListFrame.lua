@@ -3,6 +3,7 @@ MusicianList.Frame = LibStub("AceAddon-3.0"):NewAddon("MusicianList.Frame", "Ace
 local totalSongs = 0
 
 local isDragging = false
+local highlightedRowFrame
 
 local MAGNETIC_EDGES_RANGE = 20
 
@@ -178,7 +179,7 @@ MusicianList.Frame.Filter = function(filter)
 			rowFrame:SetPoint("TOPLEFT", 0, -height)
 			rowFrame.visibleIndex = visibleIndex
 			height = height + rowFrame:GetHeight()
-			MusicianList.Frame.HighlightSongRow(rowFrame, rowFrame:IsMouseOver())
+			MusicianList.Frame.HighlightSongRow(rowFrame)
 			visibleIndex = visibleIndex + 1
 		else
 			rowFrame:Hide()
@@ -262,36 +263,33 @@ MusicianList.Frame.EnableButtons = function()
 	MusicianList.Frame.Filter()
 end
 
---- Highlight song row on frame update
--- @param rowFrame (Frame)
--- @param elapsed (number)
-MusicianList.Frame.SongRowOnUpdate = function(rowFrame, elapsed)
-	local isMouseOver = rowFrame:IsMouseOver()
-	if rowFrame.isHighlighted ~= isMouseOver then
-		rowFrame.isHighlighted = isMouseOver
-		MusicianList.Frame.HighlightSongRow(rowFrame, isMouseOver)
-	end
-end
-
 --- Set tooltip for the highlighted song row
 -- @param rowFrame (Frame)
--- @param isHighlighted (boolean)
-MusicianList.Frame.SetRowTooltip = function(rowFrame, isHighlighted)
-	C_Timer.After(0, function()
-		if isHighlighted and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
-			GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
-			GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
-		elseif not(isHighlighted) and GameTooltip:GetOwner() == rowFrame.title then
-			GameTooltip:Hide()
-		end
-	end)
+-- @param hasMouseOver (boolean)
+MusicianList.Frame.SetRowTooltip = function(rowFrame, hasMouseOver)
+	if hasMouseOver and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
+		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
+		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
+	elseif not(hasMouseOver) and GameTooltip:GetOwner() == rowFrame.title then
+		GameTooltip:Hide()
+	end
 end
 
 --- Highlight song row
 -- @param rowFrame (Frame)
--- @param isHighlighted (boolean)
+-- @param[opt] isHighlighted (boolean)
 MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
+	if isHighlighted == nil then
+		isHighlighted = rowFrame.hasMouseOver or rowFrame.hasChildMouseOver
+	end
+	if isHighlighted == (rowFrame.isHighlighted == true) then return end
 	if isHighlighted then
+		if highlightedRowFrame ~= nil and highlightedRowFrame ~= rowFrame then
+			MusicianList.Frame.HighlightSongRow(highlightedRowFrame, false)
+		end
+		highlightedRowFrame = rowFrame
+		rowFrame.isHighlighted = true
+
 		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -76, 4)
 
 		rowFrame.title.deleteButton:Show()
@@ -302,6 +300,9 @@ MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 		rowFrame.duration:Hide()
 		rowFrame.background:SetColorTexture(.6, 0, 0, 1)
 	else
+		highlightedRowFrame = nil
+		rowFrame.isHighlighted = false
+
 		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -34, 4)
 
 		rowFrame.title.deleteButton:Hide()
