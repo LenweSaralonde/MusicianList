@@ -5,6 +5,9 @@ local LibDeflate
 local isSongSaving = false
 local isSongLoading = false
 
+local cachedSongTableOrdered
+local cachedSongTableById
+
 local MusicianGetCommands
 local MusicianButtonGetMenu
 
@@ -55,21 +58,6 @@ function MusicianList.OnReady()
 	MusicianList.processFrame:SetFrameStrata("HIGH")
 	MusicianList.processFrame:EnableMouse(false)
 	MusicianList.processFrame:SetMovable(false)
-
-	-- Keep the raw binary song data so we can save it later
-	MusicianList:RegisterMessage(Musician.Events.SourceSongLoaded, function(event, song, data)
-		MusicianList.RefreshFrame()
-	end)
-
-	-- Notify loading progression
-	MusicianList:RegisterMessage(Musician.Events.SongImportProgress, function(event, song, progression)
-		MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, song, progression)
-	end)
-
-	-- Notify saving progression
-	MusicianList:RegisterMessage(Musician.Events.SongExportProgress, MusicianList.OnSongExport)
-	MusicianList:RegisterMessage(Musician.Events.SongExportStart, MusicianList.OnSongExport)
-	MusicianList:RegisterMessage(Musician.Events.SongExportComplete, MusicianList.OnSongExport)
 
 	-- Hook Musician functions
 	MusicianGetCommands = Musician.GetCommands
@@ -187,22 +175,6 @@ function MusicianList.OnReady()
 	MusicianList.AddButtons()
 end
 
---- OnSongExport
--- Handle song export events
-function MusicianList.OnSongExport(event, song, ...)
-	if not(song.isSaving) then return end
-
-	local saveEvent
-	if event == Musician.Events.SongExportProgress then
-		saveEvent = MusicianList.Events.SongSaveProgress
-	elseif event == Musician.Events.SongExportStart then
-		saveEvent = MusicianList.Events.SongSaveStart
-	elseif event == Musician.Events.SongExportComplete then
-		saveEvent = MusicianList.Events.SongSaveComplete
-	end
-	MusicianList:SendMessage(saveEvent, song, ...)
-end
-
 --- Get command definitions
 -- @return commands (table)
 function MusicianList.GetCommands()
@@ -315,7 +287,6 @@ function MusicianList.GetCommands()
 		text = MusicianList.Msg.COMMAND_RESTORE_DEMO,
 		func = function(argStr)
 			MusicianList.RestoreDemoSongs(true)
-			MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 			Musician.Utils.Print(MusicianList.Msg.DEMO_SONGS_RESTORED)
 		end
 	})
@@ -339,6 +310,15 @@ function MusicianList.GetMenu()
 	})
 
 	return menu
+end
+
+--- Set song into storage
+-- @param songId (string)
+-- @param songData (table|nil) nil to delete
+function MusicianList.SetSongStorage(songId, songData)
+	MusicianList_Storage.data[songId] = songData
+	cachedSongTableOrdered = nil
+	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- Add buttons in Musician UI
@@ -501,15 +481,19 @@ function MusicianList.AddButtons()
 			-- Extract duration from the second chunk
 			local duration = Musician.Utils.UnpackNumber(string.sub(secondChunk, 2, 4))
 
+			-- The source song that was in the list is being overwritten
+			if Musician.sourceSong and Musician.sourceSong.isInList and songName == Musician.sourceSong.name then
+				Musician.sourceSong.isInList = nil
+			end
+
 			-- Add song to the list
 			local songId = MusicianList.GetSongId(songName)
-			MusicianList_Storage.data[songId] = {
+			MusicianList.SetSongStorage(songId, {
 				name = songName,
 				format = Musician.FILE_HEADER,
 				data = songData,
 				duration = duration,
-			}
-			MusicianList:SendMessage(MusicianList.Events.ListUpdate)
+			})
 			MusicianList.RefreshFrame()
 		end)
 	end)
@@ -545,28 +529,36 @@ end
 --- Get sorted song list
 -- @return list (table)
 function MusicianList.GetSongList()
-	local list = {}
+	if cachedSongTableOrdered then
+		return cachedSongTableOrdered
+	end
+
+	cachedSongTableOrdered = {}
+	cachedSongTableById = {}
 	local songData, id
 	for id, songData in pairs(MusicianList_Storage.data) do
-		table.insert(list, {
+		local songRow = {
 			id = id,
 			name = songData.name,
 			searchName = MusicianList.SearchString(songData.name),
+			data = songData.data,
 			duration = songData.duration
-		})
+		}
+		table.insert(cachedSongTableOrdered, songRow)
+		cachedSongTableById[id] = songRow
 	end
 
-	table.sort(list, function(a, b)
+	table.sort(cachedSongTableOrdered, function(a, b)
 		return a.searchName < b.searchName
 	end)
 
 	-- Add indexes
 	local index, song
-	for index, song in pairs(list) do
+	for index, song in pairs(cachedSongTableOrdered) do
 		song.index = index
 	end
 
-	return list
+	return cachedSongTableOrdered
 end
 
 --- Save song, showing "save as" dialog if no name is provided
@@ -647,20 +639,27 @@ function MusicianList.DoSave(name, fromCommandLine)
 
 	song.name = name
 
+	MusicianList:SendMessage(MusicianList.Events.SongSaveStart, song, songId)
+
+	MusicianList:RegisterMessage(Musician.Events.SongExportProgress, function(event, exportingSong, progress)
+		if exportingSong ~= song then return end
+		MusicianList:SendMessage(MusicianList.Events.SongSaveProgress, song, songId, progress)
+	end)
+
 	song:ExportCompressed(function(data)
 		songData.data = data
 
-		MusicianList_Storage.data[songId] = songData
-		Musician.sourceSong.name = name
-		MusicianList:SendMessage(MusicianList.Events.ListUpdate)
+		song.isSaving = nil
+		isSongSaving = false
+
+		MusicianList.SetSongStorage(songId, songData)
+
+		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, songId)
+		MusicianList.RefreshFrame()
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
 		end
-
-		song.isSaving = nil
-		isSongSaving = false
-		MusicianList.RefreshFrame()
 	end)
 end
 
@@ -691,8 +690,14 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 	local song = Musician.Song.create()
 	isSongLoading = true
-	song.savedId = id
-	MusicianList:SendMessage(MusicianList.Events.SongLoadStart, song, songData)
+
+	-- Notify loading progression
+	MusicianList:RegisterMessage(Musician.Events.SongImportProgress, function(event, importingSong, progression)
+		if importingSong ~= song then return end
+		MusicianList:SendMessage(MusicianList.Events.SongLoadProgress, songData, progression)
+	end)
+
+	MusicianList:SendMessage(MusicianList.Events.SongLoadStart, songData)
 	MusicianList.RefreshFrame()
 	song:ImportCompressed(songData.data, false, function(success)
 
@@ -700,7 +705,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 		-- Import failed
 		if not(success) then
-			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, song, false)
+			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, false)
 			return
 		end
 
@@ -723,7 +728,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 			song:Play()
 		end
 
-		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, song, true)
+		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, true)
 		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, song, songData.data)
 		MusicianList.RefreshFrame()
 	end)
@@ -758,17 +763,15 @@ function MusicianList.DoDelete(id, fromCommandLine)
 		return
 	end
 
-	MusicianList_Storage.data[id] = nil
-
-	if fromCommandLine then
-		Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(songData.name)))
-	end
+	MusicianList.SetSongStorage(id, nil)
 
 	if Musician.sourceSong and songData.name == Musician.sourceSong.name then
 		Musician.sourceSong.isInList = nil
 	end
 
-	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
+	if fromCommandLine then
+		Musician.Utils.Print(string.gsub(MusicianList.Msg.SONG_DELETED, "{name}", Musician.Utils.Highlight(songData.name)))
+	end
 end
 
 --- Rename song, showing "rename" dialog if no name is provided
@@ -841,14 +844,14 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	local newTitleCompressedChunk = LibDeflate:CompressDeflate(newTitleChunk, { level = 9 })
 	songData.data = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
 
-	-- Update song data in storage
-	MusicianList_Storage.data[newId] = songData
-
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
 		Musician.sourceSong.name = name
 		MusicianFrame.Clear()
 		MusicianList.RefreshFrame()
 	end
+
+	-- Update song data in storage
+	MusicianList.SetSongStorage(newId, songData)
 
 	if fromCommandLine then
 		local msg = MusicianList.Msg.SONG_RENAMED
@@ -856,8 +859,6 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 		msg = string.gsub(msg, "{newName}", Musician.Utils.Highlight(name))
 		Musician.Utils.Print(msg)
 	end
-
-	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- Post song link in the chat
@@ -889,6 +890,8 @@ function MusicianList.RestoreDemoSongs(overwrite)
 			MusicianList_Storage.data[id] = Musician.Utils.DeepCopy(song)
 		end
 	end
+	cachedSongTableOrdered = nil
+	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
 
 --- Get song ID by name
@@ -903,18 +906,17 @@ end
 -- @return songData (table)
 -- @return songId (table)
 function MusicianList.GetSong(idOrIndex)
-	local id = MusicianList.GetSongId(idOrIndex)
+	local list = MusicianList.GetSongList() -- also populates cachedSongTableById
 
 	-- Get by id
-	if MusicianList_Storage.data[id] then
-		return MusicianList_Storage.data[id], id
+	local id = MusicianList.GetSongId(idOrIndex)
+	if cachedSongTableById[id] then
+		return cachedSongTableById[id], id
 	else
 		-- Try to get by index
-		local list = MusicianList.GetSongList()
 		local index = tonumber(strtrim(idOrIndex))
 		if index ~= nil and list[index] then
-			id = MusicianList.GetSongId(list[index].name)
-			return MusicianList_Storage.data[id], id
+			return list[index], list[index].id
 		else -- Not found
 			return nil, nil
 		end
