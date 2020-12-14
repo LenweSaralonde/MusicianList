@@ -24,12 +24,12 @@
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 				end
 			</OnMouseDown>
-			<OnEnter inherit="append">
+			<OnEnter inherit="prepend">
 				if self.tooltipText then
 					GameTooltip_AddNewbieTip(self, self.tooltipText, 1.0, 1.0, 1.0)
 				end
 			</OnEnter>
-			<OnLeave inherit="append">
+			<OnLeave inherit="prepend">
 				if self.tooltipText then
 					GameTooltip:Hide()
 				end
@@ -44,6 +44,20 @@
 		<NormalFont style="MusicianListFontIconsNormalSmall"/>
 		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
 		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
+		<Scripts>
+			<OnEnter inherit="prepend">
+				local rowFrame = self:GetParent():GetParent()
+				rowFrame.hasChildMouseOver = true
+				MusicianList.Frame.HighlightSongRow(rowFrame)
+			</OnEnter>
+			<OnLeave inherit="prepend">
+				local rowFrame = self:GetParent():GetParent()
+				rowFrame.hasChildMouseOver = false
+				C_Timer.After(0, function()
+					MusicianList.Frame.HighlightSongRow(rowFrame)
+				end)
+			</OnLeave>
+		</Scripts>
 	</Button>
 
 	<!-- Standard button with icon font template -->
@@ -157,6 +171,20 @@
 					<OnClick>
 						MusicianList.Load(self:GetParent().song.id)
 					</OnClick>
+					<OnEnter inherit="prepend">
+						local rowFrame = self:GetParent()
+						rowFrame.hasMouseOver = true
+						MusicianList.Frame.HighlightSongRow(rowFrame)
+						MusicianList.Frame.SetRowTooltip(rowFrame, true)
+					</OnEnter>
+					<OnLeave inherit="prepend">
+						local rowFrame = self:GetParent()
+						rowFrame.hasMouseOver = false
+						C_Timer.After(0, function()
+							MusicianList.Frame.HighlightSongRow(rowFrame)
+							MusicianList.Frame.SetRowTooltip(rowFrame, false)
+						end)
+					</OnLeave>
 				</Scripts>
 
 				<Frames>
@@ -211,16 +239,7 @@
 						</Scripts>
 					</Button>
 				</Frames>
-				<Scripts>
-					<OnEnter inherit="append">
-						MusicianList.Frame.SetRowTooltip(self:GetParent(), true)
-					</OnEnter>
-					<OnLeave inherit="append">
-						MusicianList.Frame.SetRowTooltip(self:GetParent(), false)
-					</OnLeave>
-				</Scripts>
 			</Button>
-
 		</Frames>
 
 		<Layers>
@@ -261,12 +280,6 @@
 				</Texture>
 			</Layer>
 		</Layers>
-
-		<Scripts>
-			<OnUpdate>
-				MusicianList.Frame.SongRowOnUpdate(self, elapsed)
-			</OnUpdate>
-		</Scripts>
 	</Frame>
 
 	<!-- Main frame -->
