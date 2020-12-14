@@ -466,6 +466,7 @@ function MusicianList.AddButtons()
 			compressedCursor = compressedCursor + 2
 			local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + firstChunkLength - 1))
 			compressedCursor = compressedCursor + firstChunkLength
+			local secondChunkCursor = compressedCursor
 
 			-- Extract second compressed chunk containing the song duration
 			local secondChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
@@ -481,9 +482,15 @@ function MusicianList.AddButtons()
 			-- Extract duration from the second chunk
 			local duration = Musician.Utils.UnpackNumber(string.sub(secondChunk, 2, 4))
 
-			-- The source song that was in the list is being overwritten
-			if Musician.sourceSong and Musician.sourceSong.isInList and songName == Musician.sourceSong.name then
-				Musician.sourceSong.isInList = nil
+			-- Get unique song name to avoid overwriting
+			local uniqueSongName = MusicianList.GetUniqueName(songName)
+			if uniqueSongName ~= songName then
+				-- Rename in song data as well
+				local updatedFirstChunk = Musician.Utils.PackNumber(#uniqueSongName, 2) .. uniqueSongName
+				local updatedFirstChunkCompressed = LibDeflate:CompressDeflate(updatedFirstChunk, { level = 9 })
+				updatedFirstChunkCompressed = Musician.Utils.PackNumber(#updatedFirstChunkCompressed, 2) .. updatedFirstChunkCompressed
+				songData = Musician.FILE_HEADER_COMPRESSED .. updatedFirstChunkCompressed .. string.sub(songData, secondChunkCursor)
+				songName = uniqueSongName
 			end
 
 			-- Add song to the list
@@ -559,6 +566,19 @@ function MusicianList.GetSongList()
 	end
 
 	return cachedSongTableOrdered
+end
+
+--- Get a unique song name
+-- @param name (string)
+-- @return uniqueName (string)
+function MusicianList.GetUniqueName(name)
+	local uniqueName = name
+	local index = 1
+	while MusicianList.GetSong(uniqueName) ~= nil do
+		uniqueName = name .. ' (' .. index .. ')'
+		index = index + 1
+	end
+	return uniqueName
 end
 
 --- Save song, showing "save as" dialog if no name is provided
