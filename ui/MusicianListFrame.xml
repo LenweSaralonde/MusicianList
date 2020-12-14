@@ -212,6 +212,14 @@
 						</Scripts>
 					</Button>
 				</Frames>
+				<Scripts>
+					<OnEnter inherit="append">
+						MusicianList.Frame.SetRowTooltip(self:GetParent(), true)
+					</OnEnter>
+					<OnLeave inherit="append">
+						MusicianList.Frame.SetRowTooltip(self:GetParent(), false)
+					</OnLeave>
+				</Scripts>
 			</Button>
 
 		</Frames>

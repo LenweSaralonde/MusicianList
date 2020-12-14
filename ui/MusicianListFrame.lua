@@ -273,16 +273,26 @@ MusicianList.Frame.SongRowOnUpdate = function(rowFrame, elapsed)
 	end
 end
 
+--- Set tooltip for the highlighted song row
+-- @param rowFrame (Frame)
+-- @param isHighlighted (boolean)
+MusicianList.Frame.SetRowTooltip = function(rowFrame, isHighlighted)
+	C_Timer.After(0, function()
+		if isHighlighted and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
+			GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
+			GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
+		elseif not(isHighlighted) and GameTooltip:GetOwner() == rowFrame.title then
+			GameTooltip:Hide()
+		end
+	end)
+end
+
 --- Highlight song row
 -- @param rowFrame (Frame)
 -- @param isHighlighted (boolean)
 MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 	if isHighlighted then
 		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -76, 4)
-		if rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
-			GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
-			GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
-		end
 
 		rowFrame.title.deleteButton:Show()
 		rowFrame.title.renameButton:Show()
@@ -293,9 +303,6 @@ MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
 		rowFrame.background:SetColorTexture(.6, 0, 0, 1)
 	else
 		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -34, 4)
-		if GameTooltip:GetOwner() == rowFrame.title then
-			GameTooltip:Hide()
-		end
 
 		rowFrame.title.deleteButton:Hide()
 		rowFrame.title.renameButton:Hide()
