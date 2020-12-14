@@ -91,7 +91,7 @@ end
 
 --- Init
 --
-MusicianList.Frame.Init = function()
+function MusicianList.Frame.Init()
 	-- Data refresh events
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
 
@@ -152,7 +152,7 @@ end
 
 --- SetData
 --
-MusicianList.Frame.SetData = function()
+function MusicianList.Frame.SetData()
 	local list = MusicianList.GetSongList()
 	for index, song in pairs(list) do
 		local rowFrameName = "MusicianListSong" .. index
@@ -175,7 +175,7 @@ end
 
 --- Filter
 -- @param filter (string)
-MusicianList.Frame.Filter = function(filter)
+function MusicianList.Frame.Filter(filter)
 	if filter ~= nil then
 		MusicianListFrameSearchBox:SetText(strtrim(filter))
 	else
@@ -220,7 +220,7 @@ end
 
 --- Enable or disable all buttons
 -- @param enabled (boolean)
-MusicianList.Frame.SetButtonsEnabled = function(enabled)
+function MusicianList.Frame.SetButtonsEnabled(enabled)
 	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
 		rowFrame.title:SetEnabled(enabled)
@@ -234,20 +234,20 @@ end
 
 --- Disable all buttons while a process is running
 --
-MusicianList.Frame.DisableButtons = function()
+function MusicianList.Frame.DisableButtons()
 	MusicianList.Frame.SetButtonsEnabled(false)
 end
 
 --- Enable all buttons when a process finishes
 --
-MusicianList.Frame.EnableButtons = function()
+function MusicianList.Frame.EnableButtons()
 	MusicianList.Frame.SetButtonsEnabled(true)
 end
 
 --- Set tooltip for the highlighted song row
 -- @param rowFrame (Frame)
 -- @param hasMouseOver (boolean)
-MusicianList.Frame.SetRowTooltip = function(rowFrame, hasMouseOver)
+function MusicianList.Frame.SetRowTooltip(rowFrame, hasMouseOver)
 	if hasMouseOver and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
 		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
 		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
@@ -259,7 +259,7 @@ end
 --- Highlight song row
 -- @param rowFrame (Frame)
 -- @param[opt] isHighlighted (boolean)
-MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
+function MusicianList.Frame.HighlightSongRow(rowFrame, isHighlighted)
 	if isHighlighted == nil then
 		isHighlighted = rowFrame.hasMouseOver or rowFrame.hasChildMouseOver or false
 	end
