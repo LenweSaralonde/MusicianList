@@ -24,13 +24,13 @@
 					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
 				end
 			</OnMouseDown>
-			<OnEnter inherit="append">
+			<OnEnter inherit="prepend">
 				if self.tooltipText then
 					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 					GameTooltip_SetTitle(GameTooltip, self.tooltipText)
 				end
 			</OnEnter>
-			<OnLeave inherit="append">
+			<OnLeave inherit="prepend">
 				if self.tooltipText then
 					GameTooltip:Hide()
 				end
@@ -45,6 +45,20 @@
 		<NormalFont style="MusicianListFontIconsNormalSmall"/>
 		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
 		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
+		<Scripts>
+			<OnEnter inherit="prepend">
+				local rowFrame = self:GetParent():GetParent()
+				rowFrame.hasChildMouseOver = true
+				MusicianList.Frame.HighlightSongRow(rowFrame)
+			</OnEnter>
+			<OnLeave inherit="prepend">
+				local rowFrame = self:GetParent():GetParent()
+				rowFrame.hasChildMouseOver = false
+				C_Timer.After(0, function()
+					MusicianList.Frame.HighlightSongRow(rowFrame)
+				end)
+			</OnLeave>
+		</Scripts>
 	</Button>
 
 	<!-- Standard button with icon font template -->
@@ -137,8 +151,8 @@
 				</Anchors>
 				<ButtonText name="$parentText" parentKey="text" justifyh="LEFT">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="29" y="-4" relativeTo="$parent" />
-						<Anchor point="BOTTOMRIGHT" x="-61" y="4" relativeTo="$parent" />
+						<Anchor point="TOPLEFT" x="29" y="-4" />
+						<Anchor point="BOTTOMRIGHT" x="-34" y="4" />
 					</Anchors>
 				</ButtonText>
 				<NormalFont style="GameFontHighlightSmall"/>
@@ -148,6 +162,8 @@
 						self.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
 						self.previewButton:SetText(MusicianList.Icons.Headphones)
 						self.previewButton.tooltipText = MusicianList.Msg.ACTION_PREVIEW
+						self.linkButton:SetText(MusicianList.Icons.Export)
+						self.linkButton.tooltipText = MusicianList.Msg.ACTION_LINK
 						self.renameButton:SetText(MusicianList.Icons.Pencil)
 						self.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
 						self.deleteButton:SetText(MusicianList.Icons.Trash)
@@ -156,16 +172,19 @@
 					<OnClick>
 						MusicianList.Load(self:GetParent().song.id)
 					</OnClick>
-					<OnEnter inherit="append">
-						if self.text:GetStringWidth() > self.text:GetWidth() then
-							GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-							GameTooltip_SetTitle(GameTooltip, self:GetText())
-						end
+					<OnEnter inherit="prepend">
+						local rowFrame = self:GetParent()
+						rowFrame.hasMouseOver = true
+						MusicianList.Frame.HighlightSongRow(rowFrame)
+						MusicianList.Frame.SetRowTooltip(rowFrame, true)
 					</OnEnter>
-					<OnLeave inherit="append">
-						if self.text:GetStringWidth() > self.text:GetWidth() then
-							GameTooltip:Hide()
-						end
+					<OnLeave inherit="prepend">
+						local rowFrame = self:GetParent()
+						rowFrame.hasMouseOver = false
+						C_Timer.After(0, function()
+							MusicianList.Frame.HighlightSongRow(rowFrame)
+							MusicianList.Frame.SetRowTooltip(rowFrame, false)
+						end)
 					</OnLeave>
 				</Scripts>
 
@@ -190,9 +209,19 @@
 							</OnClick>
 						</Scripts>
 					</Button>
-					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentLinkButton" parentKey="linkButton" inherits="MusicianListIconButtonSimple" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentRenameButton" />
+						</Anchors>
+						<Scripts>
+							<OnClick>
+								MusicianList.Link(self:GetParent():GetParent().song.id)
+							</OnClick>
+						</Scripts>
+					</Button>
+					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
+						<Anchors>
+							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentLinkButton" />
 						</Anchors>
 						<Scripts>
 							<OnClick>
@@ -212,7 +241,6 @@
 					</Button>
 				</Frames>
 			</Button>
-
 		</Frames>
 
 		<Layers>
@@ -253,12 +281,6 @@
 				</Texture>
 			</Layer>
 		</Layers>
-
-		<Scripts>
-			<OnUpdate>
-				MusicianList.Frame.SongRowOnUpdate(self, elapsed)
-			</OnUpdate>
-		</Scripts>
 	</Frame>
 
 	<!-- Main frame -->

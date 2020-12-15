@@ -113,38 +113,51 @@ local function updateTo4(onComplete)
 	MusicianList.Updater.UpdateDB(onComplete)
 end
 
---- Perform updates from v4 to v5, if necessary
--- Update songs in MUS5 format to MUS6
--- @param onComplete (function)
-local function updateTo5(onComplete)
-	local LibDeflate = LibStub:GetLibrary("LibDeflate")
+--- Create updater frame
+-- @return updaterFrame (Frame)
+local function getUpdaterFrame()
+	if MusicianListUpdaterFrame then return MusicianListUpdaterFrame end
 
-	-- Create updater frame
-	local updaterFrame = CreateFrame("Frame", "MusicianListUpdater5Frame", UIParent, "MusicianDialogTemplate")
+	local updaterFrame = CreateFrame("Frame", "MusicianListUpdaterFrame", UIParent, "MusicianDialogTemplate")
 	updaterFrame:SetWidth(500)
 	updaterFrame:SetHeight(90)
 
 	local titleLabel = updaterFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	updaterFrame.titleLabel = titleLabel
 	titleLabel:SetWidth(updaterFrame:GetWidth() - 30)
 	titleLabel:SetText(MusicianList.Msg.UPDATING_DB)
 	titleLabel:SetPoint("TOP", 0, -15)
 
 	local songLabel = updaterFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	updaterFrame.songLabel = songLabel
 	songLabel:SetWidth(updaterFrame:GetWidth() - 30)
 	songLabel:SetHeight(30)
 	songLabel:SetPoint("TOP", titleLabel, "BOTTOM", 0, 0)
 
 	local progressBarBackground = updaterFrame:CreateTexture(nil, "BACKGROUND")
+	updaterFrame.progressBarBackground = progressBarBackground
 	progressBarBackground:SetWidth(updaterFrame:GetWidth() - 30)
 	progressBarBackground:SetHeight(10)
 	progressBarBackground:SetColorTexture(0, 0, 0, .75)
 	progressBarBackground:SetPoint("BOTTOM", 0, 15)
 
 	local progressBar = updaterFrame:CreateTexture(nil, "ARTWORK")
+	updaterFrame.progressBar = progressBar
 	progressBar:SetWidth(0)
 	progressBar:SetHeight(10)
 	progressBar:SetColorTexture(1, 1, 1, 1)
 	progressBar:SetPoint("LEFT", progressBarBackground, "LEFT")
+
+	return updaterFrame
+end
+
+--- Perform updates from v4 to v5, if necessary
+-- Update songs in MUS5 format to MUS6
+-- @param onComplete (function)
+local function updateTo5(onComplete)
+	local LibDeflate = LibStub:GetLibrary("LibDeflate")
+
+	local updaterFrame = getUpdaterFrame()
 
 	updaterFrame:Show()
 
@@ -176,7 +189,7 @@ local function updateTo5(onComplete)
 
 		local progression = prevSongChunkCount / totalChunkCount + songProgression * songProgressionRange
 
-		progressBar:SetWidth(progression * progressBarBackground:GetWidth())
+		updaterFrame.progressBar:SetWidth(progression * updaterFrame.progressBarBackground:GetWidth())
 	end
 
 	local currentSongIndex = 0
@@ -212,13 +225,12 @@ local function updateTo5(onComplete)
 				MusicianList_Storage.version = 5
 				updaterFrame:Hide()
 				MusicianList.Updater.UpdateDB(onComplete)
-				Musician.Utils.Print(MusicianList.Msg.UPDATING_DB_COMPLETE)
 				return
 			-- Processing new song
 			else
 				currentSong = MusicianList_Storage.data[songIds[currentSongIndex]]
 				Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS6 format", currentSong.name)
-				songLabel:SetText(currentSong.name)
+				updaterFrame.songLabel:SetText(currentSong.name)
 				rawSongData = ''
 				newSongData = ''
 				currentSongChunkIndex = 0
@@ -399,6 +411,223 @@ local function updateTo5(onComplete)
 	Musician.Worker.Set(updaterWorker)
 end
 
+--- Perform updates from v5 to v6, if necessary
+-- Update songs in MUS6 format to MUS7
+-- @param onComplete (function)
+local function updateTo6(onComplete)
+	local LibDeflate = LibStub:GetLibrary("LibDeflate")
+
+	-- Grab song IDs
+	local songIds = {}
+	local songId
+	for songId, songData in pairs(MusicianList_Storage.data) do
+		-- Song is not already converted
+		if songData.format == 'MUS6' then
+			table.insert(songIds, songId)
+		end
+	end
+
+	-- Init progress bar
+	local updaterFrame = getUpdaterFrame()
+	updaterFrame.progressBar:SetWidth(0)
+	updaterFrame:Show()
+
+	-- Update each song
+	local currentSongIndex = 0
+	local currentChunkIndex = 1
+	local songStep = 0
+	local songData = ''
+	local newSongData = ''
+	local newCompressedSongData = ''
+	local song
+
+	local updaterWorker
+	updaterWorker = function(elapsed)
+
+		-- Step 0: Next song
+		-- =================
+		if songStep == 0 then
+
+			-- No more song to update
+			if currentSongIndex == #songIds then
+				Musician.Worker.Remove(updaterWorker)
+				MusicianList_Storage.version = 6
+				updaterFrame:Hide()
+				MusicianList.Updater.UpdateDB(onComplete)
+				return
+			end
+
+			currentSongIndex = currentSongIndex + 1
+			songData = ''
+			newSongData = ''
+			newCompressedSongData = ''
+			currentChunkIndex = 1
+			songStep = 1
+
+			song = MusicianList_Storage.data[songIds[currentSongIndex]]
+			Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS7 format", song.name)
+
+			-- Update progress bar
+			local progression = (currentSongIndex - 1) / #songIds
+			updaterFrame.progressBar:SetWidth(progression * updaterFrame.progressBarBackground:GetWidth())
+			updaterFrame.songLabel:SetText(song.name)
+		end
+
+		-- Step 1: Extract chunks
+		-- ======================
+
+		if songStep == 1 then
+			local song = MusicianList_Storage.data[songIds[currentSongIndex]]
+			local chunk = song.chunks[currentChunkIndex]
+			songData = songData .. LibDeflate:DecompressDeflate(chunk)
+
+			-- No more chunk to uncompress
+			if currentChunkIndex == #song.chunks then
+				songStep = 2
+			else
+				currentChunkIndex = currentChunkIndex + 1
+			end
+		end
+
+		-- Step 2: Fix song data
+		-- ======================
+
+		if songStep == 2 then
+			local cursor = 5
+			local oldCursor
+
+			-- Song mode (1)
+			local strMode = Musician.Utils.PackNumber(Musician.Song.MODE_DURATION, 1)
+
+			-- Duration (3)
+			local strDuration = string.sub(songData, cursor, cursor + 2)
+			cursor = cursor + 3
+
+			-- Number of tracks (1)
+			local strTrackCount = string.sub(songData, cursor, cursor)
+			local trackCount = Musician.Utils.UnpackNumber(strTrackCount)
+			cursor = cursor + 1
+
+			-- Track information: instrument (1), channel (1), number of notes (2)
+			oldCursor = cursor
+			local trackNoteCount = {}
+			for trackIndex = 1, trackCount do
+				trackNoteCount[trackIndex] = Musician.Utils.UnpackNumber(string.sub(songData, cursor + 2, cursor + 3))
+				cursor = cursor + 4
+			end
+			local strTracks = string.sub(songData, oldCursor, cursor - 1)
+
+			-- Note information: key(1), time (2), duration (3)
+			oldCursor = cursor
+			for trackIndex = 1, trackCount do
+				for noteIndex = 1, trackNoteCount[trackIndex] do
+					local key = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor))
+
+					-- Deal with spacers
+					while key == 0xFF do
+						cursor = cursor + 1
+						key = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor))
+					end
+
+					cursor = cursor + 4
+				end
+			end
+			local strNotes = string.sub(songData, oldCursor, cursor - 1)
+
+			-- Song title
+			local songTitleLength = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor + 1))
+			cursor = cursor + 2
+			local strTitle = string.sub(songData, cursor, cursor + songTitleLength - 1)
+			cursor = cursor + songTitleLength
+
+			-- Track names
+			local strTrackNames = string.sub(songData, cursor, #songData)
+
+			-- Create song and track settings metadata
+			local strSettingsMetadata = ''
+
+			-- Song settings
+
+			-- cropFrom (4)
+			strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(floor(song.cropFrom * 100), 4)
+
+			-- cropTo (4)
+			strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(ceil(song.cropTo * 100), 4)
+
+			-- Track settings
+			local track
+			for _, track in pairs(song.tracks) do
+
+				-- Track options (1)
+				local hasInstrument = (track.instrument ~= -1) and Musician.Song.TRACK_OPTION_HAS_INSTRUMENT or 0
+				local muted = track.muted and Musician.Song.TRACK_OPTION_MUTED or 0
+				local solo = track.solo and Musician.Song.TRACK_OPTION_SOLO or 0
+				local trackOptions = bit.bor(hasInstrument, muted, solo)
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(trackOptions, 1)
+
+				-- Instrument (1)
+				local instrument = hasInstrument and track.instrument or 0
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(instrument, 1)
+
+				-- Transpose (1)
+				strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(track.transpose + 127, 1)
+			end
+
+			-- Rebuild new structure
+			song.name = Musician.Utils.NormalizeSongName(song.name)
+			newSongData = Musician.Utils.PackNumber(#song.name, 2) .. song.name .. strMode .. strDuration .. strTrackCount .. strTracks .. strNotes .. strTrackNames .. strSettingsMetadata
+
+			-- Next step
+			songStep = 3
+			return
+		end
+
+		-- Step 3: Compress chunk
+		-- ======================
+
+		if songStep == 3 then
+			-- No more data to compress
+			if newSongData == '' then
+				-- Update structure
+				song.data = newCompressedSongData
+				song.format = 'MUS7'
+				song.duration = song.cropTo - song.cropFrom
+				song.cropFrom = nil
+				song.cropTo = nil
+				song.chunks = nil
+				song.tracks = nil
+
+				-- Refresh ID
+				local newId = MusicianList.GetSongId(song.name)
+				MusicianList_Storage.data[songIds[currentSongIndex]] = nil
+				MusicianList_Storage.data[newId] = song
+
+				-- Proceed with next song
+				songStep = 0
+				return
+			end
+
+			-- First chunk: Uncompressed header + compressed song title only
+			local chunk
+			if newCompressedSongData == '' then
+				-- Header
+				newCompressedSongData = "MUZ7"
+
+				-- Title
+				local titleLength = Musician.Utils.UnpackNumber(string.sub(newSongData, 1, 2))
+				chunk = string.sub(newSongData, 1, 2 + titleLength)
+			else
+				chunk = string.sub(newSongData, 1, 2048)
+			end
+			local compressedChunk = LibDeflate:CompressDeflate(chunk, { level = 9 })
+			newCompressedSongData = newCompressedSongData .. Musician.Utils.PackNumber(#compressedChunk, 2) .. compressedChunk
+			newSongData = string.sub(newSongData, #chunk + 1)
+		end
+	end
+
+	Musician.Worker.Set(updaterWorker)
+end
+
 --- Update database
 -- @param onComplete (function) Run when update process is complete
 function MusicianList.Updater.UpdateDB(onComplete)
@@ -406,7 +635,10 @@ function MusicianList.Updater.UpdateDB(onComplete)
 		updateTo4(onComplete)
 	elseif MusicianList_Storage.version == 4 then
 		updateTo5(onComplete)
+	elseif MusicianList_Storage.version == 5 then
+		updateTo6(onComplete)
 	else
+		Musician.Utils.Print(MusicianList.Msg.UPDATING_DB_COMPLETE)
 		onComplete()
 	end
 end

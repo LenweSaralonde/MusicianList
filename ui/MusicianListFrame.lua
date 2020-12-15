@@ -3,6 +3,7 @@ MusicianList.Frame = LibStub("AceAddon-3.0"):NewAddon("MusicianList.Frame", "Ace
 local totalSongs = 0
 
 local isDragging = false
+local highlightedRowFrame
 
 local MAGNETIC_EDGES_RANGE = 20
 
@@ -68,41 +69,74 @@ end
 
 --- Handle magnetic edges on drag start
 --
-function onMagneticDragStart()
+local function onMagneticDragStart()
 	isDragging = true
 end
 
 --- Handle magnetic edges on drag stop
 --
-function onMagneticDragStop()
+local function onMagneticDragStop()
 	isDragging = false
 	if MusicianFrame:IsVisible() and MusicianListFrame:IsVisible() then
 		magneticEdges()
 	end
 end
 
+--- Get song row frame by index
+-- @param index (int)
+-- @return rowFrame (Frame)
+local function getRowFrame(index)
+	return _G['MusicianListSong'.. index]
+end
+
 --- Init
 --
-MusicianList.Frame.Init = function()
+function MusicianList.Frame.Init()
+	-- Data refresh events
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, MusicianList.Frame.OnProgress)
-	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportStart, MusicianList.Frame.DisableButtons)
-	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportComplete, MusicianList.Frame.EnableButtons)
+
+	-- Source import events
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportStart, function()
+		MusicianList.Frame.DisableButtons()
+	end)
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportComplete, function()
+		MusicianList.Frame.EnableButtons()
+	end)
 	MusicianList.Frame:RegisterMessage(Musician.Events.SourceSongLoaded, function()
+		MusicianList.RefreshFrame()
 		MusicianList.Frame.Filter()
 	end)
 
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, function()
-		MusicianList.Frame.ResetProgressBars()
+	-- Load song events
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadStart, function(event, song)
+		local rowFrame = getRowFrame(song.index)
+		rowFrame.progressBar:SetWidth(0)
+		rowFrame.progressBar:Show()
 		MusicianList.Frame.DisableButtons()
 	end)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, function()
-		MusicianList.Frame.ResetProgressBars()
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, function(event, song, success)
+		local rowFrame = getRowFrame(song.index)
+		rowFrame.progressBar:Hide()
 		MusicianList.Frame.EnableButtons()
 	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadProgress, function(event, song, progression)
+		local rowFrame = getRowFrame(song.index)
+		rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
+	end)
 
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveStart, MusicianList.Frame.DisableButtons)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, MusicianList.Frame.EnableButtons)
+	-- Save song events
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveStart, function()
+		MusicianList.Frame.DisableButtons()
+		MusicianList.RefreshFrame()
+	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, function(event, song, songId)
+		MusicianFrame.SetLoadingProgressBar(nil)
+		MusicianFrame.Clear()
+		MusicianList.Frame.EnableButtons()
+	end)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, song, songId, progression)
+		MusicianFrame.SetLoadingProgressBar(progression)
+	end)
 
 	MusicianList.Frame.SetData()
 
@@ -118,10 +152,8 @@ end
 
 --- SetData
 --
-MusicianList.Frame.SetData = function()
-
+function MusicianList.Frame.SetData()
 	local list = MusicianList.GetSongList()
-	local song, index
 	for index, song in pairs(list) do
 		local rowFrameName = "MusicianListSong" .. index
 
@@ -137,20 +169,13 @@ MusicianList.Frame.SetData = function()
 		rowFrame.title:SetText(song.name)
 		rowFrame.duration:SetText(MusicianList.FormatTime(song.duration, true))
 	end
-
 	totalSongs = #list
-
-	-- Disable unused frames
-	for index = #list + 1, MusicianListFrameSongContainer:GetNumChildren() do
-		_G["MusicianListSong" .. index].song = nil
-	end
-
 	MusicianList.Frame.Filter()
 end
 
 --- Filter
 -- @param filter (string)
-MusicianList.Frame.Filter = function(filter)
+function MusicianList.Frame.Filter(filter)
 	if filter ~= nil then
 		MusicianListFrameSearchBox:SetText(strtrim(filter))
 	else
@@ -162,14 +187,15 @@ MusicianList.Frame.Filter = function(filter)
 	local index = 1
 	local visibleIndex = 1
 	local height = 0
-	for index = 1, MusicianListFrameSongContainer:GetNumChildren() do
-		local rowFrame = _G["MusicianListSong" .. index]
-		if rowFrame.song ~= nil and (filter == "" or string.match(rowFrame.song.searchName, filter)) then
+	local children = { MusicianListFrameSongContainer:GetChildren() }
+	for index, rowFrame in ipairs(children) do
+		if index <= totalSongs and rowFrame.song ~= nil and (filter == "" or string.match(rowFrame.song.searchName, filter)) then
 			rowFrame:Show()
 			rowFrame:SetPoint("TOPLEFT", 0, -height)
 			rowFrame.visibleIndex = visibleIndex
+			rowFrame.isHighlighted = nil
 			height = height + rowFrame:GetHeight()
-			MusicianList.Frame.HighlightSongRow(rowFrame, rowFrame:IsMouseOver())
+			MusicianList.Frame.HighlightSongRow(rowFrame)
 			visibleIndex = visibleIndex + 1
 		else
 			rowFrame:Hide()
@@ -192,83 +218,77 @@ MusicianList.Frame.Filter = function(filter)
 	end
 end
 
---- ResetProgressBars
---
-MusicianList.Frame.ResetProgressBars = function(event, process, success)
+--- Enable or disable all buttons
+-- @param enabled (boolean)
+function MusicianList.Frame.SetButtonsEnabled(enabled)
 	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		rowFrame.progressBar:Hide()
-		rowFrame.progressBar:SetWidth(0)
-	end
-end
-
---- OnProgress
--- @param filter (string)
--- @param song (MusicianSong)
--- @param progression (number)
-MusicianList.Frame.OnProgress = function(event, song, progression)
-	local rowFrame
-	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		if song.savedId == rowFrame.song.id then
-			rowFrame.progressBar:Show()
-			rowFrame.progressBar:SetWidth(rowFrame.background:GetWidth() * progression)
-			return
-		end
+		rowFrame.title:SetEnabled(enabled)
+		rowFrame.title.playButton:SetEnabled(enabled)
+		rowFrame.title.previewButton:SetEnabled(enabled)
+		rowFrame.title.linkButton:SetEnabled(enabled)
+		rowFrame.title.renameButton:SetEnabled(enabled)
+		rowFrame.title.deleteButton:SetEnabled(enabled)
 	end
 end
 
 --- Disable all buttons while a process is running
 --
-MusicianList.Frame.DisableButtons = function()
-	local rowFrame
-	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		rowFrame.title:Disable()
-		rowFrame.title.playButton:Disable()
-		rowFrame.title.previewButton:Disable()
-		rowFrame.title.renameButton:Disable()
-		rowFrame.title.deleteButton:Disable()
-	end
+function MusicianList.Frame.DisableButtons()
+	MusicianList.Frame.SetButtonsEnabled(false)
 end
 
 --- Enable all buttons when a process finishes
 --
-MusicianList.Frame.EnableButtons = function()
-	local rowFrame
-	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
-		rowFrame.title:Enable()
-		rowFrame.title.playButton:Enable()
-		rowFrame.title.previewButton:Enable()
-		rowFrame.title.renameButton:Enable()
-		rowFrame.title.deleteButton:Enable()
-	end
-	MusicianList.Frame.Filter()
+function MusicianList.Frame.EnableButtons()
+	MusicianList.Frame.SetButtonsEnabled(true)
 end
 
---- Highlight song row on frame update
+--- Set tooltip for the highlighted song row
 -- @param rowFrame (Frame)
--- @param elapsed (number)
-MusicianList.Frame.SongRowOnUpdate = function(rowFrame, elapsed)
-	local isMouseOver = rowFrame:IsMouseOver()
-	if rowFrame.isHighlighted ~= isMouseOver then
-		rowFrame.isHighlighted = isMouseOver
-		MusicianList.Frame.HighlightSongRow(rowFrame, isMouseOver)
+-- @param hasMouseOver (boolean)
+function MusicianList.Frame.SetRowTooltip(rowFrame, hasMouseOver)
+	if hasMouseOver and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
+		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
+		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
+	elseif not(hasMouseOver) and GameTooltip:GetOwner() == rowFrame.title then
+		GameTooltip:Hide()
 	end
 end
 
 --- Highlight song row
 -- @param rowFrame (Frame)
--- @param isHighlighted (boolean)
-MusicianList.Frame.HighlightSongRow = function(rowFrame, isHighlighted)
+-- @param[opt] isHighlighted (boolean)
+function MusicianList.Frame.HighlightSongRow(rowFrame, isHighlighted)
+	if isHighlighted == nil then
+		isHighlighted = rowFrame.hasMouseOver or rowFrame.hasChildMouseOver or false
+	end
+	if isHighlighted == rowFrame.isHighlighted then return end
 	if isHighlighted then
+		if highlightedRowFrame ~= nil and highlightedRowFrame ~= rowFrame then
+			MusicianList.Frame.HighlightSongRow(highlightedRowFrame, false)
+		end
+		highlightedRowFrame = rowFrame
+		rowFrame.isHighlighted = true
+
+		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -76, 4)
+
 		rowFrame.title.deleteButton:Show()
 		rowFrame.title.renameButton:Show()
+		rowFrame.title.linkButton:Show()
 		rowFrame.title.previewButton:Show()
 		rowFrame.title.playButton:Show()
 		rowFrame.duration:Hide()
 		rowFrame.background:SetColorTexture(.6, 0, 0, 1)
 	else
+		highlightedRowFrame = nil
+		rowFrame.isHighlighted = false
+
+		rowFrame.title.text:SetPoint('BOTTOMRIGHT', -34, 4)
+
 		rowFrame.title.deleteButton:Hide()
 		rowFrame.title.renameButton:Hide()
+		rowFrame.title.linkButton:Hide()
 		rowFrame.title.previewButton:Hide()
 		rowFrame.title.playButton:Hide()
 		rowFrame.duration:Show()
