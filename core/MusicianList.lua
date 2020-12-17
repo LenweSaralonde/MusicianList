@@ -432,22 +432,20 @@ function MusicianList.AddButtons()
 
 		updateSongLinkImportFrame(title, playerName)
 
+		-- Refresh frame when the request has been initiated
+		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
+			sender = Musician.Utils.NormalizePlayerName(sender)
+			if sender ~= playerName then return end
+			updateSongLinkImportFrame(title, playerName)
+			MusicianList:UnregisterMessage(Musician.Events.SongReceiveStart)
+		end)
+
+		-- Send song request on click
 		importIntoListButton.onClick = function()
 			if not(Musician.SongLinks.GetRequestingSong(playerName)) then
-
-				-- Refresh frame when the request has been initiated
-				MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
-					sender = Musician.Utils.NormalizePlayerName(sender)
-					if sender ~= playerName then return end
-					updateSongLinkImportFrame(title, playerName)
-					MusicianList:UnregisterMessage(Musician.Events.SongReceiveStart)
-				end)
-
-				-- Send song request
 				Musician.SongLinks.RequestSong(title, playerName, true)
 			end
 		end
-
 	end)
 
 	-- Successfully received song data from link
