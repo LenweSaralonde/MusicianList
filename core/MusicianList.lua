@@ -382,7 +382,6 @@ function MusicianList.AddButtons()
 		MusicianList.Save()
 	end)
 
-
 	-- Add Import song to the list button in song link import window
 	--
 
@@ -425,6 +424,9 @@ function MusicianList.AddButtons()
 		end
 	end
 
+	-- Clicked on a song link
+	--
+
 	MusicianList:RegisterMessage(Musician.Events.SongLink, function(event, title, playerName)
 		playerName = Musician.Utils.NormalizePlayerName(playerName)
 
@@ -432,77 +434,82 @@ function MusicianList.AddButtons()
 
 		importIntoListButton.onClick = function()
 			if not(Musician.SongLinks.GetRequestingSong(playerName)) then
+
+				-- Refresh frame when the request has been initiated
+				MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
+					sender = Musician.Utils.NormalizePlayerName(sender)
+					if sender ~= playerName then return end
+					updateSongLinkImportFrame(title, playerName)
+					MusicianList:UnregisterMessage(Musician.Events.SongReceiveStart)
+				end)
+
+				-- Send song request
 				Musician.SongLinks.RequestSong(title, playerName, true)
 			end
 		end
 
-		-- Start import
-		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
-			sender = Musician.Utils.NormalizePlayerName(sender)
-			if sender ~= playerName then return end
-			updateSongLinkImportFrame(title, playerName)
-		end)
+	end)
 
-		-- Import successful
-		MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song)
-			sender = Musician.Utils.NormalizePlayerName(sender)
-			if sender ~= playerName then return end
+	-- Successfully received song data from link
+	--
 
-			local isDataOnly = song == nil
-			if not(isDataOnly) then return end
+	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song)
+		sender = Musician.Utils.NormalizePlayerName(sender)
 
-			local compressedCursor = 1
+		local isDataOnly = song == nil
+		if not(isDataOnly) then return end
 
-			-- Check file format
-			local compressedHeader = string.sub(songData, compressedCursor, #Musician.FILE_HEADER_COMPRESSED)
-			compressedCursor = compressedCursor + #Musician.FILE_HEADER_COMPRESSED
-			if compressedHeader ~= Musician.FILE_HEADER_COMPRESSED then
-				Musician.Utils.Error(Musician.Msg.INVALID_MUSIC_CODE)
-				return
-			end
+		local compressedCursor = 1
 
-			-- Extract first compressed chunk containing full song name
-			local firstChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
-			compressedCursor = compressedCursor + 2
-			local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + firstChunkLength - 1))
-			compressedCursor = compressedCursor + firstChunkLength
-			local secondChunkCursor = compressedCursor
+		-- Check file format
+		local compressedHeader = string.sub(songData, compressedCursor, #Musician.FILE_HEADER_COMPRESSED)
+		compressedCursor = compressedCursor + #Musician.FILE_HEADER_COMPRESSED
+		if compressedHeader ~= Musician.FILE_HEADER_COMPRESSED then
+			Musician.Utils.Error(Musician.Msg.INVALID_MUSIC_CODE)
+			return
+		end
 
-			-- Extract second compressed chunk containing the song duration
-			local secondChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
-			compressedCursor = compressedCursor + 2
-			local secondChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + secondChunkLength - 1))
+		-- Extract first compressed chunk containing full song name
+		local firstChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
+		compressedCursor = compressedCursor + 2
+		local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + firstChunkLength - 1))
+		compressedCursor = compressedCursor + firstChunkLength
+		local secondChunkCursor = compressedCursor
 
-			-- Extract song name from the first chunk
-			local cursor = 1
-			local songTitleLength = Musician.Utils.UnpackNumber(string.sub(firstChunk, cursor, cursor + 1))
-			cursor = cursor + 2
-			local songName = Musician.Utils.NormalizeSongName(string.sub(firstChunk, cursor, cursor + songTitleLength - 1))
+		-- Extract second compressed chunk containing the song duration
+		local secondChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
+		compressedCursor = compressedCursor + 2
+		local secondChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + secondChunkLength - 1))
 
-			-- Extract duration from the second chunk
-			local duration = Musician.Utils.UnpackNumber(string.sub(secondChunk, 2, 4))
+		-- Extract song name from the first chunk
+		local cursor = 1
+		local songTitleLength = Musician.Utils.UnpackNumber(string.sub(firstChunk, cursor, cursor + 1))
+		cursor = cursor + 2
+		local songName = Musician.Utils.NormalizeSongName(string.sub(firstChunk, cursor, cursor + songTitleLength - 1))
 
-			-- Get unique song name to avoid overwriting
-			local uniqueSongName = MusicianList.GetUniqueName(songName)
-			if uniqueSongName ~= songName then
-				-- Rename in song data as well
-				local updatedFirstChunk = Musician.Utils.PackNumber(#uniqueSongName, 2) .. uniqueSongName
-				local updatedFirstChunkCompressed = LibDeflate:CompressDeflate(updatedFirstChunk, { level = 9 })
-				updatedFirstChunkCompressed = Musician.Utils.PackNumber(#updatedFirstChunkCompressed, 2) .. updatedFirstChunkCompressed
-				songData = Musician.FILE_HEADER_COMPRESSED .. updatedFirstChunkCompressed .. string.sub(songData, secondChunkCursor)
-				songName = uniqueSongName
-			end
+		-- Extract duration from the second chunk
+		local duration = Musician.Utils.UnpackNumber(string.sub(secondChunk, 2, 4))
 
-			-- Add song to the list
-			local songId = MusicianList.GetSongId(songName)
-			MusicianList.SetSongStorage(songId, {
-				name = songName,
-				format = Musician.FILE_HEADER,
-				data = songData,
-				duration = duration,
-			})
-			MusicianList.RefreshFrame()
-		end)
+		-- Get unique song name to avoid overwriting
+		local uniqueSongName = MusicianList.GetUniqueName(songName)
+		if uniqueSongName ~= songName then
+			-- Rename in song data as well
+			local updatedFirstChunk = Musician.Utils.PackNumber(#uniqueSongName, 2) .. uniqueSongName
+			local updatedFirstChunkCompressed = LibDeflate:CompressDeflate(updatedFirstChunk, { level = 9 })
+			updatedFirstChunkCompressed = Musician.Utils.PackNumber(#updatedFirstChunkCompressed, 2) .. updatedFirstChunkCompressed
+			songData = Musician.FILE_HEADER_COMPRESSED .. updatedFirstChunkCompressed .. string.sub(songData, secondChunkCursor)
+			songName = uniqueSongName
+		end
+
+		-- Add song to the list
+		local songId = MusicianList.GetSongId(songName)
+		MusicianList.SetSongStorage(songId, {
+			name = songName,
+			format = Musician.FILE_HEADER,
+			data = songData,
+			duration = duration,
+		})
+		MusicianList.RefreshFrame()
 	end)
 
 	-- Enable or disable buttons according to current UI state
@@ -677,6 +684,10 @@ function MusicianList.DoSave(name, fromCommandLine)
 		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, songId)
 		MusicianList.RefreshFrame()
 
+		MusicianList:UnregisterMessage(Musician.Events.SongExportProgress)
+		song = nil
+		collectgarbage()
+
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
 		end
@@ -736,7 +747,6 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 		song.isInList = true
 		Musician.sourceSong = song
-		collectgarbage()
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
@@ -750,6 +760,11 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, true)
 		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, song, songData.data)
+
+		MusicianList:UnregisterMessage(Musician.Events.SongImportProgress)
+		song = nil
+		collectgarbage()
+
 		MusicianList.RefreshFrame()
 	end)
 end
