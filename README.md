@@ -7,59 +7,60 @@ The song list is accessible from Musician main menu on the minimap or by clickin
 
 To save the current song to the list, press the **Save** button in the main import window or in the song editor.
 
+Highlight a song to show the action buttons (play, rename, share, delete).
+
 Type `/mus help` to get the command list.
 
-List available songs
---------------------
-`/musician list`
+MusicianList is also available for WoW Retail, be sure to install the right version of the add-on.
 
-`/musician songs`
+Special thanks to [Mystic Zaru](https://www.youtube.com/channel/UCDeGhURXdgXnCS77wh_cWDg), [Eldorias](https://www.youtube.com/channel/UC6j5rkx9SUAiHqlNYK5egAA]) and Oliira-Moonguard for the demo songs!
 
-* Click on the song name to load it.
-* Click on the play button ► to load it and play.
+Command list
+------------
 
-Save current song
------------------
-`/musician save [<song name>]`
+### Open song list
+`/mus list`
+
+`/mus songs`
+
+### Save the current song
+`/mus save [<song name>]`
 
 If omitted, the song name shown in the import field will be used.
 
-Load song
-----------
-`/musician load (<song name>|<song number>)`
+### Load a song
+`/mus load (<song name>|<song number>)`
 
-Load and play song
-------------------
-`/musician play (<song name>|<song number>)`
+### Load and play a song
+`/mus play (<song name>|<song number>)`
 
-Load and preview song
----------------------
-`/musician preview (<song name>|<song number>)`
+### Load and preview a song
+`/mus preview (<song name>|<song number>)`
 
-Find a song
------------
-`/musician find <song name>`
+### Filter song name
+`/mus find <song name>`
 
-`/musician search <song name>`
+`/mus search <song name>`
 
-`/musician filter <song name>`
+`/mus filter <song name>`
 
-Delete song
------------
-`/musician delete [(<song name>|<song number>)]`
+### Delete song
+`/mus delete [(<song name>|<song number>)]`
 
-`/musician del [(<song name>|<song number>)]`
+`/mus del [(<song name>|<song number>)]`
 
-`/musician remove [(<song name>|<song number>)]`
+`/mus remove [(<song name>|<song number>)]`
 
 If no song name or number is specified, the currently loaded song will be deleted.
 
-Rename song
------------
-`/musician rename [<song number> [<new name>]]`
+### Rename song
+`/mus rename [<song number> [<new name>]]`
 
-`/musician ren [<song number> [<new name>]]`
+`/mus ren [<song number> [<new name>]]`
 
-`/musician mv [<song number> [<new name>]]`
+`/mus mv [<song number> [<new name>]]`
 
 If no parameter is specified, the currently loaded song will be renamed.
+
+### Restore demo songs
+`/mus demosongs`

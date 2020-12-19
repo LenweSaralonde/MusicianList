@@ -52,9 +52,6 @@ local function updateTo4(onComplete)
 			MusicianList_Storage.data[id] = nil
 		end
 
-		-- Add demo songs
-		MusicianList.RestoreDemoSongs(false)
-
 		-- Increment version number
 		MusicianList_Storage.version = 2
 	end
@@ -85,9 +82,6 @@ local function updateTo4(onComplete)
 			end
 		end
 
-		-- Restore demo songs if needed
-		MusicianList.RestoreDemoSongs(false)
-
 		-- Increment version number
 		MusicianList_Storage.version = 3
 	end
@@ -110,7 +104,7 @@ local function updateTo4(onComplete)
 		MusicianList_Storage.version = 4
 	end
 
-	MusicianList.Updater.UpdateDB(onComplete)
+	MusicianList.Updater.UpdateDBNext(onComplete)
 end
 
 --- Create updater frame
@@ -224,7 +218,7 @@ local function updateTo5(onComplete)
 				Musician.Worker.Remove(updaterWorker)
 				MusicianList_Storage.version = 5
 				updaterFrame:Hide()
-				MusicianList.Updater.UpdateDB(onComplete)
+				MusicianList.Updater.UpdateDBNext(onComplete)
 				return
 			-- Processing new song
 			else
@@ -453,7 +447,7 @@ local function updateTo6(onComplete)
 				Musician.Worker.Remove(updaterWorker)
 				MusicianList_Storage.version = 6
 				updaterFrame:Hide()
-				MusicianList.Updater.UpdateDB(onComplete)
+				MusicianList.Updater.UpdateDBNext(onComplete)
 				return
 			end
 
@@ -588,19 +582,23 @@ local function updateTo6(onComplete)
 		if songStep == 3 then
 			-- No more data to compress
 			if newSongData == '' then
-				-- Update structure
-				song.data = newCompressedSongData
-				song.format = 'MUS7'
-				song.duration = song.cropTo - song.cropFrom
-				song.cropFrom = nil
-				song.cropTo = nil
-				song.chunks = nil
-				song.tracks = nil
 
 				-- Refresh ID
 				local newId = MusicianList.GetSongId(song.name)
 				MusicianList_Storage.data[songIds[currentSongIndex]] = nil
-				MusicianList_Storage.data[newId] = song
+
+				-- Calculate duration
+				local cropFrom = floor(song.cropFrom * 100) / 100
+				local cropTo = ceil(song.cropTo * 100) / 100
+				local duration = ceil(cropTo - cropFrom)
+
+				-- Insert updated song data using new structure
+				MusicianList_Storage.data[newId] = {
+					name = song.name,
+					format = 'MUS7',
+					duration = duration,
+					data = newCompressedSongData,
+				}
 
 				-- Proceed with next song
 				songStep = 0
@@ -630,7 +628,7 @@ end
 
 --- Update database
 -- @param onComplete (function) Run when update process is complete
-function MusicianList.Updater.UpdateDB(onComplete)
+function MusicianList.Updater.UpdateDBNext(onComplete)
 	if MusicianList_Storage.version < 4 then
 		updateTo4(onComplete)
 	elseif MusicianList_Storage.version == 4 then
@@ -639,6 +637,21 @@ function MusicianList.Updater.UpdateDB(onComplete)
 		updateTo6(onComplete)
 	else
 		Musician.Utils.Print(MusicianList.Msg.UPDATING_DB_COMPLETE)
+		onComplete()
+	end
+end
+
+--- Update database
+-- @param onComplete (function) Run when update process is complete
+function MusicianList.Updater.UpdateDB(onComplete)
+	local oldStorageVersion = MusicianList_Storage and MusicianList_Storage.version or 0
+	if oldStorageVersion > 0 and oldStorageVersion < MusicianList.STORAGE_VERSION then
+		MusicianList.Updater.UpdateDBNext(function()
+			-- Restore demo songs for the new version
+			MusicianList.RestoreDemoSongs(false, oldStorageVersion)
+			onComplete()
+		end)
+	else
 		onComplete()
 	end
 end
