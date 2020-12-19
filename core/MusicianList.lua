@@ -1,5 +1,8 @@
 MusicianList = LibStub("AceAddon-3.0"):NewAddon("MusicianList", "AceEvent-3.0")
 
+local MODULE_NAME = "MusicianList"
+Musician.AddModule(MODULE_NAME)
+
 local LibDeflate
 
 local isSongSaving = false
@@ -654,7 +657,7 @@ function MusicianList.DoSave(name, fromCommandLine)
 		name = name,
 		format = Musician.FILE_HEADER,
 		data = '',
-		duration = song.cropTo - song.cropFrom,
+		duration = ceil(song.cropTo - song.cropFrom),
 	}
 
 	MusicianList.RefreshFrame()
@@ -916,10 +919,14 @@ end
 
 --- Restore demo songs
 -- @param overwrite (boolean)
-function MusicianList.RestoreDemoSongs(overwrite)
+-- @param[opt] onlyFromVersion (int)
+function MusicianList.RestoreDemoSongs(overwrite, onlyFromVersion)
 	local id, song
 	for id, song in pairs(MusicianList.DemoSongs) do
-		if overwrite or MusicianList_Storage.data[id] == nil then
+		local shouldOverwrite = overwrite or MusicianList_Storage.data[id] == nil
+		local isCorrectVersion = onlyFromVersion == nil or onlyFromVersion < song.releasedOnVersion
+		if shouldOverwrite and isCorrectVersion then
+			Musician.Utils.Debug(MODULE_NAME, "Add demo song", song.name)
 			MusicianList_Storage.data[id] = Musician.Utils.DeepCopy(song)
 		end
 	end
