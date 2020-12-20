@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.7.0
+------
+* Updated for Musician 1.7.0.0 with song links support
+* Added new demo songs by [Mystic Zaru](https://www.youtube.com/channel/UCDeGhURXdgXnCS77wh_cWDg), [Eldorias](https://www.youtube.com/channel/UC6j5rkx9SUAiHqlNYK5egAA]) and Oliira-Moonguard.
+
 v1.6.4
 ------
 * Updated for WoW Classic 1.13.6
