@@ -319,7 +319,12 @@ end
 -- @param songId (string)
 -- @param songData (table|nil) nil to delete
 function MusicianList.SetSongStorage(songId, songData)
-	MusicianList_Storage.data[songId] = songData
+	MusicianList_Storage.data[songId] = songData and {
+		name = songData.name,
+		format = songData.format,
+		duration = ceil(songData.duration),
+		data = songData.data,
+	}
 	cachedSongTableOrdered = nil
 	MusicianList:SendMessage(MusicianList.Events.ListUpdate)
 end
@@ -653,12 +658,6 @@ function MusicianList.DoSave(name, fromCommandLine)
 	local song = Musician.sourceSong
 
 	local songId = MusicianList.GetSongId(name)
-	local songData = {
-		name = name,
-		format = Musician.FILE_HEADER,
-		data = '',
-		duration = ceil(song.cropTo - song.cropFrom),
-	}
 
 	MusicianList.RefreshFrame()
 
@@ -675,12 +674,16 @@ function MusicianList.DoSave(name, fromCommandLine)
 	end)
 
 	song:ExportCompressed(function(data)
-		songData.data = data
 
 		song.isSaving = nil
 		isSongSaving = false
 
-		MusicianList.SetSongStorage(songId, songData)
+		MusicianList.SetSongStorage(songId, {
+			name = name,
+			format = Musician.FILE_HEADER,
+			data = data,
+			duration = ceil(song.cropTo - song.cropFrom),
+		})
 
 		MusicianList:SendMessage(MusicianList.Events.SongSaveComplete, song, songId)
 		MusicianList.RefreshFrame()
@@ -858,19 +861,14 @@ end
 -- @param[opt] name (string)
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoRename(id, name, fromCommandLine)
-	name = Musician.Utils.NormalizeSongName(name)
-
-	local songData, _ = MusicianList.GetSong(id)
+	local songData = MusicianList_Storage.data[id]
 	if not(songData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
 
-	local newId = MusicianList.GetSongId(name)
-	local oldName = songData.name
-
-	MusicianList_Storage.data[id] = nil
-	songData.name = name
+	-- Normalize name
+	name = Musician.Utils.NormalizeSongName(name)
 
 	-- Update song title in compressed song data
 	local cursor = #Musician.FILE_HEADER_COMPRESSED + 1
@@ -878,16 +876,24 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	cursor = cursor + titleCompressedChunkLength + 2
 	local newTitleChunk = Musician.Utils.PackNumber(#name, 2) .. name
 	local newTitleCompressedChunk = LibDeflate:CompressDeflate(newTitleChunk, { level = 9 })
-	songData.data = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
+	local newData = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
 
-	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == oldName then
+	-- Update song data in storage
+	MusicianList_Storage.data[id] = nil
+	local newId = MusicianList.GetSongId(name)
+	MusicianList.SetSongStorage(newId, {
+		name = name,
+		format = Musician.FILE_HEADER,
+		data = newData,
+		duration = songData.duration,
+	})
+
+	-- Refresh source song name, if needed
+	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == songData.name then
 		Musician.sourceSong.name = name
 		MusicianFrame.Clear()
 		MusicianList.RefreshFrame()
 	end
-
-	-- Update song data in storage
-	MusicianList.SetSongStorage(newId, songData)
 
 	if fromCommandLine then
 		local msg = MusicianList.Msg.SONG_RENAMED
@@ -927,7 +933,12 @@ function MusicianList.RestoreDemoSongs(overwrite, onlyFromVersion)
 		local isCorrectVersion = onlyFromVersion == nil or onlyFromVersion < song.releasedOnVersion
 		if shouldOverwrite and isCorrectVersion then
 			Musician.Utils.Debug(MODULE_NAME, "Add demo song", song.name)
-			MusicianList_Storage.data[id] = Musician.Utils.DeepCopy(song)
+			MusicianList_Storage.data[id] = {
+				name = song.name,
+				format = song.format,
+				duration = song.duration,
+				data = song.data,
+			}
 		end
 	end
 	cachedSongTableOrdered = nil
