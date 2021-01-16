@@ -1,5 +1,4 @@
-MusicianList.Locale.zh = Musician.Utils.DeepCopy(MusicianList.Locale.en)
-local msg = MusicianList.Locale.zh
+local msg = MusicianList.InitLocale('zh', "中文", 'zhCN', 'zhTW')
 
 msg.COMMAND_SAVE = "将当前音乐保存进播放列表"
 msg.COMMAND_SAVE_PARAMS = "[ **<音乐名>** ]"
@@ -63,7 +62,3 @@ msg.ERR_SONG_NAME_EMPTY = "音乐名不能为空。"
 msg.ERR_SONG_NOT_FOUND = "没有找到音乐。"
 msg.ERR_CANNOT_SAVE_NOW = "音乐现在无法保存。"
 msg.ERR_CANNOT_LOAD_NOW = "音乐现在无法载入。"
-
-if (GetLocale() == "zhCN" or GetLocale() == "zhTW") then
-	MusicianList.Msg = msg
-end

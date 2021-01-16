@@ -1,5 +1,4 @@
-MusicianList.Locale.fr = Musician.Utils.DeepCopy(MusicianList.Locale.en)
-local msg = MusicianList.Locale.fr
+local msg = MusicianList.InitLocale('fr', "Français", 'frFR')
 
 msg.COMMAND_SAVE = "Enregistrer le morceau actuel dans la liste"
 msg.COMMAND_SAVE_PARAMS = "[ **<nom morceau>** ]"
@@ -63,7 +62,3 @@ msg.ERR_SONG_NAME_EMPTY = "Le nom du morceau ne peut être vide."
 msg.ERR_SONG_NOT_FOUND = "Morceau non trouvé."
 msg.ERR_CANNOT_SAVE_NOW = "Le morceau ne peut pas être enregistré pour le moment."
 msg.ERR_CANNOT_LOAD_NOW = "Le morceau ne peut pas être chargé pour le moment."
-
-if ( GetLocale() == "frFR" ) then
-	MusicianList.Msg = msg
-end
