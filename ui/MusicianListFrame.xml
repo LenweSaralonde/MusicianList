@@ -505,6 +505,8 @@
 
 		<Scripts>
 			<OnLoad inherit="append">
+				self.noEscape = true
+
 				self:SetMinResize(160, 160)
 				self:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
 
