@@ -379,7 +379,11 @@ function MusicianList.AddButtons()
 	listButton.tooltipText = MusicianList.Msg.MENU_LIST
 	listButton:SetPoint("TOPRIGHT", -10, -10)
 	listButton:HookScript("OnClick", function()
-		MusicianListFrame:Show()
+		if MusicianListFrame:IsVisible() then
+			MusicianListFrame:Hide()
+		else
+			MusicianListFrame:Show()
+		end
 	end)
 
 	-- Add Save button to the main window

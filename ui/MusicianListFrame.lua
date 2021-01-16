@@ -148,6 +148,30 @@ function MusicianList.Frame.Init()
 	MusicianListFrameResizeButton:HookScript('OnMouseDown', onMagneticDragStart)
 	MusicianListFrameResizeButton:HookScript('OnMouseUp', onMagneticDragStop)
 	MusicianFrame:HookScript('OnShow', magneticEdges)
+
+	-- Show main frame when list shows up if it was previously anchored
+	MusicianListFrame:HookScript('OnShow', function(self)
+		if self:GetNumPoints() > 0 then
+			MusicianFrame:Show()
+		end
+	end)
+
+	-- Hide list when the main window is hidden if anchored to it
+	--
+	MusicianFrame:HookScript('OnHide', function()
+		MusicianFrame.musicianListWasVisible = MusicianListFrame:IsVisible()
+		if MusicianListFrame:GetNumPoints() > 0 then
+			MusicianListFrame:Hide()
+		end
+	end)
+
+	-- Show list when the main window is shown if anchored to it and was previously visible
+	--
+	MusicianFrame:HookScript('OnShow', function()
+		if MusicianFrame.musicianListWasVisible ~= false and MusicianListFrame:GetNumPoints() > 0 then
+			MusicianListFrame:Show()
+		end
+	end)
 end
 
 --- SetData
