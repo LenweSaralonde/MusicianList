@@ -1,5 +1,4 @@
-MusicianList.Locale.en = {}
-local msg = MusicianList.Locale.en
+local msg = MusicianList.InitLocale('en', "English", 'enUS', 'enGB')
 
 msg.COMMAND_SAVE = "Save the current song in the list"
 msg.COMMAND_SAVE_PARAMS = "[ **<song name>** ]"
@@ -63,5 +62,3 @@ msg.ERR_SONG_NAME_EMPTY = "Song name can't be empty."
 msg.ERR_SONG_NOT_FOUND = "Song not found."
 msg.ERR_CANNOT_SAVE_NOW = "Song cannot be saved for now."
 msg.ERR_CANNOT_LOAD_NOW = "Song cannot be loaded for now."
-
-MusicianList.Msg = msg
