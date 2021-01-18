@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.7.1
+------
+* Show and hide the list frame along with the main frame when attached to each other
+* Improved localization to ease up collaboration
+
 v1.7.0
 ------
 * Updated for Musician 1.7.0.0 with song links support
