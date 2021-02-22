@@ -172,6 +172,15 @@ function MusicianList.Frame.Init()
 			MusicianListFrame:Show()
 		end
 	end)
+
+	-- Show song list window when compressed song data has been successfully downloaded.
+	--
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song)
+		local isDataOnly = song == nil
+		if isDataOnly then
+			MusicianListFrame:Show()
+		end
+	end)
 end
 
 --- SetData
