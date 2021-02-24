@@ -65,6 +65,10 @@ local function magneticEdges()
 			frame:SetPoint('BOTTOMRIGHT', anchor, 'BOTTOMLEFT', 0, 0)
 		end
 	end
+
+	if Musician.SaveFramePosition then
+		Musician.SaveFramePosition(frame)
+	end
 end
 
 --- Handle magnetic edges on drag start
