@@ -470,10 +470,10 @@ function MusicianList.AddButtons()
 		end
 	end
 
-	-- Clicked on a song link
+	-- Showing the song import frame
 	--
 
-	MusicianList:RegisterMessage(Musician.Events.SongLink, function(event, title, playerName)
+	hooksecurefunc(Musician.SongLinkImportFrame, 'ShowImportFrame', function(title, playerName)
 		playerName = Musician.Utils.NormalizePlayerName(playerName)
 
 		updateSongLinkImportFrame(title, playerName)
