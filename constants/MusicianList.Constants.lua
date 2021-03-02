@@ -1,4 +1,4 @@
-MusicianList.MUSICIAN_MIN_VERSION = '1.7.0.0'
+MusicianList.MUSICIAN_MIN_VERSION = '1.7.2.0'
 
 MusicianList.STORAGE_VERSION = 6
 MusicianList.FILE_HEADER = 'MUS7'
