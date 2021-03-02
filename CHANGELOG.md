@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.7.2
+------
+* Show song list when a song link has been imported.
+* Window positions are now properly saved.
+
 v1.7.1
 ------
 * Show and hide the list frame along with the main frame when attached to each other
