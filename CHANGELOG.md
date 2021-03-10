@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.7.3
+------
+* TOC update for WoW patch 9.0.5.
+
 v1.7.2
 ------
 * Show song list when a song link has been imported.
@@ -34,7 +38,7 @@ v1.6.1
 * Fixed updater crash from v4 if song list is empty #5
 
 v1.6.0
--------
+------
 * Update for Musician 1.6
 * Added magnetic edges
 * Minor bugfixes and improvements
