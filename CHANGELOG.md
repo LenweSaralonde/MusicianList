@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.7.3
+------
+* TOC update for WoW Classic patch 1.13.7
+
 v1.7.2
 ------
 * Show song list when a song link has been imported.
