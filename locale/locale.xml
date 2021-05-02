@@ -1,8 +1,14 @@
 <Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
 	<!-- Base localization -->
-	<Script file="MusicianList.base.lua"/>
-	<Script file="MusicianList.en.lua"/>
+	<Script file="MusicianList.base.lua" />
+	<Script file="MusicianList.en.lua" />
 	<!-- Additional localization -->
-	<Script file="MusicianList.fr.lua"/>
-	<Script file="MusicianList.zh.lua"/>
+	<Script file="MusicianList.es.lua" />
+	<Script file="MusicianList.fr.lua" />
+	<Script file="MusicianList.pt.lua" />
+	<Script file="MusicianList.de.lua" />
+	<Script file="MusicianList.it.lua" />
+	<Script file="MusicianList.ru.lua" />
+	<Script file="MusicianList.kr.lua" />
+	<Script file="MusicianList.zh.lua" />
 </Ui>
