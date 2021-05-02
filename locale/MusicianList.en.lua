@@ -1,5 +1,6 @@
 local msg = MusicianList.InitLocale('en', "English", 'enUS', 'enGB')
 
+--- Chat commands
 msg.COMMAND_SAVE = "Save the current song in the list"
 msg.COMMAND_SAVE_PARAMS = "[ **<song name>** ]"
 msg.COMMAND_LOAD = "Load a song from the list"
@@ -19,13 +20,16 @@ msg.COMMAND_FIND = "Find a song in the list"
 msg.COMMAND_FIND_PARAMS = "**<song name>**"
 msg.COMMAND_RESTORE_DEMO = "Restore demo songs"
 
+--- Minimap button menu options
 msg.MENU_LIST = "Song list"
 
+--- Song list headers
 msg.HEADER_SONG_INDEX = "#"
 msg.HEADER_SONG_TITLE = "Title"
 msg.HEADER_SONG_DURATION = "Time"
 msg.HEADER_SONG_ACTIONS = "Actions"
 
+--- Song actions
 msg.ACTION_PLAY = "Load and play"
 msg.ACTION_PREVIEW = "Load and preview"
 msg.ACTION_LINK = "Post link in the chat"
@@ -33,6 +37,7 @@ msg.ACTION_RENAME = "Rename"
 msg.ACTION_DELETE = "Delete"
 msg.ACTION_SAVE = "Save in the list"
 
+--- Popups
 msg.SAVE_SONG_AS = "Save song as:"
 msg.RENAME_SONG = "Rename song:"
 msg.OVERWRITE_CONFIRM = "\"%s\" already exists. Overwrite?"
@@ -45,6 +50,7 @@ msg.SONG_DELETED = "\"{name}\" has been deleted."
 msg.SONG_RENAMED = "\"{name}\" has been renamed into \"{newName}\"."
 msg.DEMO_SONGS_RESTORED = "Demo songs have been restored."
 
+--- Main UI
 msg.SONG_LIST = "Song list"
 msg.FILTER_SONG = "Filter"
 msg.SONG_LIST_EMPTY = "Song list is empty."
@@ -52,9 +58,11 @@ msg.IMPORT_A_SONG = "Import a song"
 msg.NO_SONG_FOUND = "No song found."
 msg.LINK_IMPORT_WINDOW_IMPORT_BUTTON = "Import song into the list"
 
+--- Database update
 msg.UPDATING_DB = "Updating MusicianList..."
 msg.UPDATING_DB_COMPLETE = "MusicianList update complete."
 
+--- Error messages
 msg.ERR_OUTDATED_MUSICIAN_VERSION = "Your version of Musician is outdated and can't be used with MusicianList. Please update Musician addon."
 msg.ERR_OUTDATED_MUSICIANLIST_VERSION = "Your version of MusicianList is outdated and can no longer be used. Please update."
 msg.ERR_NO_SONG_TO_SAVE = "No song to save."
