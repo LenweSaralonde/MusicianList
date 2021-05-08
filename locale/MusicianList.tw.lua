@@ -10,7 +10,7 @@
 -- * Check the result in game to make sure your text fits the UI.
 ------------------------------------------------------------------------
 
-local msg = MusicianList.InitLocale("kr", "한국어", "koKR")
+local msg = MusicianList.InitLocale("tw", "繁體中文", "zhTW")
 
 ------------------------------------------------------------------------
 ---------------- ↑↑↑ DO NOT EDIT THE LINES ABOVE ! ↑↑↑  ----------------
