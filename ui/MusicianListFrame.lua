@@ -288,6 +288,7 @@ function MusicianList.Frame.SetRowTooltip(rowFrame, hasMouseOver)
 	if hasMouseOver and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
 		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
 		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
+		GameTooltip:Show()
 	elseif not(hasMouseOver) and GameTooltip:GetOwner() == rowFrame.title then
 		GameTooltip:Hide()
 	end
