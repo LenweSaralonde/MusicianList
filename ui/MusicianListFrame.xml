@@ -513,8 +513,12 @@
 		</Layers>
 
 		<Scripts>
-			<OnLoad inherit="append">
+			<OnLoad inherit="prepend">
 				self.noEscape = true
+
+				if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+					self:SetHeight(330)
+				end
 
 				self:SetMinResize(160, 160)
 				self:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
