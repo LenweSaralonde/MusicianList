@@ -7,7 +7,8 @@ v1.7.4
 
 v1.7.3
 ------
-* TOC update for WoW patch 9.0.5.
+* TOC update for WoW Shadowlands patch 9.0.5
+* TOC update for WoW Classic patch 1.13.7
 
 v1.7.2
 ------
@@ -27,6 +28,7 @@ v1.7.0
 v1.6.4
 ------
 * Updated for WoW Shadowlands 9.0.2
+* Updated for WoW Classic 1.13.6
 
 v1.6.3
 ------
@@ -49,7 +51,7 @@ v1.6.0
 
 v1.5.10
 -------
-* Update for WoW 8.3
+* Update for WoW BfA 8.3
 
 v1.5.9
 ------
@@ -57,7 +59,8 @@ v1.5.9
 
 v1.5.8
 ------
-* Update for WoW 8.2.5
+* Update for WoW BfA 8.2.5
+* TOC update for WoW Classic 1.13.3
 
 v1.5.7
 ------
