@@ -3,3 +3,7 @@ package-as: MusicianList
 manual-changelog:
     filename: CHANGELOG.md
     markup-type: markdown
+
+ignore:
+    # Fontello sources
+    - fonts/*.json
