@@ -3,5 +3,3 @@ package-as: MusicianList
 manual-changelog:
     filename: CHANGELOG.md
     markup-type: markdown
-
-license-output: LICENSE
