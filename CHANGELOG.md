@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.7.7
+------
+* Fixed character limit when renaming a song #6
+
 v1.7.6
 ------
 * Dummy version bump to force refresh CurseForge's client API.
