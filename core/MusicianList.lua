@@ -93,6 +93,7 @@ function MusicianList.OnReady()
 		button2 = CANCEL,
 		hasEditBox = 1,
 		maxBytes = Musician.Song.MAX_NAME_LENGTH,
+		maxLetters = 0,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
 			local name = self.editBox:GetText()
@@ -130,6 +131,7 @@ function MusicianList.OnReady()
 		button2 = CANCEL,
 		hasEditBox = 1,
 		maxBytes = Musician.Song.MAX_NAME_LENGTH,
+		maxLetters = 0,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
 			local name = self.editBox:GetText()
