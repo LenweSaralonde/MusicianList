@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 11307
 ## Title: Musician List
 ## Notes: Load and save songs for Musician
 ## Version: 1.7.7
