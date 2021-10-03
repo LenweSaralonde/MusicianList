@@ -626,6 +626,27 @@ local function updateTo6(onComplete)
 	Musician.Worker.Set(updaterWorker)
 end
 
+--- Perform updates from v6 to v7, if necessary
+-- Just reload updated demo songs
+-- @param onComplete (function)
+local function updateTo7(onComplete)
+	-- Restore updated demo songs
+	for id, song in pairs(MusicianList.DemoSongs) do
+		if MusicianList_Storage.data[id] ~= nil then
+			Musician.Utils.Debug(MODULE_NAME, "Refresh updated demo song", song.name)
+			MusicianList_Storage.data[id] = {
+				name = song.name,
+				format = song.format,
+				duration = song.duration,
+				data = song.data,
+			}
+		end
+	end
+
+	MusicianList_Storage.version = 7
+	MusicianList.Updater.UpdateDBNext(onComplete)
+end
+
 --- Update database
 -- @param onComplete (function) Run when update process is complete
 function MusicianList.Updater.UpdateDBNext(onComplete)
@@ -635,6 +656,8 @@ function MusicianList.Updater.UpdateDBNext(onComplete)
 		updateTo5(onComplete)
 	elseif MusicianList_Storage.version == 5 then
 		updateTo6(onComplete)
+	elseif MusicianList_Storage.version == 6 then
+		updateTo7(onComplete)
 	else
 		Musician.Utils.Print(MusicianList.Msg.UPDATING_DB_COMPLETE)
 		onComplete()
