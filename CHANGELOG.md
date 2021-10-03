@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.8.0
+------
+* Updated for Musician 1.8.
+* Updated for WoW Classic Era 1.14 and BC Classic 2.5.2.
+* Minor bugfixes and improvements.
+
 v1.7.7
 ------
 * Fixed character limit when renaming a song #6
