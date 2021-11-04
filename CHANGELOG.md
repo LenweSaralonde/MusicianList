@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.8.1
+------
+* TOC bump for WoW 9.1.5.
+
 v1.8.0
 ------
 * Updated for Musician 1.8.
