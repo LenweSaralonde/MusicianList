@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.8.3
+------
+* German translation by Lyntharia.
+* Removed README.md images from add-on package.
+* TOC update for BC Classic 2.5.3.
+
 v1.8.2
 ------
 * TOC bump for WoW Classic Era 1.14.1.
