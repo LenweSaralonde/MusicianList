@@ -7,3 +7,5 @@ manual-changelog:
 ignore:
     # Fontello sources
     - fonts/*.json
+    # README.md images
+    - img
