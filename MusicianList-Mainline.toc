@@ -1,7 +1,7 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: Musician List
 ## Notes: Load and save songs for Musician
-## Version: 1.8.3
+## Version: 1.8.4
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0

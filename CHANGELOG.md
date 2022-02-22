@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.8.4
+------
+* TOC bump for WoW 9.2 and WoW Classic 1.14.2.
+
 v1.8.3
 ------
 * German translation by Lyntharia.
