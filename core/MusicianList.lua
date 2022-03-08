@@ -510,8 +510,8 @@ function MusicianList.AddButtons()
 		-- Check file format
 		local compressedHeader = string.sub(songData, compressedCursor, #Musician.FILE_HEADER_COMPRESSED)
 		compressedCursor = compressedCursor + #Musician.FILE_HEADER_COMPRESSED
-		if compressedHeader ~= Musician.FILE_HEADER_COMPRESSED then
-			Musician.Utils.Error(Musician.Msg.INVALID_MUSIC_CODE)
+		if compressedHeader ~= 'MUZ8' and compressedHeader ~= 'MUZ7' then
+			Musician.Utils.Error(Musician.Msg.INVALID_MUSIC_CODE .. " " .. compressedHeader)
 			return
 		end
 
