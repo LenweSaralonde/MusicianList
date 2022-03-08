@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.8.5
+------
+* Fixed bug preventing to import songs in older formats into the list from a song link.
+
 v1.8.4
 ------
 * TOC bump for WoW 9.2 and WoW Classic 1.14.2.
