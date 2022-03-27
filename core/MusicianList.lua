@@ -30,7 +30,10 @@ function MusicianList:OnEnable()
 	end
 
 	-- Check for outdated Musician version
-	if Musician.Utils.VersionCompare(MusicianList.MUSICIAN_MIN_VERSION, GetAddOnMetadata("Musician", "Version")) > 0 or MusicianList.FILE_HEADER > Musician.FILE_HEADER then
+	if Musician.Utils.VersionCompare(MusicianList.MUSICIAN_MIN_VERSION, GetAddOnMetadata("Musician", "Version")) > 0 or
+	   MusicianList.FILE_HEADER > Musician.FILE_HEADER or
+	   not(Musician.SongLinks.supportsContext)
+	then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
 		end)
@@ -481,7 +484,8 @@ function MusicianList.AddButtons()
 		updateSongLinkImportFrame(title, playerName)
 
 		-- Refresh frame when the request has been initiated
-		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender)
+		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender, context)
+			if context ~= Musician then return end
 			sender = Musician.Utils.NormalizePlayerName(sender)
 			if sender ~= playerName then return end
 			updateSongLinkImportFrame(title, playerName)
@@ -491,7 +495,7 @@ function MusicianList.AddButtons()
 		-- Send song request on click
 		importIntoListButton.onClick = function()
 			if not(Musician.SongLinks.GetRequestingSong(playerName)) then
-				Musician.SongLinks.RequestSong(title, playerName, true)
+				Musician.SongLinks.RequestSong(title, playerName, true, Musician)
 			end
 		end
 	end)
@@ -499,7 +503,9 @@ function MusicianList.AddButtons()
 	-- Successfully received song data from link
 	--
 
-	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song)
+	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song, context)
+		if context ~= Musician then return end
+
 		sender = Musician.Utils.NormalizePlayerName(sender)
 
 		local isDataOnly = song == nil
