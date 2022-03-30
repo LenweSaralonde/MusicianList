@@ -29,6 +29,9 @@ function MusicianList:OnEnable()
 		MusicianList.RestoreDemoSongs()
 	end
 
+	-- Init bindings names
+	_G.BINDING_NAME_MUSICIANLISTTOGGLE = MusicianList.Msg.COMMAND_LIST
+
 	-- Check for outdated Musician version
 	if Musician.Utils.VersionCompare(MusicianList.MUSICIAN_MIN_VERSION, GetAddOnMetadata("Musician", "Version")) > 0 or
 	   MusicianList.FILE_HEADER > Musician.FILE_HEADER or
