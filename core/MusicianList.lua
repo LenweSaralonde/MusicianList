@@ -1004,7 +1004,7 @@ end
 --- Get saved song data by name or index
 -- @param idOrIndex (string)
 -- @return songData (table)
--- @return songId (table)
+-- @return songId (string)
 function MusicianList.GetSong(idOrIndex)
 	local list = MusicianList.GetSongList() -- also populates cachedSongTableById
 
