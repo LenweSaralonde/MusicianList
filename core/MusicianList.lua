@@ -1026,7 +1026,7 @@ end
 --- Format time to mm:ss.ss format
 -- @param time (number)
 -- @return formattedTime (string)
-function MusicianList.FormatTime(time, simple)
+function MusicianList.FormatTime(time)
 	time = floor(time + .5)
 	local s = time % 60
 	time = floor(time / 60)
