@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.8.6
+------
+* Added keyboard binding.
+
 v1.8.5
 ------
 * Fixed bug preventing to import songs in older formats into the list from a song link.
