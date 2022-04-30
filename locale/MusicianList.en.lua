@@ -73,6 +73,8 @@ msg.SONG_LIST_EMPTY = "Song list is empty."
 msg.IMPORT_A_SONG = "Import a song"
 msg.NO_SONG_FOUND = "No song found."
 msg.LINK_IMPORT_WINDOW_IMPORT_BUTTON = "Import song into the list"
+msg.OUTDATED_FORMAT = "This song format is outdated."
+msg.OUTDATED_FORMAT_HINT = "You may need to re-import it from the original MIDI file."
 
 --- Database update
 msg.UPDATING_DB = "Updating MusicianList..."
