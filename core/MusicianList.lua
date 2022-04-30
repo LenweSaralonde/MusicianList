@@ -16,6 +16,9 @@ local MusicianButtonGetMenu
 
 local EXTRACT_PROGRESSION_RATIO = .33
 
+-- Songs played during the current session
+MusicianList.playedSongs = {}
+
 --- OnEnable
 --
 function MusicianList:OnEnable()
@@ -180,6 +183,15 @@ function MusicianList.OnReady()
 		whileDead = 1,
 		hideOnEscape = 1,
 	}
+
+	--- Add the songs being streamed to the played songs list
+	--
+	MusicianList:RegisterMessage(Musician.Events.StreamStart, function(event, song)
+		if not(song.isLiveStreamingSong) then
+			local id = MusicianList.GetSongId(song.name)
+			MusicianList.playedSongs[id] = true
+		end
+	end)
 
 	-- Init UI
 	MusicianList.Frame.Init()
@@ -706,6 +718,7 @@ function MusicianList.DoSave(name, fromCommandLine)
 	isSongSaving = true
 	local song = Musician.sourceSong
 
+	local originalSongId = MusicianList.GetSongId(Musician.sourceSong.name)
 	local songId = MusicianList.GetSongId(name)
 
 	MusicianList.RefreshFrame()
@@ -726,6 +739,11 @@ function MusicianList.DoSave(name, fromCommandLine)
 
 		song.isSaving = nil
 		isSongSaving = false
+
+		-- Add the final song ID to played songs if it was played before saving
+		if MusicianList.playedSongs[originalSongId] then
+			MusicianList.playedSongs[songId] = true
+		end
 
 		MusicianList.SetSongStorage(songId, {
 			name = name,
@@ -926,10 +944,16 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	local newTitleChunk = Musician.Utils.PackNumber(#name, 2) .. name
 	local newTitleCompressedChunk = LibDeflate:CompressDeflate(newTitleChunk, { level = 9 })
 	local newData = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
+	local newId = MusicianList.GetSongId(name)
+
+	-- Update played songs
+	if MusicianList.playedSongs[id] then
+		MusicianList.playedSongs[id] = nil
+		MusicianList.playedSongs[newId] = true
+	end
 
 	-- Update song data in storage
 	MusicianList_Storage.data[id] = nil
-	local newId = MusicianList.GetSongId(name)
 	MusicianList.SetSongStorage(newId, {
 		name = name,
 		format = Musician.FILE_HEADER,

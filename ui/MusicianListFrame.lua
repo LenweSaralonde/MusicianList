@@ -7,6 +7,9 @@ local highlightedRowFrame
 
 local MAGNETIC_EDGES_RANGE = 20
 
+local NORMAL_SONG_COLOR = CreateColor(1, 1, 1)
+local PLAYED_SONG_COLOR = CreateColor(0.7, 0.7, 0.7)
+
 --- Handle magnetic edges
 --
 local function magneticEdges()
@@ -194,6 +197,21 @@ function MusicianList.Frame.Init()
 			MusicianListFrame:Show()
 		end
 	end)
+
+	--- Gray out played songs
+	--
+	MusicianList.Frame:RegisterMessage(Musician.Events.StreamStart, function(event, song)
+		if not(song.isLiveStreamingSong) then
+			local id = MusicianList.GetSongId(song.name)
+			local children = { MusicianListFrameSongContainer:GetChildren() }
+			for index, rowFrame in ipairs(children) do
+				if rowFrame.song ~= nil and rowFrame.song.id == id then
+					rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b, PLAYED_SONG_COLOR.a)
+					return
+				end
+			end
+		end
+	end)
 end
 
 --- SetData
@@ -213,6 +231,11 @@ function MusicianList.Frame.SetData()
 		rowFrame.song = song
 		rowFrame.index:SetText(song.index)
 		rowFrame.title:SetText(song.name)
+		if MusicianList.playedSongs[song.id] then
+			rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b, PLAYED_SONG_COLOR.a)
+		else
+			rowFrame.title.text:SetTextColor(NORMAL_SONG_COLOR.r, NORMAL_SONG_COLOR.g, NORMAL_SONG_COLOR.b, NORMAL_SONG_COLOR.a)
+		end
 		rowFrame.duration:SetText(MusicianList.FormatTime(song.duration, true))
 	end
 	totalSongs = #list
