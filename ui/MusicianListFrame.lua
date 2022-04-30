@@ -210,9 +210,16 @@ function MusicianList.Frame.SetData()
 			rowFrame = CreateFrame("Frame", rowFrameName, MusicianListFrameSongContainer, "MusicianListSongTemplate")
 		end
 
+		local name = song.name
+
+		-- Add a small icon next to the song title if its format is outdated
+		if song.format ~= Musician.FILE_HEADER then
+			name = name .. ' ' .. Musician.Utils.GetChatIcon('interface/minimap/tracking/trivialquests.blp')
+		end
+
 		rowFrame.song = song
 		rowFrame.index:SetText(song.index)
-		rowFrame.title:SetText(song.name)
+		rowFrame.title:SetText(name)
 		rowFrame.duration:SetText(MusicianList.FormatTime(song.duration, true))
 	end
 	totalSongs = #list
@@ -294,10 +301,21 @@ end
 -- @param rowFrame (Frame)
 -- @param hasMouseOver (boolean)
 function MusicianList.Frame.SetRowTooltip(rowFrame, hasMouseOver)
-	if hasMouseOver and rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth() then
-		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
-		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
-		GameTooltip:Show()
+	if hasMouseOver then
+		local isTooLarge = rowFrame.title.text:GetStringWidth() > rowFrame.title.text:GetWidth()
+		local isOutdated = rowFrame.song.format ~= Musician.FILE_HEADER
+		if isTooLarge or isOutdated then
+			GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
+			if isTooLarge then
+				GameTooltip_SetTitle(GameTooltip, rowFrame.song.name)
+			end
+			if isOutdated then
+				local outdatedText = Musician.Utils.GetChatIcon('interface/gossipframe/availablequesticon.blp') .. MusicianList.Msg.OUTDATED_FORMAT
+				GameTooltip_AddColoredLine(GameTooltip, outdatedText, NORMAL_FONT_COLOR, true)
+				GameTooltip_AddColoredLine(GameTooltip, MusicianList.Msg.OUTDATED_FORMAT_HINT, GREEN_FONT_COLOR, true)
+			end
+			GameTooltip:Show()
+		end
 	elseif not(hasMouseOver) and GameTooltip:GetOwner() == rowFrame.title then
 		GameTooltip:Hide()
 	end

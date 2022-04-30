@@ -611,6 +611,7 @@ function MusicianList.GetSongList()
 			name = songData.name,
 			searchName = MusicianList.SearchString(songData.name),
 			data = songData.data,
+			format = songData.format,
 			duration = songData.duration
 		}
 		table.insert(cachedSongTableOrdered, songRow)
