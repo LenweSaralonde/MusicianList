@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.0
+------
+* The songs that have been played during the session are now grayed out in the list.
+
 v1.8.6
 ------
 * Added keyboard binding.
