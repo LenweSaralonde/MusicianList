@@ -1066,7 +1066,8 @@ function MusicianList.SearchString(str)
 	str = strlower(str)
 	str = MusicianList.StripAccents(str)
 	str = string.gsub(str, "%p+", " ")
-	return strtrim(string.gsub(str, "%s+", " "))
+	str = string.gsub(str, "%s+", " ")
+	return strtrim(str)
 end
 
 --- Remove all accents from provided string
