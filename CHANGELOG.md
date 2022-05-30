@@ -3,7 +3,7 @@ Changelog
 
 v1.9.1
 ------
-TOC bump for WoW 9.2.5.
+* TOC bump for WoW 9.2.5.
 
 v1.9.0
 ------
