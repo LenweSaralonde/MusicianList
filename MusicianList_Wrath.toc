@@ -1,0 +1,22 @@
+## Interface: 30400
+## Title: Musician List
+## Author: LenweSaralonde
+## Notes: Load and save songs for Musician
+## Version: 1.9.1
+## RequiredDeps: Musician
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: MusicianList_Storage
+
+core\MusicianList.lua
+core\MusicianList.Updater.lua
+
+constants\MusicianList.Constants.lua
+constants\MusicianList.DemoSongs.lua
+
+locale\locale.xml
+
+ui\fonts\MusicianList.Icons.lua
+
+ui\MusicianListFrame.xml
+ui\MusicianListFrame.lua
