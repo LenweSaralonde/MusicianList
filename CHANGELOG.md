@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.9.2
+------
+* Added support for Wrath of the Lich King Classic.
+* TOC bump for WoW 9.2.7.
+
 v1.9.1
 ------
 * TOC bump for WoW 9.2.5.
