@@ -1,5 +1,4 @@
 MusicianList.LocaleBase = {}
-local msg = MusicianList.LocaleBase
 
 if Musician.LocalizationTeam then
 	tAppendAll(Musician.LocalizationTeam, {

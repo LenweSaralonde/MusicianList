@@ -14,8 +14,6 @@ local cachedSongTableById
 local MusicianGetCommands
 local MusicianButtonGetMenu
 
-local EXTRACT_PROGRESSION_RATIO = .33
-
 -- Songs played during the current session
 MusicianList.playedSongs = {}
 
@@ -342,7 +340,7 @@ function MusicianList.GetCommands()
 	table.insert(commands, #commands - 2, {
 		command = { "demosongs" },
 		text = MusicianList.Msg.COMMAND_RESTORE_DEMO,
-		func = function(argStr)
+		func = function()
 			MusicianList.RestoreDemoSongs(true)
 			Musician.Utils.Print(MusicianList.Msg.DEMO_SONGS_RESTORED)
 		end
@@ -464,13 +462,12 @@ function MusicianList.AddButtons()
 		importIntoListButton.onClick()
 	end)
 
-	local function updateSongLinkImportFrame(title, playerName)
+	local function updateSongLinkImportFrame(playerName)
 		playerName = Musician.Utils.NormalizePlayerName(playerName)
 
 		-- Get currently requesting song title from the player, if any
 		local requestingSong = Musician.SongLinks.GetRequestingSong(playerName)
 		if requestingSong then
-			title = requestingSong.title
 			if requestingSong.dataOnly then
 				importButton:Disable()
 				importButton:Show()
@@ -496,14 +493,14 @@ function MusicianList.AddButtons()
 	hooksecurefunc(Musician.SongLinkImportFrame, 'ShowImportFrame', function(title, playerName)
 		playerName = Musician.Utils.NormalizePlayerName(playerName)
 
-		updateSongLinkImportFrame(title, playerName)
+		updateSongLinkImportFrame(playerName)
 
 		-- Refresh frame when the request has been initiated
 		MusicianList:RegisterMessage(Musician.Events.SongReceiveStart, function(event, sender, context)
 			if context ~= Musician then return end
 			sender = Musician.Utils.NormalizePlayerName(sender)
 			if sender ~= playerName then return end
-			updateSongLinkImportFrame(title, playerName)
+			updateSongLinkImportFrame(playerName)
 			MusicianList:UnregisterMessage(Musician.Events.SongReceiveStart)
 		end)
 
@@ -518,10 +515,8 @@ function MusicianList.AddButtons()
 	-- Successfully received song data from link
 	--
 
-	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song, context)
+	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, _, songData, song, context)
 		if context ~= Musician then return end
-
-		sender = Musician.Utils.NormalizePlayerName(sender)
 
 		local isDataOnly = song == nil
 		if not(isDataOnly) then return end
@@ -616,7 +611,6 @@ function MusicianList.GetSongList()
 
 	cachedSongTableOrdered = {}
 	cachedSongTableById = {}
-	local songData, id
 	for id, songData in pairs(MusicianList_Storage.data) do
 		local songRow = {
 			id = id,
@@ -634,7 +628,6 @@ function MusicianList.GetSongList()
 	end)
 
 	-- Add indexes
-	local index, song
 	for index, song in pairs(cachedSongTableOrdered) do
 		song.index = index
 	end
@@ -679,7 +672,7 @@ end
 function MusicianList.SaveConfirm(name, fromCommandLine)
 	name = Musician.Utils.NormalizeSongName(name)
 
-	local song, id = MusicianList.GetSong(MusicianList.GetSongId(name))
+	local song = MusicianList.GetSong(MusicianList.GetSongId(name))
 
 	if song then
 		StaticPopup_Show("MUSICIAN_LIST_OVERWRITE_CONFIRM", Musician.Utils.Highlight(name), nil, function()
@@ -771,7 +764,7 @@ end
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
-	local songData, id = MusicianList.GetSong(idOrIndex)
+	local songData = MusicianList.GetSong(idOrIndex)
 
 	-- Song has not been found by name
 	if not(songData) then
@@ -830,7 +823,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 		end
 
 		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, true)
-		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, song, songData.data)
+		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, song)
 
 		MusicianList:UnregisterMessage(Musician.Events.SongImportProgress)
 		song = nil
@@ -934,6 +927,8 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 		return
 	end
 
+	local oldName = songData.name
+
 	-- Normalize name
 	name = Musician.Utils.NormalizeSongName(name)
 
@@ -978,14 +973,13 @@ end
 
 --- Post song link in the chat
 -- @param idOrIndex (string)
--- @param[opt=false] fromCommandLine (boolean)
-function MusicianList.Link(idOrIndex, fromCommandLine)
+function MusicianList.Link(idOrIndex)
 	-- Defaults to loaded song
 	if idOrIndex == nil or idOrIndex == '' then
 		idOrIndex = Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name or ""
 	end
 
-	local songData, id = MusicianList.GetSong(idOrIndex)
+	local songData = MusicianList.GetSong(idOrIndex)
 
 	if not(songData) then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
@@ -1000,7 +994,6 @@ end
 -- @param overwrite (boolean)
 -- @param[opt] onlyFromVersion (int)
 function MusicianList.RestoreDemoSongs(overwrite, onlyFromVersion)
-	local id, song
 	for id, song in pairs(MusicianList.DemoSongs) do
 		local shouldOverwrite = overwrite or MusicianList_Storage.data[id] == nil
 		local isCorrectVersion = onlyFromVersion == nil or onlyFromVersion < song.releasedOnVersion
@@ -1129,8 +1122,6 @@ function MusicianList.StripAccents(str)
 		{"Ź Ż Ž", "Z"},
 		{"ź ż ž", "z"}
 	}
-
-	local accentRow, a
 
 	for _, accentRow in pairs(accents) do
 		accentRow[1] = {strsplit(' ', accentRow[1])}

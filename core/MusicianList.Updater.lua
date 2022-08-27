@@ -15,7 +15,6 @@ local function updateTo4(onComplete)
 
 		local invalidIds = {}
 
-		local songData, id
 		for id, songData in pairs(MusicianList_Storage.data) do
 			Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS4 format", id)
 
@@ -46,7 +45,6 @@ local function updateTo4(onComplete)
 		end
 
 		-- Fix invalid IDs
-		local validId
 		for id, validId in pairs(invalidIds) do
 			MusicianList_Storage.data[validId] = MusicianList_Storage.data[id]
 			MusicianList_Storage.data[id] = nil
@@ -63,7 +61,6 @@ local function updateTo4(onComplete)
 		-- Remove songs corrupted by the CurseForge packager
 
 		local checkSong = function(songData)
-			local compressedChunk
 			for _, compressedChunk in pairs(songData.chunks) do
 				local chunk = LibDeflate:DecompressDeflate(compressedChunk)
 				if chunk == nil then
@@ -73,7 +70,6 @@ local function updateTo4(onComplete)
 			return true
 		end
 
-		local songData, id
 		for id, songData in pairs(MusicianList_Storage.data) do
 			Musician.Utils.Debug(MODULE_NAME, "Checking compressed song data", songData.name)
 			if not(checkSong(songData)) then
@@ -91,7 +87,6 @@ local function updateTo4(onComplete)
 
 	if MusicianList_Storage.version == 3 then
 		-- Increment song version from MUS4 to MUS5
-		local songData
 		for _, songData in pairs(MusicianList_Storage.data) do
 			Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS5 format", songData.name)
 			songData.format = "MUS5"
@@ -157,7 +152,6 @@ local function updateTo5(onComplete)
 
 	local songIds = {}
 	local cumulatedChunkCount = {}
-	local songId, songData
 	local totalChunkCount = 0
 	for songId, songData in pairs(MusicianList_Storage.data) do
 		table.insert(songIds, songId)
@@ -193,18 +187,16 @@ local function updateTo5(onComplete)
 	local currentTrackIndex
 	local currentNoteIndex
 	local cursor
-	local trackCount
 	local songNoteCount
 	local songNoteIndex
 	local trackNoteCount
 	local trackInstruments
-	local trackNoteIndex
 	local updatedChunks
 	local rawSongData
 	local newSongData
 
 	local updaterWorker
-	updaterWorker = function(elapsed)
+	updaterWorker = function()
 
 		-- Proceed with new song
 		-- =====================
@@ -255,8 +247,7 @@ local function updateTo5(onComplete)
 			end
 
 			-- Fix instrument IDs in track options
-			local trackOptionId, trackOptions
-			for trackOptionId, trackOptions in pairs(currentSong.tracks) do
+			for _, trackOptions in pairs(currentSong.tracks) do
 				-- MUS5 drum kit had ID 129, now use GM Power drum kit ID (144)
 				if trackOptions.instrument == 129 then
 					trackOptions.instrument = 144
@@ -285,7 +276,6 @@ local function updateTo5(onComplete)
 			cursor = cursor + 1
 
 			-- Track information: instrument (1), channel (1), note count (2)
-			local trackIndex
 			trackNoteCount = {}
 			trackInstruments = {}
 			songNoteCount = 0
@@ -341,8 +331,7 @@ local function updateTo5(onComplete)
 
 			-- Process 36 notes per cycle
 			local notesTodo = min(36, trackNoteCount[currentTrackIndex] - currentNoteIndex + 1)
-			local i
-			for i = 1, notesTodo do
+			for _ = 1, notesTodo do
 
 				-- Key (1)
 				local key = Musician.Utils.UnpackNumber(string.sub(rawSongData, cursor, cursor))
@@ -413,7 +402,6 @@ local function updateTo6(onComplete)
 
 	-- Grab song IDs
 	local songIds = {}
-	local songId
 	for songId, songData in pairs(MusicianList_Storage.data) do
 		-- Song is not already converted
 		if songData.format == 'MUS6' then
@@ -436,7 +424,7 @@ local function updateTo6(onComplete)
 	local song
 
 	local updaterWorker
-	updaterWorker = function(elapsed)
+	updaterWorker = function()
 
 		-- Step 0: Next song
 		-- =================
@@ -471,12 +459,12 @@ local function updateTo6(onComplete)
 		-- ======================
 
 		if songStep == 1 then
-			local song = MusicianList_Storage.data[songIds[currentSongIndex]]
-			local chunk = song.chunks[currentChunkIndex]
+			local currentSong = MusicianList_Storage.data[songIds[currentSongIndex]]
+			local chunk = currentSong.chunks[currentChunkIndex]
 			songData = songData .. LibDeflate:DecompressDeflate(chunk)
 
 			-- No more chunk to uncompress
-			if currentChunkIndex == #song.chunks then
+			if currentChunkIndex == #currentSong.chunks then
 				songStep = 2
 			else
 				currentChunkIndex = currentChunkIndex + 1
@@ -514,7 +502,7 @@ local function updateTo6(onComplete)
 			-- Note information: key(1), time (2), duration (3)
 			oldCursor = cursor
 			for trackIndex = 1, trackCount do
-				for noteIndex = 1, trackNoteCount[trackIndex] do
+				for _ = 1, trackNoteCount[trackIndex] do
 					local key = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor))
 
 					-- Deal with spacers
@@ -530,9 +518,7 @@ local function updateTo6(onComplete)
 
 			-- Song title
 			local songTitleLength = Musician.Utils.UnpackNumber(string.sub(songData, cursor, cursor + 1))
-			cursor = cursor + 2
-			local strTitle = string.sub(songData, cursor, cursor + songTitleLength - 1)
-			cursor = cursor + songTitleLength
+			cursor = cursor + 2 + songTitleLength
 
 			-- Track names
 			local strTrackNames = string.sub(songData, cursor, #songData)
@@ -549,7 +535,6 @@ local function updateTo6(onComplete)
 			strSettingsMetadata = strSettingsMetadata .. Musician.Utils.PackNumber(ceil(song.cropTo * 100), 4)
 
 			-- Track settings
-			local track
 			for _, track in pairs(song.tracks) do
 
 				-- Track options (1)

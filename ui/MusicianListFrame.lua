@@ -2,7 +2,6 @@ MusicianList.Frame = LibStub("AceAddon-3.0"):NewAddon("MusicianList.Frame", "Ace
 
 local totalSongs = 0
 
-local isDragging = false
 local highlightedRowFrame
 
 local MAGNETIC_EDGES_RANGE = 20
@@ -74,16 +73,9 @@ local function magneticEdges()
 	end
 end
 
---- Handle magnetic edges on drag start
---
-local function onMagneticDragStart()
-	isDragging = true
-end
-
 --- Handle magnetic edges on drag stop
 --
 local function onMagneticDragStop()
-	isDragging = false
 	if MusicianFrame:IsVisible() and MusicianListFrame:IsVisible() then
 		magneticEdges()
 	end
@@ -129,7 +121,7 @@ function MusicianList.Frame.Init()
 		rowFrame.progressBar:Show()
 		MusicianList.Frame.DisableButtons()
 	end)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, function(event, song, success)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongLoadComplete, function(event, song)
 		local rowFrame = getRowFrame(song.index)
 		rowFrame.progressBar:Hide()
 		MusicianList.Frame.EnableButtons()
@@ -144,23 +136,20 @@ function MusicianList.Frame.Init()
 		MusicianList.Frame.DisableButtons()
 		MusicianList.RefreshFrame()
 	end)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, function(event, song, songId)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveComplete, function(event)
 		MusicianFrame.SetLoadingProgressBar(nil)
 		MusicianFrame.Clear()
 		MusicianList.Frame.EnableButtons()
 	end)
-	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, song, songId, progression)
+	MusicianList.Frame:RegisterMessage(MusicianList.Events.SongSaveProgress, function(event, _, _, progression)
 		MusicianFrame.SetLoadingProgressBar(progression)
 	end)
 
 	MusicianList.Frame.SetData()
 
 	-- Handle magnetic edges
-	MusicianListFrame:HookScript('OnDragStart', onMagneticDragStart)
 	MusicianListFrame:HookScript('OnDragStop', onMagneticDragStop)
-	MusicianFrame:HookScript('OnDragStart', onMagneticDragStart)
 	MusicianFrame:HookScript('OnDragStop', onMagneticDragStop)
-	MusicianListFrameResizeButton:HookScript('OnMouseDown', onMagneticDragStart)
 	MusicianListFrameResizeButton:HookScript('OnMouseUp', onMagneticDragStop)
 	MusicianFrame:HookScript('OnShow', magneticEdges)
 
@@ -190,7 +179,7 @@ function MusicianList.Frame.Init()
 
 	-- Show song list window when compressed song data has been successfully downloaded.
 	--
-	MusicianList.Frame:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, sender, songData, song, context)
+	MusicianList.Frame:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, _, _, song, context)
 		if context ~= Musician then return end
 		local isDataOnly = song == nil
 		if isDataOnly then
@@ -204,7 +193,7 @@ function MusicianList.Frame.Init()
 		if not(song.isLiveStreamingSong) then
 			local id = MusicianList.GetSongId(song.name)
 			local children = { MusicianListFrameSongContainer:GetChildren() }
-			for index, rowFrame in ipairs(children) do
+			for _, rowFrame in ipairs(children) do
 				if rowFrame.song ~= nil and rowFrame.song.id == id then
 					rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b, PLAYED_SONG_COLOR.a)
 					return
@@ -253,7 +242,6 @@ function MusicianList.Frame.Filter(filter)
 
 	filter = MusicianList.SearchString(filter)
 
-	local index = 1
 	local visibleIndex = 1
 	local height = 0
 	local children = { MusicianListFrameSongContainer:GetChildren() }
@@ -290,7 +278,6 @@ end
 --- Enable or disable all buttons
 -- @param enabled (boolean)
 function MusicianList.Frame.SetButtonsEnabled(enabled)
-	local rowFrame
 	for _, rowFrame in pairs({ MusicianListFrameSongContainer:GetChildren() }) do
 		rowFrame.title:SetEnabled(enabled)
 		rowFrame.title.playButton:SetEnabled(enabled)
