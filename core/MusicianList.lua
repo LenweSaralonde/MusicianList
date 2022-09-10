@@ -959,7 +959,7 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	-- Refresh source song name, if needed
 	if Musician.sourceSong and Musician.sourceSong.isInList and Musician.sourceSong.name == songData.name then
 		Musician.sourceSong.name = name
-		MusicianFrame.Clear()
+		Musician.Frame.Clear()
 		MusicianList.RefreshFrame()
 	end
 
