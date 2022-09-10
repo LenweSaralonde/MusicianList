@@ -1,5 +1,7 @@
 <Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
 
+	<Script file="MusicianListFrame.lua" />
+
 	<!-- Icon fonts -->
 
 	<Font name="MusicianListFontIconsNormal" inherits="GameFontNormal" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="12" virtual="true" />
@@ -11,54 +13,27 @@
 	<Font name="MusicianListFontIconsNormalLarge" inherits="GameFontNormalLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
 	<Font name="MusicianListFontIconsHighlightLarge" inherits="GameFontHighlightLarge" font="Interface\AddOns\MusicianList\ui\fonts\musicianlist-icons.ttf" height="16" virtual="true" />
 
-	<!-- Simple buttons -->
+	<!-- Simple button template -->
 
-	<Button name="MusicianListButtonSimple" virtual="true">
+	<Button name="MusicianListButtonSimpleTemplate" virtual="true">
 		<ButtonText name="$parentText" parentKey="text" />
 		<NormalFont style="GameFontNormalSmall"/>
 		<HighlightFont style="GameFontHighlightSmall"/>
 		<DisabledFont style="GameFontDisableSmall"/>
 		<Scripts>
-			<OnMouseDown>
-				if self:IsEnabled() then
-					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-				end
-			</OnMouseDown>
-			<OnEnter inherit="prepend">
-				if self.tooltipText then
-					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-					GameTooltip_SetTitle(GameTooltip, self.tooltipText)
-					GameTooltip:Show()
-				end
-			</OnEnter>
-			<OnLeave inherit="prepend">
-				if self.tooltipText then
-					GameTooltip:Hide()
-				end
-			</OnLeave>
+			<OnLoad function="MusicianListButtonSimpleTemplate_OnLoad" />
 		</Scripts>
 	</Button>
 
-	<!-- Icon buttons -->
+	<!-- Icon button template -->
 
-	<Button name="MusicianListIconButtonSimple" inherits="MusicianListButtonSimple" virtual="true">
+	<Button name="MusicianListIconButtonSimpleTemplate" inherits="MusicianListButtonSimpleTemplate" virtual="true">
 		<Size x="14" y="14" />
 		<NormalFont style="MusicianListFontIconsNormalSmall"/>
 		<HighlightFont style="MusicianListFontIconsHighlightSmall"/>
 		<DisabledFont style="MusicianListFontIconsDisableSmall"/>
 		<Scripts>
-			<OnEnter inherit="prepend">
-				local rowFrame = self:GetParent():GetParent()
-				rowFrame.hasChildMouseOver = true
-				MusicianList.Frame.HighlightSongRow(rowFrame)
-			</OnEnter>
-			<OnLeave inherit="prepend">
-				local rowFrame = self:GetParent():GetParent()
-				rowFrame.hasChildMouseOver = false
-				C_Timer.After(0, function()
-					MusicianList.Frame.HighlightSongRow(rowFrame)
-				end)
-			</OnLeave>
+			<OnLoad inherit="prepend" function="MusicianListIconButtonSimpleTemplate_OnLoad" />
 		</Scripts>
 	</Button>
 
@@ -69,11 +44,7 @@
 		<HighlightFont style="MusicianListFontIconsHighlight" />
 		<DisabledFont style="MusicianListFontIconsDisable" />
 		<Scripts>
-			<OnMouseDown inherit="append">
-				if self:IsEnabled() then
-					PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
-				end
-			</OnMouseDown>
+			<OnLoad inherit="prepend" function="MusicianListIconButtonTemplate_OnLoad" />
 		</Scripts>
 	</Button>
 
@@ -98,39 +69,7 @@
 		</ButtonText>
 
 		<Scripts>
-			<OnEnter inherit="append">
-				if self:IsEnabled() then
-					self.icon:SetFontObject(MusicianListFontIconsHighlight)
-				end
-			</OnEnter>
-			<OnLeave inherit="append">
-				if self:IsEnabled() then
-					self.icon:SetFontObject(MusicianListFontIconsNormal)
-				end
-			</OnLeave>
-			<OnEnable inherit="append">
-				self.icon:SetFontObject(MusicianListFontIconsNormal)
-			</OnEnable>
-			<OnDisable inherit="append">
-				self.icon:SetFontObject(MusicianListFontIconsDisable)
-			</OnDisable>
-			<OnMouseDown inherit="prepend">
-				if self:IsEnabled() then
-					if (not self.icon.oldPoint) then
-						local point, relativeTo, relativePoint, x, y = self.icon:GetPoint(1)
-						self.icon.oldPoint = point
-						self.icon.oldX = x
-						self.icon.oldY = y
-					end
-					local ox, oy = self:GetPushedTextOffset()
-					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX + ox, self.icon.oldY + oy)
-				end
-			</OnMouseDown>
-			<OnMouseUp inherit="prepend">
-				if self:IsEnabled() then
-					self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX, self.icon.oldY)
-				end
-			</OnMouseUp>
+			<OnLoad inherit="prepend" function="MusicianListIconTextButtonTemplate_OnLoad" />
 		</Scripts>
 	</Button>
 
@@ -145,7 +84,7 @@
 		</Anchors>
 
 		<Frames>
-			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListButtonSimple" justifyh="LEFT" justifyv="MIDDLE">
+			<Button name="$parentSongTitle" parentKey="title" inherits="MusicianListButtonSimpleTemplate" justifyh="LEFT" justifyv="MIDDLE">
 				<Anchors>
 					<Anchor point="TOPLEFT" />
 					<Anchor point="BOTTOMRIGHT" />
@@ -157,96 +96,32 @@
 					</Anchors>
 				</ButtonText>
 				<NormalFont style="GameFontHighlightSmall"/>
-				<Scripts>
-					<OnLoad inherit="append">
-						self.playButton:SetText(MusicianList.Icons.Play)
-						self.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
-						self.previewButton:SetText(MusicianList.Icons.Headphones)
-						self.previewButton.tooltipText = MusicianList.Msg.ACTION_PREVIEW
-						self.linkButton:SetText(MusicianList.Icons.Export)
-						self.linkButton.tooltipText = MusicianList.Msg.ACTION_LINK
-						self.renameButton:SetText(MusicianList.Icons.Pencil)
-						self.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
-						self.deleteButton:SetText(MusicianList.Icons.Trash)
-						self.deleteButton.tooltipText = MusicianList.Msg.ACTION_DELETE
-					</OnLoad>
-					<OnClick>
-						MusicianList.Load(self:GetParent().song.id)
-					</OnClick>
-					<OnEnter inherit="prepend">
-						local rowFrame = self:GetParent()
-						rowFrame.hasMouseOver = true
-						MusicianList.Frame.HighlightSongRow(rowFrame)
-						MusicianList.Frame.SetRowTooltip(rowFrame, true)
-					</OnEnter>
-					<OnLeave inherit="prepend">
-						local rowFrame = self:GetParent()
-						rowFrame.hasMouseOver = false
-						C_Timer.After(0, function()
-							MusicianList.Frame.HighlightSongRow(rowFrame)
-							MusicianList.Frame.SetRowTooltip(rowFrame, false)
-						end)
-					</OnLeave>
-				</Scripts>
 
 				<Frames>
-					<Button name="$parentDeleteButton" parentKey="deleteButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentDeleteButton" parentKey="deleteButton" inherits="MusicianListIconButtonSimpleTemplate" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" x="-5" relativePoint="RIGHT" relativeTo="$parent" />
 						</Anchors>
-						<Scripts>
-							<OnClick>
-								MusicianList.Delete(self:GetParent():GetParent().song.id)
-							</OnClick>
-						</Scripts>
 					</Button>
-					<Button name="$parentRenameButton" parentKey="renameButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentRenameButton" parentKey="renameButton" inherits="MusicianListIconButtonSimpleTemplate" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentDeleteButton" />
 						</Anchors>
-						<Scripts>
-							<OnClick>
-								MusicianList.Rename(self:GetParent():GetParent().song.id)
-							</OnClick>
-						</Scripts>
 					</Button>
-					<Button name="$parentLinkButton" parentKey="linkButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentLinkButton" parentKey="linkButton" inherits="MusicianListIconButtonSimpleTemplate" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentRenameButton" />
 						</Anchors>
-						<Scripts>
-							<OnClick>
-								MusicianList.Link(self:GetParent():GetParent().song.id)
-							</OnClick>
-							<OnEnter inherit="append">
-								-- Prevent the chat edit box from being closed when the button is clicked
-								self.chatEditOnFocusLost = ChatEdit_OnEditFocusLost
-								ChatEdit_OnEditFocusLost = function() end
-							</OnEnter>
-							<OnLeave inherit="append">
-								ChatEdit_OnEditFocusLost = self.chatEditOnFocusLost
-							</OnLeave>
-						</Scripts>
 					</Button>
-					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentPreviewButton" parentKey="previewButton" inherits="MusicianListIconButtonSimpleTemplate" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentLinkButton" />
 						</Anchors>
-						<Scripts>
-							<OnClick>
-								MusicianList.Load(self:GetParent():GetParent().song.id, MusicianList.LoadActions.Preview)
-							</OnClick>
-						</Scripts>
 					</Button>
-					<Button name="$parentPlayButton" parentKey="playButton" inherits="MusicianListIconButtonSimple" hidden="true">
+					<Button name="$parentPlayButton" parentKey="playButton" inherits="MusicianListIconButtonSimpleTemplate" hidden="true">
 						<Anchors>
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parentPreviewButton" />
 						</Anchors>
-						<Scripts>
-							<OnClick>
-								MusicianList.Load(self:GetParent():GetParent().song.id, MusicianList.LoadActions.Play)
-							</OnClick>
-						</Scripts>
 					</Button>
 				</Frames>
 			</Button>
@@ -290,6 +165,10 @@
 				</Texture>
 			</Layer>
 		</Layers>
+
+		<Scripts>
+			<OnLoad inherit="prepend" function="MusicianListSongTemplate_OnLoad" />
+		</Scripts>
 	</Frame>
 
 	<!-- Main frame -->
@@ -345,12 +224,6 @@
 						</Anchors>
 					</Frame>
 				</ScrollChild>
-
-				<Scripts>
-					<OnSizeChanged>
-						MusicianListFrameSongContainer:SetWidth(self:GetWidth())
-					</OnSizeChanged>
-				</Scripts>
 			</ScrollFrame>
 
 			<Frame name="$parentBackground" inherits="MusicianFieldset">
@@ -373,15 +246,6 @@
 						<Anchors>
 							<Anchor point="CENTER" y="-15" />
 						</Anchors>
-						<Scripts>
-							<OnLoad>
-								self:SetText(MusicianList.Msg.IMPORT_A_SONG)
-								self.icon:SetText(MusicianList.Icons.CloudDown)
-							</OnLoad>
-							<OnClick>
-								MusicianFrame:Show()
-							</OnClick>
-						</Scripts>
 					</Button>
 				</Frames>
 				<Layers>
@@ -404,33 +268,6 @@
 					<Anchor point="BOTTOMLEFT" relativeTo="$parent" relativePoint="BOTTOMLEFT" x="14" y="10"/>
 					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-11" />
 				</Anchors>
-				<Scripts>
-					<OnEditFocusGained inherit="append">
-						local resizeButton = self:GetParent().resizeButton
-						resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
-					</OnEditFocusGained>
-					<OnEditFocusLost inherit="append">
-						self:ReorderButtons()
-					</OnEditFocusLost>
-					<OnTextChanged>
-						SearchBoxTemplate_OnTextChanged(self, isUserInput)
-						MusicianList.Frame.Filter()
-						self:ReorderButtons()
-					</OnTextChanged>
-					<OnLoad inherit="append">
-						SearchBoxTemplate_OnLoad(self)
-						self.Instructions:SetText(MusicianList.Msg.FILTER_SONG)
-
-						self.ReorderButtons = function(self)
-							local resizeButton = self:GetParent().resizeButton
-							if #self:GetText() > 0 then
-								resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
-							else
-								resizeButton:SetFrameLevel(resizeButton.frameLevel)
-							end
-						end
-					</OnLoad>
-				</Scripts>
 			</EditBox>
 
 			<!-- Resize button -->
@@ -440,31 +277,6 @@
 				<Anchors>
 					<Anchor point="BOTTOMRIGHT" x="3" y="-3"/>
 				</Anchors>
-				<Scripts>
-					<OnMouseDown>
-						self:SetButtonState("PUSHED", true)
-						self:GetHighlightTexture():Hide()
-						local window = self:GetParent()
-						window:StartSizing("BOTTOMRIGHT")
-					</OnMouseDown>
-					<OnMouseUp>
-						self:SetButtonState("NORMAL", false)
-						self:GetHighlightTexture():Show()
-						local window = self:GetParent()
-						window:StopMovingOrSizing()
-						FCF_SavePositionAndDimensions(window)
-					</OnMouseUp>
-					<OnLoad>
-						local texture
-						for _, texture in ipairs({ self:GetNormalTexture(), self:GetHighlightTexture(), self:GetPushedTexture() }) do
-							texture:ClearAllPoints()
-							texture:SetPoint("BOTTOMRIGHT", -10, 10)
-							texture:SetSize(20, 20)
-						end
-						self.frameLevel = self:GetParent().searchBox:GetFrameLevel() + 100
-						self:SetFrameLevel(self.frameLevel)
-					</OnLoad>
-				</Scripts>
 				<NormalTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up"/>
 				<HighlightTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight"/>
 				<PushedTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down"/>
@@ -511,23 +323,5 @@
 				</FontString>
 			</Layer>
 		</Layers>
-
-		<Scripts>
-			<OnLoad inherit="prepend">
-				self.noEscape = true
-
-				if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
-					self:SetHeight(330)
-				end
-
-				self:SetMinResize(160, 160)
-				self:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
-
-				MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
-				MusicianListFrameHeaderSongIndex:SetText(MusicianList.Msg.HEADER_SONG_INDEX)
-				MusicianListFrameHeaderSongTitle:SetText(MusicianList.Msg.HEADER_SONG_TITLE)
-				MusicianListFrameHeaderSongDuration:SetText(MusicianList.Msg.HEADER_SONG_DURATION)
-			</OnLoad>
-		</Scripts>
 	</Frame>
 </Ui>

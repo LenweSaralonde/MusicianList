@@ -91,6 +91,76 @@ end
 --- Init
 --
 function MusicianList.Frame.Init()
+	-- Main init
+	MusicianListFrame.noEscape = true
+
+	-- Set dimensions
+	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+		MusicianListFrame:SetHeight(330)
+	end
+	MusicianListFrame:SetMinResize(160, 160)
+	MusicianListFrame:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
+
+	-- Set texts
+	MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
+	MusicianListFrameHeaderSongIndex:SetText(MusicianList.Msg.HEADER_SONG_INDEX)
+	MusicianListFrameHeaderSongTitle:SetText(MusicianList.Msg.HEADER_SONG_TITLE)
+	MusicianListFrameHeaderSongDuration:SetText(MusicianList.Msg.HEADER_SONG_DURATION)
+
+	-- Scroll frame
+	MusicianListFrameScrollFrame:SetScript("OnSizeChanged", function(self)
+		MusicianListFrameSongContainer:SetWidth(self:GetWidth())
+	end)
+
+	-- Song list empty button
+	MusicianListFrameListEmptyImportButton:SetText(MusicianList.Msg.IMPORT_A_SONG)
+	MusicianListFrameListEmptyImportButton.icon:SetText(MusicianList.Icons.CloudDown)
+	MusicianListFrameListEmptyImportButton:HookScript("OnClick", function()
+		MusicianFrame:Show()
+	end)
+
+	-- Resize button
+	local resizeButton = MusicianListFrameResizeButton
+	for _, texture in ipairs({ resizeButton:GetNormalTexture(), resizeButton:GetHighlightTexture(), resizeButton:GetPushedTexture() }) do
+		texture:ClearAllPoints()
+		texture:SetPoint("BOTTOMRIGHT", -10, 10)
+		texture:SetSize(20, 20)
+	end
+	resizeButton.frameLevel = MusicianListFrame.searchBox:GetFrameLevel() + 100
+	resizeButton:SetFrameLevel(resizeButton.frameLevel)
+	resizeButton:HookScript("OnMouseDown", function(self)
+		self:SetButtonState("PUSHED", true)
+		self:GetHighlightTexture():Hide()
+		MusicianListFrame:StartSizing("BOTTOMRIGHT")
+	end)
+	resizeButton:HookScript("OnMouseUp", function(self)
+		self:SetButtonState("NORMAL", false)
+		self:GetHighlightTexture():Show()
+		MusicianListFrame:StopMovingOrSizing()
+	end)
+
+	-- Search box
+	SearchBoxTemplate_OnLoad(MusicianListFrameSearchBox)
+	MusicianListFrameSearchBox.Instructions:SetText(MusicianList.Msg.FILTER_SONG)
+	MusicianListFrameSearchBox.ReorderButtons = function(self)
+		if #self:GetText() > 0 then
+			resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
+		else
+			resizeButton:SetFrameLevel(resizeButton.frameLevel)
+		end
+	end
+	MusicianListFrameSearchBox:HookScript("OnEditFocusGained", function(self)
+		resizeButton:SetFrameLevel(self:GetFrameLevel() - 1)
+	end)
+	MusicianListFrameSearchBox:HookScript("OnEditFocusLost", function(self)
+		self:ReorderButtons()
+	end)
+	MusicianListFrameSearchBox:HookScript("OnTextChanged", function(self, isUserInput)
+		SearchBoxTemplate_OnTextChanged(self, isUserInput)
+		MusicianList.Frame.Filter()
+		self:ReorderButtons()
+	end)
+
 	-- Data refresh events
 	MusicianList.Frame:RegisterMessage(MusicianList.Events.ListUpdate, MusicianList.Frame.SetData)
 
@@ -145,6 +215,7 @@ function MusicianList.Frame.Init()
 		Musician.Frame.SetLoadingProgressBar(progression)
 	end)
 
+	-- Populate data
 	MusicianList.Frame.SetData()
 
 	-- Handle magnetic edges
@@ -362,4 +433,150 @@ function MusicianList.Frame.HighlightSongRow(rowFrame, isHighlighted)
 			end
 		end
 	end
+end
+
+-- Widget functions
+--
+
+--- Button simple template OnLoad
+--
+function MusicianListButtonSimpleTemplate_OnLoad(button)
+	button:SetScript("OnMouseDown", function(self)
+		if self:IsEnabled() then
+			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+		end
+	end)
+	button:HookScript("OnEnter", function(self)
+		if self.tooltipText then
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip_SetTitle(GameTooltip, self.tooltipText)
+			GameTooltip:Show()
+		end
+	end)
+	button:HookScript("OnLeave", function(self)
+		if self.tooltipText then
+			GameTooltip:Hide()
+		end
+	end)
+end
+
+--- Icon button simple template OnLoad
+--
+function MusicianListIconButtonSimpleTemplate_OnLoad(button)
+	button:HookScript("OnEnter", function(self)
+		local rowFrame = self:GetParent():GetParent()
+		rowFrame.hasChildMouseOver = true
+		MusicianList.Frame.HighlightSongRow(rowFrame)
+	end)
+	button:HookScript("OnLeave", function(self)
+		local rowFrame = self:GetParent():GetParent()
+		rowFrame.hasChildMouseOver = false
+		C_Timer.After(0, function()
+			MusicianList.Frame.HighlightSongRow(rowFrame)
+		end)
+	end)
+end
+
+--- Icon button template OnLoad
+--
+function MusicianListIconButtonTemplate_OnLoad(button)
+	button:HookScript("OnMouseDown", function(self)
+		if self:IsEnabled() then
+			PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON)
+		end
+	end)
+end
+
+--- Standard button with text and icon template OnLoad
+--
+function MusicianListIconTextButtonTemplate_OnLoad(button)
+	button:HookScript("OnEnter", function(self)
+		if self:IsEnabled() then
+			self.icon:SetFontObject(MusicianListFontIconsHighlight)
+		end
+	end)
+	button:HookScript("OnLeave", function(self)
+		if self:IsEnabled() then
+			self.icon:SetFontObject(MusicianListFontIconsNormal)
+		end
+	end)
+	button:HookScript("OnEnable", function(self)
+		self.icon:SetFontObject(MusicianListFontIconsNormal)
+	end)
+	button:HookScript("OnDisable", function(self)
+		self.icon:SetFontObject(MusicianListFontIconsDisable)
+	end)
+	button:HookScript("OnMouseDown", function(self)
+		if self:IsEnabled() then
+			if (not self.icon.oldPoint) then
+				local point, _, _, x, y = self.icon:GetPoint(1)
+				self.icon.oldPoint = point
+				self.icon.oldX = x
+				self.icon.oldY = y
+			end
+			local ox, oy = self:GetPushedTextOffset()
+			self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX + ox, self.icon.oldY + oy)
+		end
+	end)
+	button:HookScript("OnMouseUp", function(self)
+		if self:IsEnabled() then
+			self.icon:SetPoint(self.icon.oldPoint, self.icon.oldX, self.icon.oldY)
+		end
+	end)
+end
+
+--- Song row template OnLoad
+--
+function MusicianListSongTemplate_OnLoad(row)
+	-- Play button
+	row.title.playButton:SetText(MusicianList.Icons.Play)
+	row.title.playButton.tooltipText = MusicianList.Msg.ACTION_PLAY
+	row.title.playButton:HookScript("OnClick", function(self)
+		MusicianList.Load(row.song.id, MusicianList.LoadActions.Play)
+	end)
+
+	-- Preview button
+	row.title.previewButton:SetText(MusicianList.Icons.Headphones)
+	row.title.previewButton.tooltipText = MusicianList.Msg.ACTION_PREVIEW
+	row.title.previewButton:HookScript("OnClick", function(self)
+		MusicianList.Load(row.song.id, MusicianList.LoadActions.Preview)
+	end)
+
+	-- Link button
+	row.title.linkButton:SetText(MusicianList.Icons.Export)
+	row.title.linkButton.tooltipText = MusicianList.Msg.ACTION_LINK
+	row.title.linkButton:HookScript("OnClick", function(self)
+		MusicianList.Link(row.song.id)
+	end)
+
+	-- Rename button
+	row.title.renameButton:SetText(MusicianList.Icons.Pencil)
+	row.title.renameButton.tooltipText = MusicianList.Msg.ACTION_RENAME
+	row.title.renameButton:HookScript("OnClick", function(self)
+		MusicianList.Rename(row.song.id)
+	end)
+
+	-- Delete button
+	row.title.deleteButton:SetText(MusicianList.Icons.Trash)
+	row.title.deleteButton.tooltipText = MusicianList.Msg.ACTION_DELETE
+	row.title.deleteButton:HookScript("OnClick", function(self)
+		MusicianList.Delete(row.song.id)
+	end)
+
+	-- Title handlers
+	row.title:HookScript("OnClick", function(self)
+		MusicianList.Load(row.song.id)
+	end)
+	row.title:HookScript("OnEnter", function(self)
+		row.hasMouseOver = true
+		MusicianList.Frame.HighlightSongRow(row)
+		MusicianList.Frame.SetRowTooltip(row, true)
+	end)
+	row.title:HookScript("OnLeave", function(self)
+		row.hasMouseOver = false
+		C_Timer.After(0, function()
+			MusicianList.Frame.HighlightSongRow(row)
+			MusicianList.Frame.SetRowTooltip(row, false)
+		end)
+	end)
 end

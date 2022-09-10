@@ -75,6 +75,9 @@ stds.wow = {
 		"ChatEdit_LinkItem",
 		"CreateColor",
 		"GameTooltip_SetTitle",
+		"PlaySound",
+		"SearchBoxTemplate_OnLoad",
+		"SearchBoxTemplate_OnTextChanged",
 
 		-- Global Mixins and UI Objects
 		GameTooltip = {
@@ -85,10 +88,17 @@ stds.wow = {
 				"Hide",
 			}
 		},
+		SOUNDKIT = {
+			fields = {
+				"U_CHAT_SCROLL_BUTTON"
+			}
+		},
 
 		"UIParent",
 
 		-- Global Constants
+		"WOW_PROJECT_ID",
+		"WOW_PROJECT_MAINLINE",
 		"STATICPOPUPS_NUMDIALOGS",
 		"YES",
 		"NO",
