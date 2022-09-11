@@ -98,8 +98,15 @@ function MusicianList.Frame.Init()
 	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
 		MusicianListFrame:SetHeight(330)
 	end
-	MusicianListFrame:SetMinResize(160, 160)
-	MusicianListFrame:SetMaxResize(UIParent:GetWidth(), UIParent:GetHeight())
+	MusicianListFrame:HookScript("OnSizeChanged", function(self)
+		local width, height = self:GetSize()
+		local minWidth, minHeight = 160, 160
+		local maxWidth, maxHeight = UIParent:GetWidth() / self:GetScale(), UIParent:GetHeight() / self:GetScale()
+		self:SetSize(
+			max(minWidth, min(maxWidth, width)),
+			max(minHeight, min(maxHeight, height))
+		)
+	end)
 
 	-- Set texts
 	MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
