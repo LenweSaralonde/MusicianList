@@ -34,10 +34,7 @@ function MusicianList:OnEnable()
 	_G.BINDING_NAME_MUSICIANLISTTOGGLE = MusicianList.Msg.COMMAND_LIST
 
 	-- Check for outdated Musician version
-	if Musician.Utils.VersionCompare(MusicianList.MUSICIAN_MIN_VERSION, GetAddOnMetadata("Musician", "Version")) > 0 or
-	   MusicianList.FILE_HEADER > Musician.FILE_HEADER or
-	   not(Musician.SongLinks.supportsContext)
-	then
+	if MusicianList.MUSICIAN_API_VERSION > (Musician.API_VERSION or 0) then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
 		end)
@@ -46,7 +43,9 @@ function MusicianList:OnEnable()
 
 	-- Check if Musician format is more recent that the one supported by MusicianList
 	-- Also ensure the catalogue version is correct
-	if MusicianList.FILE_HEADER < Musician.FILE_HEADER or MusicianList_Storage.version > MusicianList.STORAGE_VERSION then
+	if Musician.API_VERSION > MusicianList.MUSICIAN_API_VERSION  or
+	   MusicianList_Storage.version > MusicianList.STORAGE_VERSION
+	then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIANLIST_VERSION)
 		end)
