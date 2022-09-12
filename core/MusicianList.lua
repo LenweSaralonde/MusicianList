@@ -5,6 +5,8 @@ Musician.AddModule(MODULE_NAME)
 
 local LibDeflate
 
+local isInitialized = false
+
 local isSongSaving = false
 local isSongLoading = false
 
@@ -52,6 +54,7 @@ function MusicianList:OnEnable()
 		return
 	end
 
+	-- Verify and update the song list then proceed to OnReady
 	MusicianList.Updater.UpdateDB(MusicianList.OnReady)
 end
 
@@ -193,6 +196,15 @@ function MusicianList.OnReady()
 	-- Init UI
 	MusicianList.Frame.Init()
 	MusicianList.AddButtons()
+
+	-- Initialization complete
+	isInitialized = true
+end
+
+--- Indicates if the plugin is properly initialized
+-- @return isInitialized (table)
+function MusicianList.IsInitialized()
+	return isInitialized
 end
 
 --- Initialize a locale and returns the initialized message table
