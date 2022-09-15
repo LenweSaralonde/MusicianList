@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.5
+------
+* Fixed default frame size and position.
+
 v1.9.4
 ------
 * Rearranged UI code to improve maintainability.
