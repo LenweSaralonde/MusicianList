@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.9.4
+------
+* Rearranged UI code to improve maintainability.
+* Added WoW 10.0 support.
+* Minor bugfixes and improvements.
+
 v1.9.3
 ------
 * Minor bugfixes and improvements.
