@@ -81,6 +81,18 @@ local function onMagneticDragStop()
 	end
 end
 
+--- Clamp main frame dimensions
+--
+local function clampSize()
+	local width, height = MusicianListFrame:GetSize()
+	local minWidth, minHeight = 160, 160
+	local maxWidth, maxHeight = UIParent:GetWidth() / MusicianListFrame:GetScale(), UIParent:GetHeight() / MusicianListFrame:GetScale()
+	MusicianListFrame:SetSize(
+		max(minWidth, min(maxWidth, width)),
+		max(minHeight, min(maxHeight, height))
+	)
+end
+
 --- Get song row frame by index
 -- @param index (int)
 -- @return rowFrame (Frame)
@@ -88,25 +100,24 @@ local function getRowFrame(index)
 	return _G['MusicianListSong'.. index]
 end
 
+--- OnLoad
+--
+function MusicianListFrame_OnLoad()
+	-- Set default height for WoW Classic
+	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+		MusicianListFrame:SetHeight(330)
+	end
+
+	-- Clamp frame size
+	MusicianListFrame:HookScript("OnSizeChanged", clampSize)
+	clampSize()
+end
+
 --- Init
 --
 function MusicianList.Frame.Init()
 	-- Main init
 	MusicianListFrame.noEscape = true
-
-	-- Set dimensions
-	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
-		MusicianListFrame:SetHeight(330)
-	end
-	MusicianListFrame:HookScript("OnSizeChanged", function(self)
-		local width, height = self:GetSize()
-		local minWidth, minHeight = 160, 160
-		local maxWidth, maxHeight = UIParent:GetWidth() / self:GetScale(), UIParent:GetHeight() / self:GetScale()
-		self:SetSize(
-			max(minWidth, min(maxWidth, width)),
-			max(minHeight, min(maxHeight, height))
-		)
-	end)
 
 	-- Set texts
 	MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)

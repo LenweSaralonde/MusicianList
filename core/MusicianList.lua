@@ -64,13 +64,6 @@ function MusicianList.OnReady()
 	-- Import libraries
 	LibDeflate = LibStub:GetLibrary("LibDeflate")
 
-	-- Create frame
-	-- @var processFrame (Frame)
-	MusicianList.processFrame = CreateFrame("Frame")
-	MusicianList.processFrame:SetFrameStrata("HIGH")
-	MusicianList.processFrame:EnableMouse(false)
-	MusicianList.processFrame:SetMovable(false)
-
 	-- Hook Musician functions
 	MusicianGetCommands = Musician.GetCommands
 	Musician.GetCommands = MusicianList.GetCommands

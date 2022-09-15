@@ -323,5 +323,9 @@
 				</FontString>
 			</Layer>
 		</Layers>
+
+		<Scripts>
+			<OnLoad inherit="prepend" function="MusicianListFrame_OnLoad" />
+		</Scripts>
 	</Frame>
 </Ui>
