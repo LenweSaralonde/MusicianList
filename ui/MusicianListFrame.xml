@@ -173,13 +173,9 @@
 
 	<!-- Main frame -->
 
-	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplate" resizable="true">
+	<Frame name="MusicianListFrame" inherits="MusicianDialogTemplateNoAnchor" resizable="true">
 
 		<Size x="320" y="308" />
-
-		<Anchors>
-			<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="MusicianFrame" />
-		</Anchors>
 
 		<Frames>
 
@@ -323,9 +319,5 @@
 				</FontString>
 			</Layer>
 		</Layers>
-
-		<Scripts>
-			<OnLoad inherit="prepend" function="MusicianListFrame_OnLoad" />
-		</Scripts>
 	</Frame>
 </Ui>

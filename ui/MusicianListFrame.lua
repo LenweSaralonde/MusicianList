@@ -67,10 +67,6 @@ local function magneticEdges()
 			frame:SetPoint('BOTTOMRIGHT', anchor, 'BOTTOMLEFT', 0, 0)
 		end
 	end
-
-	if Musician.SaveFramePosition then
-		Musician.SaveFramePosition(frame)
-	end
 end
 
 --- Handle magnetic edges on drag stop
@@ -100,24 +96,26 @@ local function getRowFrame(index)
 	return _G['MusicianListSong'.. index]
 end
 
---- OnLoad
+--- Init
 --
-function MusicianListFrame_OnLoad()
+function MusicianList.Frame.Init()
+	-- Main init
+	MusicianListFrame.noEscape = true
+
+	-- Set the default anchor at the bottom of the Musician frame
+	if not(MusicianListFrame:IsUserPlaced()) then
+		MusicianListFrame:ClearAllPoints()
+		MusicianListFrame:SetPoint("TOP", MusicianFrame, "BOTTOM")
+	end
+
 	-- Set default height for WoW Classic
-	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
+	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and not(MusicianListFrame:IsUserPlaced()) then
 		MusicianListFrame:SetHeight(330)
 	end
 
 	-- Clamp frame size
 	MusicianListFrame:HookScript("OnSizeChanged", clampSize)
 	clampSize()
-end
-
---- Init
---
-function MusicianList.Frame.Init()
-	-- Main init
-	MusicianListFrame.noEscape = true
 
 	-- Set texts
 	MusicianListFrameTitle:SetText(MusicianList.Msg.SONG_LIST)
