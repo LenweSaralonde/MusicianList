@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.6
+------
+* Fixed frame position and size sometimes not being saved properly.
+
 v1.9.5
 ------
 * Fixed default frame size and position.
