@@ -45,8 +45,8 @@ function MusicianList:OnEnable()
 
 	-- Check if Musician format is more recent that the one supported by MusicianList
 	-- Also ensure the catalogue version is correct
-	if Musician.API_VERSION > MusicianList.MUSICIAN_API_VERSION  or
-	   MusicianList_Storage.version > MusicianList.STORAGE_VERSION
+	if Musician.API_VERSION > MusicianList.MUSICIAN_API_VERSION or
+		MusicianList_Storage.version > MusicianList.STORAGE_VERSION
 	then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIANLIST_VERSION)
@@ -180,7 +180,7 @@ function MusicianList.OnReady()
 	--- Add the songs being streamed to the played songs list
 	--
 	MusicianList:RegisterMessage(Musician.Events.StreamStart, function(event, song)
-		if not(song.isLiveStreamingSong) then
+		if not song.isLiveStreamingSong then
 			local id = MusicianList.GetSongId(song.name)
 			MusicianList.playedSongs[id] = true
 		end
@@ -440,7 +440,8 @@ function MusicianList.AddButtons()
 	-- Add Save button in track editor window
 	--
 
-	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor, "MusicianListIconButtonTemplate")
+	local trackEditorSaveButton = CreateFrame("Button", "MusicianTrackEditorSaveButton", MusicianTrackEditor,
+		"MusicianListIconButtonTemplate")
 	trackEditorSaveButton:SetWidth(50)
 	trackEditorSaveButton:SetHeight(20)
 	trackEditorSaveButton:SetText(MusicianList.Icons.Save)
@@ -454,7 +455,8 @@ function MusicianList.AddButtons()
 	--
 
 	local importFrame = MusicianSongLinkImportFrame
-	local importIntoListButton = CreateFrame("Button", "MusicianListImportIntoListButton", importFrame, "UIPanelButtonTemplate")
+	local importIntoListButton = CreateFrame("Button", "MusicianListImportIntoListButton", importFrame,
+		"UIPanelButtonTemplate")
 	local importButton = importFrame.importButton
 	local cancelButton = importFrame.cancelImportButton
 	importIntoListButton:SetWidth(importButton:GetWidth())
@@ -510,7 +512,7 @@ function MusicianList.AddButtons()
 
 		-- Send song request on click
 		importIntoListButton.onClick = function()
-			if not(Musician.SongLinks.GetRequestingSong(playerName)) then
+			if not Musician.SongLinks.GetRequestingSong(playerName) then
 				Musician.SongLinks.RequestSong(title, playerName, true, Musician)
 			end
 		end
@@ -523,7 +525,7 @@ function MusicianList.AddButtons()
 		if context ~= Musician then return end
 
 		local isDataOnly = song == nil
-		if not(isDataOnly) then return end
+		if not isDataOnly then return end
 
 		local compressedCursor = 1
 
@@ -538,14 +540,16 @@ function MusicianList.AddButtons()
 		-- Extract first compressed chunk containing full song name
 		local firstChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
 		compressedCursor = compressedCursor + 2
-		local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + firstChunkLength - 1))
+		local firstChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor,
+			compressedCursor + firstChunkLength - 1))
 		compressedCursor = compressedCursor + firstChunkLength
 		local secondChunkCursor = compressedCursor
 
 		-- Extract second compressed chunk containing the song duration
 		local secondChunkLength = Musician.Utils.UnpackNumber(string.sub(songData, compressedCursor, compressedCursor + 1))
 		compressedCursor = compressedCursor + 2
-		local secondChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor, compressedCursor + secondChunkLength - 1))
+		local secondChunk = LibDeflate:DecompressDeflate(string.sub(songData, compressedCursor,
+			compressedCursor + secondChunkLength - 1))
 
 		-- Extract song name from the first chunk
 		local cursor = 1
@@ -562,7 +566,8 @@ function MusicianList.AddButtons()
 			-- Rename in song data as well
 			local updatedFirstChunk = Musician.Utils.PackNumber(#uniqueSongName, 2) .. uniqueSongName
 			local updatedFirstChunkCompressed = LibDeflate:CompressDeflate(updatedFirstChunk, { level = 9 })
-			updatedFirstChunkCompressed = Musician.Utils.PackNumber(#updatedFirstChunkCompressed, 2) .. updatedFirstChunkCompressed
+			updatedFirstChunkCompressed = Musician.Utils.PackNumber(#updatedFirstChunkCompressed, 2) ..
+				updatedFirstChunkCompressed
 			songData = Musician.FILE_HEADER_COMPRESSED .. updatedFirstChunkCompressed .. string.sub(songData, secondChunkCursor)
 			songName = uniqueSongName
 		end
@@ -585,7 +590,7 @@ end
 --- Update Musician UI elements
 --
 function MusicianList.RefreshFrame()
-	if not(isSongSaving) and not(isSongLoading) then
+	if not isSongSaving and not isSongLoading then
 		if Musician.sourceSong then
 			MusicianFrameSaveButton:Enable()
 			MusicianTrackEditorSaveButton:Enable()
@@ -657,7 +662,7 @@ end
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.Save(name, fromCommandLine)
 	-- No source song
-	if not(Musician.sourceSong) then
+	if not Musician.sourceSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_NO_SONG_TO_SAVE)
 		return
 	end
@@ -698,12 +703,12 @@ function MusicianList.DoSave(name, fromCommandLine)
 		return
 	end
 
-	if not(Musician.sourceSong) then
+	if not Musician.sourceSong then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_NO_SONG_TO_SAVE)
 		return
 	end
 
-	if not(name) or name == "" then
+	if not name or name == "" then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NAME_EMPTY)
 		return
 	end
@@ -771,7 +776,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 	local songData = MusicianList.GetSong(idOrIndex)
 
 	-- Song has not been found by name
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
@@ -803,7 +808,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 		isSongLoading = false
 
 		-- Import failed
-		if not(success) then
+		if not success then
 			MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, false)
 			return
 		end
@@ -848,12 +853,13 @@ function MusicianList.Delete(idOrIndex, fromCommandLine)
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
 
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
 
-	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(songData.name), nil, { id = id, fromCommandLine = fromCommandLine })
+	StaticPopup_Show("MUSICIAN_LIST_DELETE_CONFIRM", Musician.Utils.Highlight(songData.name), nil,
+		{ id = id, fromCommandLine = fromCommandLine })
 end
 
 --- Delete song, without confirmation
@@ -861,7 +867,7 @@ end
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoDelete(id, fromCommandLine)
 	local songData, _ = MusicianList.GetSong(id)
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
@@ -889,13 +895,14 @@ function MusicianList.Rename(idOrIndex, name, fromCommandLine)
 
 	local songData, id = MusicianList.GetSong(idOrIndex)
 
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
 
 	if name == nil or name == '' then
-		StaticPopup_Show("MUSICIAN_LIST_RENAME", Musician.Utils.Highlight(songData.name), nil, { id = id, oldName = songData.name, fromCommandLine = fromCommandLine })
+		StaticPopup_Show("MUSICIAN_LIST_RENAME", Musician.Utils.Highlight(songData.name), nil,
+			{ id = id, oldName = songData.name, fromCommandLine = fromCommandLine })
 	else
 		MusicianList.RenameConfirm(id, name, fromCommandLine)
 	end
@@ -926,7 +933,7 @@ end
 -- @param[opt=false] fromCommandLine (boolean)
 function MusicianList.DoRename(id, name, fromCommandLine)
 	local songData = MusicianList_Storage.data[id]
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
@@ -942,7 +949,8 @@ function MusicianList.DoRename(id, name, fromCommandLine)
 	cursor = cursor + titleCompressedChunkLength + 2
 	local newTitleChunk = Musician.Utils.PackNumber(#name, 2) .. name
 	local newTitleCompressedChunk = LibDeflate:CompressDeflate(newTitleChunk, { level = 9 })
-	local newData = Musician.FILE_HEADER_COMPRESSED .. Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
+	local newData = Musician.FILE_HEADER_COMPRESSED ..
+		Musician.Utils.PackNumber(#newTitleCompressedChunk, 2) .. newTitleCompressedChunk .. string.sub(songData.data, cursor)
 	local newId = MusicianList.GetSongId(name)
 
 	-- Update played songs
@@ -985,7 +993,7 @@ function MusicianList.Link(idOrIndex)
 
 	local songData = MusicianList.GetSong(idOrIndex)
 
-	if not(songData) then
+	if not songData then
 		Musician.Utils.PrintError(MusicianList.Msg.ERR_SONG_NOT_FOUND)
 		return
 	end
@@ -1072,63 +1080,63 @@ end
 -- @return filteredStr (string)
 function MusicianList.StripAccents(str)
 
-	if(str == nil) then return "" end
+	if (str == nil) then return "" end
 
 	local accents = {
-		{"À Á Â Ã Ä Å Ā Ă Ą", "A"},
-		{"à á â ã ä å ā ă ą", "a"},
-		{"Æ", "AE"},
-		{"æ", "ae"},
-		{"Ɓ", "B"},
-		{"ẞ", "SS"},
-		{"ß", "ss"},
-		{"ƀ", "b"},
-		{"Ç Ć Ĉ Ċ Č", "C"},
-		{"ç ć ĉ ċ č", "c"},
-		{"Ð Ď Đ", "D"},
-		{"ď đ ð", "d"},
-		{"È É Ê Ë Ē Ĕ Ė Ę Ě", "E"},
-		{"è é ê ë ē ĕ ė ę ě", "e"},
-		{"ſ", "f"},
-		{"Ĝ Ğ Ġ Ģ", "G"},
-		{"ĝ ğ ġ ģ", "g"},
-		{"Ĥ Ħ", "H"},
-		{"ĥ ħ", "h"},
-		{"Ì Í Î Ï Ĩ Ī Ĭ Į İ", "I"},
-		{"ì í î ï ĩ ī ĭ į ı", "i"},
-		{"Ĳ", "IJ"},
-		{"ĳ", "ij"},
-		{"Ĵ", "J"},
-		{"ĵ", "j"},
-		{"Ķ", "K"},
-		{"ķĸ", "k"},
-		{"Ĺ Ļ Ľ Ŀ Ł", "L"},
-		{"ĺ ļ ľ ŀ ł", "l"},
-		{"Ñ Ń Ņ Ň Ŋ", "N"},
-		{"ñ ń ņ ň ŉ ŋ", "n"},
-		{"Ò Ó Ô Õ Ö Ø Ō Ŏ Ő", "O"},
-		{"ò ó ô õ ö ø ō ŏ ő", "o"},
-		{"þ Þ", "P"},
-		{"Œ", "OE"},
-		{"œ", "oe"},
-		{"Ŕ Ŗ Ř", "R"},
-		{"ŕ ŗ ř", "r"},
-		{"Ś Ŝ Ş Š", "S"},
-		{"ś ŝ ş š", "s"},
-		{"Ţ Ť Ŧ", "T"},
-		{"ţ ť ŧ", "t"},
-		{"Ù Ú Û Ü Ũ Ū Ŭ Ů Ű Ų", "U"},
-		{"ù ú û ü ũ ū ŭ ů ű ų", "u"},
-		{"Ŵ", "W"},
-		{"ŵ", "w"},
-		{"Ý Ŷ Ÿ", "Y"},
-		{"ý ŷ ÿ", "y"},
-		{"Ź Ż Ž", "Z"},
-		{"ź ż ž", "z"}
+		{ "À Á Â Ã Ä Å Ā Ă Ą", "A" },
+		{ "à á â ã ä å ā ă ą", "a" },
+		{ "Æ", "AE" },
+		{ "æ", "ae" },
+		{ "Ɓ", "B" },
+		{ "ẞ", "SS" },
+		{ "ß", "ss" },
+		{ "ƀ", "b" },
+		{ "Ç Ć Ĉ Ċ Č", "C" },
+		{ "ç ć ĉ ċ č", "c" },
+		{ "Ð Ď Đ", "D" },
+		{ "ď đ ð", "d" },
+		{ "È É Ê Ë Ē Ĕ Ė Ę Ě", "E" },
+		{ "è é ê ë ē ĕ ė ę ě", "e" },
+		{ "ſ", "f" },
+		{ "Ĝ Ğ Ġ Ģ", "G" },
+		{ "ĝ ğ ġ ģ", "g" },
+		{ "Ĥ Ħ", "H" },
+		{ "ĥ ħ", "h" },
+		{ "Ì Í Î Ï Ĩ Ī Ĭ Į İ", "I" },
+		{ "ì í î ï ĩ ī ĭ į ı", "i" },
+		{ "Ĳ", "IJ" },
+		{ "ĳ", "ij" },
+		{ "Ĵ", "J" },
+		{ "ĵ", "j" },
+		{ "Ķ", "K" },
+		{ "ķĸ", "k" },
+		{ "Ĺ Ļ Ľ Ŀ Ł", "L" },
+		{ "ĺ ļ ľ ŀ ł", "l" },
+		{ "Ñ Ń Ņ Ň Ŋ", "N" },
+		{ "ñ ń ņ ň ŉ ŋ", "n" },
+		{ "Ò Ó Ô Õ Ö Ø Ō Ŏ Ő", "O" },
+		{ "ò ó ô õ ö ø ō ŏ ő", "o" },
+		{ "þ Þ", "P" },
+		{ "Œ", "OE" },
+		{ "œ", "oe" },
+		{ "Ŕ Ŗ Ř", "R" },
+		{ "ŕ ŗ ř", "r" },
+		{ "Ś Ŝ Ş Š", "S" },
+		{ "ś ŝ ş š", "s" },
+		{ "Ţ Ť Ŧ", "T" },
+		{ "ţ ť ŧ", "t" },
+		{ "Ù Ú Û Ü Ũ Ū Ŭ Ů Ű Ų", "U" },
+		{ "ù ú û ü ũ ū ŭ ů ű ų", "u" },
+		{ "Ŵ", "W" },
+		{ "ŵ", "w" },
+		{ "Ý Ŷ Ÿ", "Y" },
+		{ "ý ŷ ÿ", "y" },
+		{ "Ź Ż Ž", "Z" },
+		{ "ź ż ž", "z" }
 	}
 
 	for _, accentRow in pairs(accents) do
-		accentRow[1] = {strsplit(' ', accentRow[1])}
+		accentRow[1] = { strsplit(' ', accentRow[1]) }
 		for _, a in pairs(accentRow[1]) do
 			str = string.gsub(str, a, accentRow[2])
 		end

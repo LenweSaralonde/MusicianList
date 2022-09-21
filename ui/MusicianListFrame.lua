@@ -82,7 +82,8 @@ end
 local function clampSize()
 	local width, height = MusicianListFrame:GetSize()
 	local minWidth, minHeight = 160, 160
-	local maxWidth, maxHeight = UIParent:GetWidth() / MusicianListFrame:GetScale(), UIParent:GetHeight() / MusicianListFrame:GetScale()
+	local maxWidth, maxHeight = UIParent:GetWidth() / MusicianListFrame:GetScale(),
+		UIParent:GetHeight() / MusicianListFrame:GetScale()
 	MusicianListFrame:SetSize(
 		max(minWidth, min(maxWidth, width)),
 		max(minHeight, min(maxHeight, height))
@@ -93,7 +94,7 @@ end
 -- @param index (int)
 -- @return rowFrame (Frame)
 local function getRowFrame(index)
-	return _G['MusicianListSong'.. index]
+	return _G['MusicianListSong' .. index]
 end
 
 --- Init
@@ -103,13 +104,13 @@ function MusicianList.Frame.Init()
 	MusicianListFrame.noEscape = true
 
 	-- Set the default anchor at the bottom of the Musician frame
-	if not(MusicianListFrame:IsUserPlaced()) then
+	if not MusicianListFrame:IsUserPlaced() then
 		MusicianListFrame:ClearAllPoints()
 		MusicianListFrame:SetPoint("TOP", MusicianFrame, "BOTTOM")
 	end
 
 	-- Set default height for WoW Classic
-	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and not(MusicianListFrame:IsUserPlaced()) then
+	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and not MusicianListFrame:IsUserPlaced() then
 		MusicianListFrame:SetHeight(330)
 	end
 
@@ -137,7 +138,8 @@ function MusicianList.Frame.Init()
 
 	-- Resize button
 	local resizeButton = MusicianListFrameResizeButton
-	for _, texture in ipairs({ resizeButton:GetNormalTexture(), resizeButton:GetHighlightTexture(), resizeButton:GetPushedTexture() }) do
+	for _, texture in ipairs({ resizeButton:GetNormalTexture(), resizeButton:GetHighlightTexture(),
+		resizeButton:GetPushedTexture() }) do
 		texture:ClearAllPoints()
 		texture:SetPoint("BOTTOMRIGHT", -10, 10)
 		texture:SetSize(20, 20)
@@ -188,7 +190,7 @@ function MusicianList.Frame.Init()
 		MusicianList.Frame.EnableButtons()
 	end)
 	MusicianList.Frame:RegisterMessage(Musician.Events.SongImportFailed, function()
-		if not(Musician.importingSong) or not(Musician.importingSong.importing) then
+		if not Musician.importingSong or not Musician.importingSong.importing then
 			MusicianFrameClearButton:Enable()
 			MusicianFrameSource:Enable()
 			Musician.Frame.SetLoadingProgressBar(nil)
@@ -277,7 +279,7 @@ function MusicianList.Frame.Init()
 	--- Gray out played songs
 	--
 	MusicianList.Frame:RegisterMessage(Musician.Events.StreamStart, function(event, song)
-		if not(song.isLiveStreamingSong) then
+		if not song.isLiveStreamingSong then
 			local id = MusicianList.GetSongId(song.name)
 			local children = { MusicianListFrameSongContainer:GetChildren() }
 			for _, rowFrame in ipairs(children) do
@@ -395,7 +397,7 @@ function MusicianList.Frame.SetRowTooltip(rowFrame, hasMouseOver)
 		GameTooltip:SetOwner(rowFrame.title, "ANCHOR_RIGHT")
 		GameTooltip_SetTitle(GameTooltip, rowFrame.title:GetText())
 		GameTooltip:Show()
-	elseif not(hasMouseOver) and GameTooltip:GetOwner() == rowFrame.title then
+	elseif not hasMouseOver and GameTooltip:GetOwner() == rowFrame.title then
 		GameTooltip:Hide()
 	end
 end

@@ -72,7 +72,7 @@ local function updateTo4(onComplete)
 
 		for id, songData in pairs(MusicianList_Storage.data) do
 			Musician.Utils.Debug(MODULE_NAME, "Checking compressed song data", songData.name)
-			if not(checkSong(songData)) then
+			if not checkSong(songData) then
 				Musician.Utils.Debug(MODULE_NAME, "Data corrupted: deleting song", songData.name)
 				MusicianList_Storage.data[id] = nil
 			end
@@ -198,22 +198,23 @@ local function updateTo5(onComplete)
 	local updaterWorker
 	updaterWorker = function()
 
-		-- Proceed with new song
-		-- =====================
-
 		if currentStep == nil then
+
+			-- Proceed with new song
+			-- =====================
+
 			currentSongIndex = currentSongIndex + 1
 			setProgression(currentSongIndex, 1, 0)
 
-			-- No more song to proceed: we're done!
 			if songIds[currentSongIndex] == nil then
+				-- No more song to proceed: we're done!
 				Musician.Worker.Remove(updaterWorker)
 				MusicianList_Storage.version = 5
 				updaterFrame:Hide()
 				MusicianList.Updater.UpdateDBNext(onComplete)
 				return
-			-- Processing new song
 			else
+				-- Processing new song
 				currentSong = MusicianList_Storage.data[songIds[currentSongIndex]]
 				Musician.Utils.Debug(MODULE_NAME, "Updating song to MUS6 format", currentSong.name)
 				updaterFrame.songLabel:SetText(currentSong.name)
@@ -224,10 +225,11 @@ local function updateTo5(onComplete)
 				return
 			end
 
-		-- Step 1: uncompress song chunk
-		-- =============================
-
 		elseif currentStep == 1 then
+
+			-- Step 1: uncompress song chunk
+			-- =============================
+
 			currentSongChunkIndex = currentSongChunkIndex + 1
 
 			-- Last chunk has been uncompressed: go to step 2
@@ -256,9 +258,10 @@ local function updateTo5(onComplete)
 
 			return
 
-		-- Step 2: Update track information in header
-		-- ==========================================
 		elseif currentStep == 2 then
+
+			-- Step 2: Update track information in header
+			-- ==========================================
 
 			setProgression(currentSongIndex, 1, 1)
 
@@ -311,10 +314,10 @@ local function updateTo5(onComplete)
 			currentStep = 3
 			return
 
-		-- Step 3: Update notes
-		-- ====================
-
 		elseif currentStep == 3 then
+
+			-- Step 3: Update notes
+			-- ====================
 
 			-- No more track to process: go to next step
 			if trackNoteCount[currentTrackIndex] == nil then
@@ -369,10 +372,11 @@ local function updateTo5(onComplete)
 
 			return
 
-		-- Step 4: compress song chunk
-		-- ===========================
-
 		elseif currentStep == 4 then
+
+			-- Step 4: compress song chunk
+			-- ===========================
+
 			local to = min(#newSongData, cursor + MusicianList.CHUNK_SIZE - 1)
 			local chunk = string.sub(newSongData, cursor, to)
 			setProgression(currentSongIndex, 3, cursor / #newSongData)
@@ -554,7 +558,8 @@ local function updateTo6(onComplete)
 
 			-- Rebuild new structure
 			song.name = Musician.Utils.NormalizeSongName(song.name)
-			newSongData = Musician.Utils.PackNumber(#song.name, 2) .. song.name .. strMode .. strDuration .. strTrackCount .. strTracks .. strNotes .. strTrackNames .. strSettingsMetadata
+			newSongData = Musician.Utils.PackNumber(#song.name, 2) ..
+				song.name .. strMode .. strDuration .. strTrackCount .. strTracks .. strNotes .. strTrackNames .. strSettingsMetadata
 
 			-- Next step
 			songStep = 3
