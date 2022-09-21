@@ -16,15 +16,27 @@ local function magneticEdges()
 	local frame = MusicianListFrame
 	local anchor = MusicianFrame
 
-	local isTopSticky = abs(anchor:GetBottom() - frame:GetTop()) <= MAGNETIC_EDGES_RANGE
-	local isBottomSticky = abs(anchor:GetTop() - frame:GetBottom()) <= MAGNETIC_EDGES_RANGE
-	local isLeftSticky = abs(anchor:GetRight() - frame:GetLeft()) <= MAGNETIC_EDGES_RANGE
-	local isRightSticky = abs(anchor:GetLeft() - frame:GetRight()) <= MAGNETIC_EDGES_RANGE
+	local anchorTop, anchorBottom, anchorLeft, anchorRight =
+	anchor:GetTop(), anchor:GetBottom(), anchor:GetLeft(), anchor:GetRight()
+	local frameTop, frameBottom, frameLeft, frameRight =
+	frame:GetTop(), frame:GetBottom(), frame:GetLeft(), frame:GetRight()
 
-	local isLeftAligned = abs(anchor:GetLeft() - frame:GetLeft()) <= MAGNETIC_EDGES_RANGE
-	local isRightAligned = abs(anchor:GetRight() - frame:GetRight()) <= MAGNETIC_EDGES_RANGE
-	local isTopAligned = abs(anchor:GetTop() - frame:GetTop()) <= MAGNETIC_EDGES_RANGE
-	local isBottomAligned = abs(anchor:GetBottom() - frame:GetBottom()) <= MAGNETIC_EDGES_RANGE
+	-- The positions might be nil
+	if anchorTop == nil or anchorBottom == nil or anchorLeft == nil or anchorRight == nil or
+		frameTop == nil or frameBottom == nil or frameLeft == nil or frameRight == nil
+	then
+		return
+	end
+
+	local isTopSticky = abs(anchorBottom - frameTop) <= MAGNETIC_EDGES_RANGE
+	local isBottomSticky = abs(anchorTop - frameBottom) <= MAGNETIC_EDGES_RANGE
+	local isLeftSticky = abs(anchorRight - frameLeft) <= MAGNETIC_EDGES_RANGE
+	local isRightSticky = abs(anchorLeft - frameRight) <= MAGNETIC_EDGES_RANGE
+
+	local isLeftAligned = abs(anchorLeft - frameLeft) <= MAGNETIC_EDGES_RANGE
+	local isRightAligned = abs(anchorRight - frameRight) <= MAGNETIC_EDGES_RANGE
+	local isTopAligned = abs(anchorTop - frameTop) <= MAGNETIC_EDGES_RANGE
+	local isBottomAligned = abs(anchorBottom - frameBottom) <= MAGNETIC_EDGES_RANGE
 
 	frame:ClearAllPoints()
 
