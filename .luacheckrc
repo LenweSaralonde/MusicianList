@@ -67,6 +67,7 @@ stds.wow = {
 		},
 
 		"hooksecurefunc",
+		"debugprofilestop",
 		"GetAddOnMetadata",
 		"CreateFrame",
 		"ChatEdit_FocusActiveWindow",

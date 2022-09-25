@@ -820,25 +820,31 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 		song.isInList = true
 		Musician.sourceSong = song
+		song = nil
+
+		local now = debugprofilestop()
+		collectgarbage()
+		local collectGarbageTime = (debugprofilestop() - now) / 1000
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
 		end
 
+		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, true)
+		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, Musician.sourceSong)
+
+		MusicianList:UnregisterMessage(Musician.Events.SongImportProgress)
+
+		MusicianList.RefreshFrame()
+
 		if action == MusicianList.LoadActions.Play then
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
-			song:Play()
+			-- Add a slight delay before previewing to prevent the first notes from being skipped due to garbage collection
+			C_Timer.After(max(.25, 3 * collectGarbageTime), function()
+				Musician.sourceSong:Play()
+			end)
 		end
-
-		MusicianList:SendMessage(MusicianList.Events.SongLoadComplete, songData, true)
-		MusicianList:SendMessage(Musician.Events.SourceSongLoaded, song)
-
-		MusicianList:UnregisterMessage(Musician.Events.SongImportProgress)
-		song = nil
-		collectgarbage()
-
-		MusicianList.RefreshFrame()
 	end)
 end
 
