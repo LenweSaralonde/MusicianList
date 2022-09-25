@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.7
+------
+* Fixed rare Lua error when showing the list frame.
+
 v1.9.6
 ------
 * Fixed frame position and size sometimes not being saved properly.
