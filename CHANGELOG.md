@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.8
+------
+* Added delay before previewing from the list to prevent note skip.
+
 v1.9.7
 ------
 * Fixed rare Lua error when showing the list frame.
