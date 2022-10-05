@@ -6,6 +6,6 @@ manual-changelog:
 
 ignore:
     # Fontello sources
-    - fonts/*.json
+    - ui/fonts/musicianlist-icons-fontetllo-config.json
     # README.md images
     - img
