@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.9
+------
+* TOC bump for WoW patch 10.0.0.
+
 v1.9.8
 ------
 * Added delay before previewing from the list to prevent note skip.
