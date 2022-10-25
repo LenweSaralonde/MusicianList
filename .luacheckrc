@@ -1,7 +1,6 @@
 max_line_length = false
 
-exclude_files = {
-}
+exclude_files = {}
 
 ignore = {
 	-- Ignore global writes/accesses/mutations on anything prefixed with "Musician".
