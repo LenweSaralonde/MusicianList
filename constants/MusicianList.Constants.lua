@@ -1,4 +1,4 @@
-MusicianList.MUSICIAN_API_VERSION = 25
+MusicianList.MUSICIAN_API_VERSION = 26
 
 MusicianList.STORAGE_VERSION = 7
 MusicianList.FILE_HEADER = 'MUS8'
