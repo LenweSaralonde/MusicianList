@@ -39,6 +39,7 @@ function MusicianList:OnEnable()
 	if MusicianList.MUSICIAN_API_VERSION > (Musician.API_VERSION or 0) then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
+			Musician.Utils.PrintError(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
 		end)
 		return
 	end
@@ -50,6 +51,7 @@ function MusicianList:OnEnable()
 	then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIANLIST_VERSION)
+			Musician.Utils.PrintError(MusicianList.Msg.ERR_OUTDATED_MUSICIANLIST_VERSION)
 		end)
 		return
 	end
