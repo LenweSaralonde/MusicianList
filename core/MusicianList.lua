@@ -521,7 +521,7 @@ function MusicianList.AddButtons()
 	-- Successfully received song data from link
 	--
 
-	MusicianList:RegisterMessage(Musician.Events.SongReceiveSucessful, function(event, _, songData, song, context)
+	MusicianList:RegisterMessage(Musician.Events.SongReceiveSuccessful, function(event, _, songData, song, context)
 		if context ~= Musician then return end
 
 		local isDataOnly = song == nil
