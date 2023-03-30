@@ -3,6 +3,8 @@ MusicianList = LibStub("AceAddon-3.0"):NewAddon("MusicianList", "AceEvent-3.0")
 local MODULE_NAME = "MusicianList"
 Musician.AddModule(MODULE_NAME)
 
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+
 local LibDeflate
 
 local isInitialized = false

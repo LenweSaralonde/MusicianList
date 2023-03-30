@@ -64,6 +64,12 @@ stds.wow = {
 			}
 		},
 
+		C_AddOns = {
+			fields = {
+				"GetAddOnMetadata",
+			}
+		},
+
 		"hooksecurefunc",
 		"debugprofilestop",
 		"GetAddOnMetadata",
