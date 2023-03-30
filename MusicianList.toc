@@ -3,6 +3,7 @@
 ## Author: LenweSaralonde
 ## Notes: Load and save songs for Musician
 ## Version: 1.9.14
+## IconTexture: Interface\Icons\70_professions_scroll_01.blp
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
