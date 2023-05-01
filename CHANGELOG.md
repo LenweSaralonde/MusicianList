@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.9.15
+-------
+* Updated for WoW patch 10.1.
+
 v1.9.14
 -------
 * Musician API changes.

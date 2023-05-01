@@ -1,8 +1,8 @@
-## Interface: 100007
+## Interface: 100100
 ## Title: Musician List
 ## Author: LenweSaralonde
 ## Notes: Load and save songs for Musician
-## Version: 1.9.14
+## Version: 1.9.15
 ## IconTexture: Interface\AddOns\MusicianList\ui\textures\addon-list-icon.blp
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
