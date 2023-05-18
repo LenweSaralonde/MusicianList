@@ -38,7 +38,9 @@ function MusicianList:OnEnable()
 	_G.BINDING_NAME_MUSICIANLISTTOGGLE = MusicianList.Msg.COMMAND_LIST
 
 	-- Check for outdated Musician version
-	if MusicianList.MUSICIAN_API_VERSION > (Musician.API_VERSION or 0) then
+	if MusicianList.MUSICIAN_API_VERSION > (Musician.API_VERSION or 0) or
+		Musician.Utils.VersionCompare(GetAddOnMetadata("Musician", "Version"), '1.9.8.0') < 0
+	then
 		C_Timer.After(10, function()
 			Musician.Utils.Error(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
 			Musician.Utils.PrintError(MusicianList.Msg.ERR_OUTDATED_MUSICIAN_VERSION)
