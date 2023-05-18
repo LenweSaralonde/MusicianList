@@ -126,11 +126,6 @@ function MusicianList.Frame.Init()
 		MusicianListFrame:SetHeight(330)
 	end
 
-	-- WoW Classic still uses the old school scrollbars, adjust anchors accordingly
-	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
-		MusicianListFrameScrollFrame:SetPoint("RIGHT", -40, 0)
-	end
-
 	-- Clamp frame size
 	MusicianListFrame:HookScript("OnSizeChanged", clampSize)
 	clampSize()

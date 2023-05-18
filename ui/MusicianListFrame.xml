@@ -185,8 +185,6 @@
 
 			<ScrollFrame name="$parentScrollFrame" inherits="MusicianScrollFrameTemplate">
 				<Anchors>
-					<Anchor point="LEFT" x="13" relativeTo="$parent" />
-					<Anchor point="RIGHT" x="-30" relativeTo="$parent" />
 					<Anchor point="TOP" y="-35" relativeTo="$parent" />
 					<Anchor point="BOTTOM" y="32" relativeTo="$parent" />
 				</Anchors>
