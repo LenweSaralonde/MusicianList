@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.10.0
+-------
+* Updated the song list with the new 10.1 scrollbar.
+
 v1.9.15
 -------
 * Updated for WoW patch 10.1.
