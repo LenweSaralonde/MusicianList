@@ -1,4 +1,4 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: Musician List
 ## Author: LenweSaralonde
 ## Notes: Load and save songs for Musician
