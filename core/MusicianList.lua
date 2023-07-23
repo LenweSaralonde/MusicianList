@@ -764,8 +764,6 @@ function MusicianList.DoSave(name, fromCommandLine)
 		MusicianList.RefreshFrame()
 
 		MusicianList:UnregisterMessage(Musician.Events.SongExportProgress)
-		song = nil
-		collectgarbage()
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_SAVING)
@@ -825,12 +823,14 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 		end
 
 		song.isInList = true
-		Musician.sourceSong = song
-		song = nil
 
 		local now = debugprofilestop()
-		collectgarbage()
-		local collectGarbageTime = (debugprofilestop() - now) / 1000
+		if Musician.sourceSong then
+			Musician.sourceSong:Wipe()
+		end
+		local songWipeTime = (debugprofilestop() - now) / 1000
+
+		Musician.sourceSong = song
 
 		if fromCommandLine then
 			Musician.Utils.Print(MusicianList.Msg.DONE_LOADING)
@@ -847,7 +847,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
 			-- Add a slight delay before previewing to prevent the first notes from being skipped due to garbage collection
-			C_Timer.After(max(.25, 3 * collectGarbageTime), function()
+			C_Timer.After(max(.25, 3 * songWipeTime), function()
 				Musician.sourceSong:Play()
 			end)
 		end
