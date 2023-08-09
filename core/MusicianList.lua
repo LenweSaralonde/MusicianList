@@ -825,11 +825,7 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 
 		song.isInList = true
 
-		local now = debugprofilestop()
-		if Musician.sourceSong then
-			Musician.sourceSong:Wipe()
-		end
-		local songWipeTime = (debugprofilestop() - now) / 1000
+		local previousSourceSongToWipe = Musician.sourceSong
 
 		Musician.sourceSong = song
 
@@ -848,9 +844,13 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 			Musician.Comm.PlaySong()
 		elseif action == MusicianList.LoadActions.Preview then
 			-- Add a slight delay before previewing to prevent the first notes from being skipped due to garbage collection
-			C_Timer.After(max(.25, 3 * songWipeTime), function()
+			C_Timer.After(.25, function()
 				Musician.sourceSong:Play()
 			end)
+		end
+
+		if previousSourceSongToWipe then
+			previousSourceSongToWipe:Wipe()
 		end
 	end)
 end
