@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.10.3
+-------
+* Updated for WoW patch 10.1.7 and WoW Classic patch 1.14.4.
+
 v1.10.2
 -------
 * Optimized memory management to address intermittent freezing.
