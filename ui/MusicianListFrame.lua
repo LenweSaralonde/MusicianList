@@ -113,7 +113,7 @@ end
 --
 function MusicianList.Frame.Init()
 	-- Main init
-	MusicianListFrame.noEscape = true
+	MusicianListFrame:DisableEscape()
 
 	-- Set the default anchor at the bottom of the Musician frame
 	if not MusicianListFrame:IsUserPlaced() then
