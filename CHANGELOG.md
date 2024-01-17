@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.10.5
+-------
+* Updated for WoW Retail patch 10.2.5 and WoW Classic patch 1.15.0.
+
 v1.10.4
 -------
 * Fixed blocked actions in combat lockdown.
