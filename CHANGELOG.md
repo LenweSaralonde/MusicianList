@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.11.1
+-------
+* Updated for The War Within prepatch.
+* Updated for WoW Classic patch 1.15.3.
+
 v1.11.0
 -------
 * Updated for WoW Retail patch 10.2.7.
