@@ -160,7 +160,7 @@ v1.7.6
 v1.7.5
 ------
 * Unified version for WoW Shadowlands, WoW Classic and WoW Burning Crusade Classic.
-* Created localization for German, Spanish, Italian, Korean, Portugese, Russian and traditional Chinese using Google Translate.
+* Created localization for German, Spanish, Italian, Korean, Portuguese, Russian and traditional Chinese using Google Translate.
 * Minor bugfixes and improvements.
 
 v1.7.4
