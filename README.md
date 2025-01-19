@@ -11,7 +11,7 @@ Highlight a song to show the action buttons (play, rename, share, delete).
 
 Type `/mus help` to get the command list.
 
-Special thanks to [Mystic Zaru](https://www.youtube.com/channel/UCDeGhURXdgXnCS77wh_cWDg), [Eldorias](https://www.youtube.com/channel/UC6j5rkx9SUAiHqlNYK5egAA]) and Oliira-Moonguard for the demo songs!
+Special thanks to [Mystic Zaru](https://www.youtube.com/@steeldruid), [Eldorias](https://www.youtube.com/@Eldorias) and Oliira-Moonguard for the demo songs!
 
 Command list
 ------------
