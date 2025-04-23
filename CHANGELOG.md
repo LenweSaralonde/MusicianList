@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.11.5
+-------
+* TOC bump for WoW retail 11.1.5 and WoW Classic Era 1.15.7.
+
 v1.11.4
 -------
 * Added add-on category and group.

@@ -2,7 +2,7 @@
 ## Title: Musician List
 ## Author: LenweSaralonde
 ## Notes: Load and save songs for Musician
-## Version: 1.11.4
+## Version: 1.11.5
 ## RequiredDeps: Musician
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
