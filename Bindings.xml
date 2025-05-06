@@ -1,5 +1,5 @@
 <Bindings>
-	<Binding name="MUSICIANLISTTOGGLE" category="ADDONS">
+	<Binding name="MUSICIANLISTTOGGLE" category="BINDING_CATEGORY_MUSICIAN">
 		if MusicianList.IsInitialized() then
 			MusicianListFrame:Toggle()
 		end
