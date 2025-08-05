@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.12.1
+-------
+* Updated for WoW retail patch 11.2.
+
 v1.12.0
 -------
 * Updated for WoW Mists of Pandaria Classic prepatch.
