@@ -106,12 +106,12 @@ function MusicianList.OnReady()
 		maxLetters = 0,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
-			local name = self.editBox:GetText()
+			local name = self:GetEditBox():GetText()
 			MusicianList.SaveConfirm(name, params.fromCommandLine)
 		end,
 		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
-			local name = parent.editBox:GetText()
+			local name = parent:GetEditBox():GetText()
 			MusicianList.SaveConfirm(name, params.fromCommandLine)
 			parent:Hide()
 		end,
@@ -119,13 +119,13 @@ function MusicianList.OnReady()
 			self:GetParent():Hide()
 		end,
 		OnShow = function(self, params)
-			self.editBox:SetText(Musician.Utils.NormalizeSongName(params.name))
-			self.editBox:HighlightText(0)
-			self.editBox:SetFocus()
+			self:GetEditBox():SetText(Musician.Utils.NormalizeSongName(params.name))
+			self:GetEditBox():HighlightText(0)
+			self:GetEditBox():SetFocus()
 		end,
 		OnHide = function(self)
 			ChatEdit_FocusActiveWindow()
-			self.editBox:SetText("")
+			self:GetEditBox():SetText("")
 		end,
 		timeout = 0,
 		exclusive = 1,
@@ -144,12 +144,12 @@ function MusicianList.OnReady()
 		maxLetters = 0,
 		editBoxWidth = 350,
 		OnAccept = function(self, params)
-			local name = self.editBox:GetText()
+			local name = self:GetEditBox():GetText()
 			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 		end,
 		EditBoxOnEnterPressed = function(self, params)
 			local parent = self:GetParent()
-			local name = parent.editBox:GetText()
+			local name = parent:GetEditBox():GetText()
 			MusicianList.RenameConfirm(params.id, name, params.fromCommandLine)
 			parent:Hide()
 		end,
@@ -157,13 +157,13 @@ function MusicianList.OnReady()
 			self:GetParent():Hide()
 		end,
 		OnShow = function(self, params)
-			self.editBox:SetText(Musician.Utils.NormalizeSongName(params.oldName))
-			self.editBox:HighlightText(0)
-			self.editBox:SetFocus()
+			self:GetEditBox():SetText(Musician.Utils.NormalizeSongName(params.oldName))
+			self:GetEditBox():HighlightText(0)
+			self:GetEditBox():SetFocus()
 		end,
 		OnHide = function(self)
 			ChatEdit_FocusActiveWindow()
-			self.editBox:SetText("")
+			self:GetEditBox():SetText("")
 		end,
 		timeout = 0,
 		exclusive = 1,
