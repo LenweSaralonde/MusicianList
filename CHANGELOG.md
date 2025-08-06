@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.12.2
+-------
+* Fixed song save and rename static popups after 11.2 breaking changes.
+
 v1.12.1
 -------
 * Updated for WoW retail patch 11.2.
