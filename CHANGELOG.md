@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.12.3
+-------
+* Fixed list frame glitch when detached from the Musician frame.
+
 v1.12.2
 -------
 * Fixed song save and rename static popups after 11.2 breaking changes.
