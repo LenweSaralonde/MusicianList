@@ -12,14 +12,13 @@ local PLAYED_SONG_COLOR = CreateColor(0.7, 0.7, 0.7)
 --- Handle magnetic edges
 --
 local function magneticEdges()
-
 	local frame = MusicianListFrame
 	local anchor = MusicianFrame
 
 	local anchorTop, anchorBottom, anchorLeft, anchorRight =
-	anchor:GetTop(), anchor:GetBottom(), anchor:GetLeft(), anchor:GetRight()
+		anchor:GetTop(), anchor:GetBottom(), anchor:GetLeft(), anchor:GetRight()
 	local frameTop, frameBottom, frameLeft, frameRight =
-	frame:GetTop(), frame:GetBottom(), frame:GetLeft(), frame:GetRight()
+		frame:GetTop(), frame:GetBottom(), frame:GetLeft(), frame:GetRight()
 
 	-- The positions might be nil
 	if anchorTop == nil or anchorBottom == nil or anchorLeft == nil or anchorRight == nil or
@@ -33,51 +32,66 @@ local function magneticEdges()
 	local isLeftSticky = abs(anchorRight - frameLeft) <= MAGNETIC_EDGES_RANGE
 	local isRightSticky = abs(anchorLeft - frameRight) <= MAGNETIC_EDGES_RANGE
 
-	local isLeftAligned = abs(anchorLeft - frameLeft) <= MAGNETIC_EDGES_RANGE
-	local isRightAligned = abs(anchorRight - frameRight) <= MAGNETIC_EDGES_RANGE
 	local isTopAligned = abs(anchorTop - frameTop) <= MAGNETIC_EDGES_RANGE
 	local isBottomAligned = abs(anchorBottom - frameBottom) <= MAGNETIC_EDGES_RANGE
+	local isLeftAligned = abs(anchorLeft - frameLeft) <= MAGNETIC_EDGES_RANGE
+	local isRightAligned = abs(anchorRight - frameRight) <= MAGNETIC_EDGES_RANGE
 
-	frame:ClearAllPoints()
+	-- Set new anchor points depending on stickyness
+	local pointsCleared = false
+	local function setFramePoint(...)
+		if not pointsCleared then
+			frame:ClearAllPoints()
+			pointsCleared = true
+		end
+		frame:SetPoint(...)
+	end
 
 	-- Anchored by top border
 	if isTopSticky then
 		if isLeftAligned then
-			frame:SetPoint('TOPLEFT', anchor, 'BOTTOMLEFT', 0, 0)
+			setFramePoint('TOPLEFT', anchor, 'BOTTOMLEFT', 0, 0)
 		end
 		if isRightAligned then
-			frame:SetPoint('TOPRIGHT', anchor, 'BOTTOMRIGHT', 0, 0)
+			setFramePoint('TOPRIGHT', anchor, 'BOTTOMRIGHT', 0, 0)
 		end
 	end
 
 	-- Anchored by bottom border
 	if isBottomSticky then
 		if isLeftAligned then
-			frame:SetPoint('BOTTOMLEFT', anchor, 'TOPLEFT', 0, 0)
+			setFramePoint('BOTTOMLEFT', anchor, 'TOPLEFT', 0, 0)
 		end
 		if isRightAligned then
-			frame:SetPoint('BOTTOMRIGHT', anchor, 'TOPRIGHT', 0, 0)
+			setFramePoint('BOTTOMRIGHT', anchor, 'TOPRIGHT', 0, 0)
 		end
 	end
 
 	-- Anchored by left border
 	if isLeftSticky then
 		if isTopAligned then
-			frame:SetPoint('TOPLEFT', anchor, 'TOPRIGHT', 0, 0)
+			setFramePoint('TOPLEFT', anchor, 'TOPRIGHT', 0, 0)
 		end
 		if isBottomAligned then
-			frame:SetPoint('BOTTOMLEFT', anchor, 'BOTTOMRIGHT', 0, 0)
+			setFramePoint('BOTTOMLEFT', anchor, 'BOTTOMRIGHT', 0, 0)
 		end
 	end
 
 	-- Anchored by right border
 	if isRightSticky then
 		if isTopAligned then
-			frame:SetPoint('TOPRIGHT', anchor, 'TOPLEFT', 0, 0)
+			setFramePoint('TOPRIGHT', anchor, 'TOPLEFT', 0, 0)
 		end
 		if isBottomAligned then
-			frame:SetPoint('BOTTOMRIGHT', anchor, 'BOTTOMLEFT', 0, 0)
+			setFramePoint('BOTTOMRIGHT', anchor, 'BOTTOMLEFT', 0, 0)
 		end
+	end
+
+	-- No anchor point: just set a point at the current frame current position
+	if not pointsCleared then
+		local newAnchorX = frame:GetLeft()
+		local newAnchorY = frame:GetTop() - GetScreenHeight()
+		setFramePoint("TOPLEFT", nil, "TOPLEFT", newAnchorX, newAnchorY)
 	end
 end
 
@@ -296,7 +310,8 @@ function MusicianList.Frame.Init()
 			local children = { MusicianListFrameSongContainer:GetChildren() }
 			for _, rowFrame in ipairs(children) do
 				if rowFrame.song ~= nil and rowFrame.song.id == id then
-					rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b, PLAYED_SONG_COLOR.a)
+					rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b,
+						PLAYED_SONG_COLOR.a)
 					return
 				end
 			end
@@ -322,9 +337,11 @@ function MusicianList.Frame.SetData()
 		rowFrame.index:SetText(song.index)
 		rowFrame.title:SetText(song.name)
 		if MusicianList.playedSongs[song.id] then
-			rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b, PLAYED_SONG_COLOR.a)
+			rowFrame.title.text:SetTextColor(PLAYED_SONG_COLOR.r, PLAYED_SONG_COLOR.g, PLAYED_SONG_COLOR.b,
+				PLAYED_SONG_COLOR.a)
 		else
-			rowFrame.title.text:SetTextColor(NORMAL_SONG_COLOR.r, NORMAL_SONG_COLOR.g, NORMAL_SONG_COLOR.b, NORMAL_SONG_COLOR.a)
+			rowFrame.title.text:SetTextColor(NORMAL_SONG_COLOR.r, NORMAL_SONG_COLOR.g, NORMAL_SONG_COLOR.b,
+				NORMAL_SONG_COLOR.a)
 		end
 		rowFrame.duration:SetText(MusicianList.FormatTime(song.duration, true))
 	end

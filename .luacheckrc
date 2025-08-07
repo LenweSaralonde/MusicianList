@@ -83,6 +83,7 @@ stds.wow = {
 		"PlaySound",
 		"SearchBoxTemplate_OnLoad",
 		"SearchBoxTemplate_OnTextChanged",
+		"GetScreenHeight",
 
 		-- Global Mixins and UI Objects
 		GameTooltip = {
