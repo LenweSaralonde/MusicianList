@@ -4,6 +4,8 @@ local MODULE_NAME = "MusicianList"
 Musician.AddModule(MODULE_NAME)
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+local ChatEdit_LinkItem = ChatFrameUtil and ChatFrameUtil.LinkItem or ChatEdit_LinkItem
+local ChatEdit_FocusActiveWindow = ChatFrameUtil and ChatFrameUtil.FocusActiveWindow or ChatEdit_FocusActiveWindow
 
 local LibDeflate
 

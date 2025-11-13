@@ -70,6 +70,14 @@ stds.wow = {
 			}
 		},
 
+		ChatFrameUtil = {
+			fields = {
+				"LinkItem",
+				"FocusActiveWindow",
+			}
+		},
+
+
 		"hooksecurefunc",
 		"debugprofilestop",
 		"GetAddOnMetadata",
