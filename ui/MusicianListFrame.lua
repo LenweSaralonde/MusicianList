@@ -595,6 +595,9 @@ function MusicianListSongTemplate_OnLoad(row)
 	row.title.linkButton:HookScript("OnClick", function(self)
 		MusicianList.Link(row.song.id)
 	end)
+	if Musician.SongLinks.PreventChatCloseOnFocus then
+		Musician.SongLinks.PreventChatCloseOnFocus(row.title.linkButton)
+	end
 
 	-- Rename button
 	row.title.renameButton:SetText(MusicianList.Icons.Pencil)
