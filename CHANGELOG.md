@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.12.4
+-------
+* Updated for WoW Retail 11.2.7, MoP Classic 5.5.2 and Classic Era 1.15.8.
+* Prevent chat edit box from being closed when inserting a song link.
+* Minor bugfixes and improvements.
+
 v1.12.3
 -------
 * Fixed list frame glitch when detached from the Musician frame.
