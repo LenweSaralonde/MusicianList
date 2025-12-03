@@ -1,4 +1,4 @@
-## Interface: 50500
+## Interface: 50502
 ## Title: Musician List
 ## Author: LenweSaralonde
 ## Notes: Load and save songs for Musician
