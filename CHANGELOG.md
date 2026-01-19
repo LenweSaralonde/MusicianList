@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.13.0
+-------
+* TOC bump for WoW Midnight 12.0.0 prepatch.
+* Added support for TBC Anniversary Classic 2.5.5.
+* TOC bump for WoW Mists of Pandaria Classic 5.5.3.
+
 v1.12.4
 -------
 * Updated for WoW Retail 11.2.7, MoP Classic 5.5.2 and Classic Era 1.15.8.
