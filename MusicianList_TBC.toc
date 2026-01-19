@@ -1,0 +1,33 @@
+## Interface: 20505
+## Title: Musician List
+## Author: LenweSaralonde
+## Notes: Load and save songs for Musician
+## Version: 1.12.4
+## RequiredDeps: Musician
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: MusicianList_Storage
+## Category-enUS: Roleplay
+## Category-deDE: Rollenspiel
+## Category-esES: Juego de rol
+## Category-esMX: Juego de rol
+## Category-frFR: Jeu de rôle
+## Category-itIT: Gioco di Ruolo
+## Category-koKR: 롤플레잉
+## Category-ptBR: Interpretação de Papel
+## Category-ruRU: Ролевая игра
+## Category-zhCN: 角色扮演
+## Category-zhTW: 角色扮演
+## Group: Musician
+
+core\MusicianList.lua
+core\MusicianList.Updater.lua
+
+constants\MusicianList.Constants.lua
+constants\MusicianList.DemoSongs.lua
+
+locale\locale.xml
+
+ui\fonts\MusicianList.Icons.lua
+
+ui\MusicianListFrame.xml
