@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.14.1
+-------
+* Updated for Wow Retail 12.0.7 and MoP Classic 5.5.4.
+
 v1.14.0
 -------
 * TOC bump for Wow Retail 12.0.5.
