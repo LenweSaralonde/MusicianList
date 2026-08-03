@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v1.14.2
+-------
+* Updated for Wow Classic Era 1.15.9 and WoW TBC Classic 2.5.6.
+
 v1.14.1
 -------
 * Updated for Wow Retail 12.0.7 and MoP Classic 5.5.4.
