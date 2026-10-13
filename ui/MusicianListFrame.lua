@@ -136,7 +136,7 @@ function MusicianList.Frame.Init()
 	end
 
 	-- Set default height for WoW Classic
-	if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and not MusicianListFrame:IsUserPlaced() then
+	if not Musician.Utils.IsModernWoW() and not MusicianListFrame:IsUserPlaced() then
 		MusicianListFrame:SetHeight(330)
 	end
 
