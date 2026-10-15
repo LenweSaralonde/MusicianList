@@ -235,11 +235,11 @@
 
 			<!-- Search box -->
 
-			<EditBox name="$parentSearchBox" parentKey="searchBox" inherits="SearchBoxTemplate">
-				<Size y="18" />
+			<EditBox name="$parentSearchBox" parentKey="searchBox" inherits="SearchBoxTemplate" autoFocus="false" frameLevel="5">
+				<Size y="22" />
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" relativeTo="$parent" relativePoint="BOTTOMLEFT" x="14" y="10" />
-					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-11" />
+					<Anchor point="BOTTOMLEFT" relativeTo="$parent" relativePoint="BOTTOMLEFT" x="14" y="7" />
+					<Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="BOTTOMRIGHT" x="-9" />
 				</Anchors>
 			</EditBox>
 
