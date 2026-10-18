@@ -20,6 +20,8 @@
 ## Category-zhCN: 角色扮演
 ## Category-zhTW: 角色扮演
 ## Group: Musician
+## X-Curse-Project-ID: 306254
+## X-Wago-ID: baNDy26o
 
 core\MusicianList.lua
 core\MusicianList.Updater.lua
