@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v1.17.0
+-------
+* Rewrote emote management.
+* Reworked widgets and search edit box using standard components.
+* WoW Forever compatibility.
+
 v1.16.0
 -------
 * Remade dropdowns using the standard API.
