@@ -795,6 +795,11 @@ function MusicianList.Load(idOrIndex, action, fromCommandLine)
 		return
 	end
 
+	-- Send promo emote now since playing will occur asynchronously, outside of the hardware event
+	if action == MusicianList.LoadActions.Play and Musician.Comm.CanPlay() then
+		Musician.Emote.SendPromoEmote()
+	end
+
 	-- Initiate loading process
 	if fromCommandLine then
 		Musician.Utils.Print(string.gsub(MusicianList.Msg.LOADING_SONG, "{name}", Musician.Utils.Highlight(songData.name)))
